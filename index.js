@@ -12,13 +12,7 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 3030;
 
-app.get("/ping", (req, res) => {
-  res.status(200).json({
-    status: true,
-    message: "pong",
-    statusCode: 200,
-  });
-});
+
 // connect to database
 connectToDatabase.connect();
 // routes
@@ -31,7 +25,13 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", require("./routes"));
-
+app.get("/ping", (req, res) => {
+  res.status(200).json({
+    status: true,
+    message: "pong",
+    statusCode: 200,
+  });
+});
 // err handle
 app.use(function (req, res, next) {
   next(createError(404));
