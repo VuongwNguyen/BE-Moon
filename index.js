@@ -6,10 +6,19 @@ const createError = require("http-errors");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 const connectToDatabase = require("./connection");
+require("dotenv").config();
+
 
 const app = express();
-const port = 3030;
+const port = process.env.PORT || 3030;
 
+app.get("/ping", (req, res) => {
+  res.status(200).json({
+    status: true,
+    message: "pong",
+    statusCode: 200,
+  });
+});
 // connect to database
 connectToDatabase.connect();
 // routes
