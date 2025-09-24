@@ -16,7 +16,7 @@ class GalleryService {
   async getGalleryItems() {
     const galleryItems = await GalleryModel.find({ status: "active" }).sort({
       createdAt: -1,
-    });
+    }).limit(200);
     if (!galleryItems) {
       throw new errorResponse({
         message: "error while fetching gallery items",
