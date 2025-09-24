@@ -8,10 +8,8 @@ const path = require("path");
 const connectToDatabase = require("./connection");
 require("dotenv").config();
 
-
 const app = express();
 const port = process.env.PORT || 3030;
-
 
 // connect to database
 connectToDatabase.connect();
