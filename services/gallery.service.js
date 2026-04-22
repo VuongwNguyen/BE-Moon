@@ -2,21 +2,24 @@ const GalleryModel = require("../models/gallery");
 const { errorResponse } = require("../context/responseHandle");
 
 class GalleryService {
-  async createGallery({ title, description, uploadedFiles = [] }) {
+  async createGallery({ name, title, description, uploadedFiles = [] }) {
     uploadedFiles.forEach(async (file) => {
       await GalleryModel.create({
+        name,
         title,
         description,
-        imageUrl: file.url, // Assuming the uploaded file object has a 'url' property
+        imageUrl: file.url,
       });
     });
 
     return;
   }
-  async getGalleryItems() {
-    const galleryItems = await GalleryModel.find({ status: "active" }).sort({
-      createdAt: -1,
-    }).limit(200);
+
+  async getGalleryItems({ name }) {
+    const galleryItems = await GalleryModel.find({ name, status: "active" })
+      .sort({ createdAt: -1 })
+      .limit(200);
+
     if (!galleryItems) {
       throw new errorResponse({
         message: "error while fetching gallery items",
@@ -28,4 +31,3 @@ class GalleryService {
 }
 
 module.exports = new GalleryService();
-// This service handles the creation of gallery items in the database.
