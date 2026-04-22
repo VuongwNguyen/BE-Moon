@@ -1,6 +1,11 @@
 const { model, Schema } = require("mongoose");
 
 const gallerySchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+    index: true,
+  },
   title: {
     type: String,
     required: true,
