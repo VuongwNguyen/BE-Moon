@@ -5,13 +5,16 @@ async function migrate() {
   await mongoose.connect(process.env.DATABASE_URL);
   console.log("Connected to database");
 
-  const result = await mongoose
-    .connection
-    .collection("gallery")
-    .updateMany({ name: { $exists: false } }, { $set: { name: "moon" } });
+  try {
+    const result = await mongoose
+      .connection
+      .collection("gallery")
+      .updateMany({ name: { $exists: false } }, { $set: { name: "moon" } });
 
-  console.log(`Migration complete: ${result.modifiedCount} documents updated → name="moon"`);
-  await mongoose.disconnect();
+    console.log(`Migration complete: ${result.modifiedCount} documents updated → name="moon"`);
+  } finally {
+    await mongoose.disconnect();
+  }
 }
 
 migrate().catch((err) => {
