@@ -1,23 +1,30 @@
 const GalleryService = require("../services/gallery.service");
-const { successfullyResponse } = require("../context/responseHandle");
+const { successfullyResponse, errorResponse } = require("../context/responseHandle");
 
 class GalleryController {
   async createGallery(req, res, next) {
-    const { title, description } = req.body;
+    const { name, title, description } = req.body;
+
+    if (!name) {
+      return next(new errorResponse({ message: "name is required", statusCode: 400 }));
+    }
+
     const { uploadedFiles } = req;
-    const galleryItem = await GalleryService.createGallery({
-      title,
-      description,
-      uploadedFiles,
-    });
+    await GalleryService.createGallery({ name, title, description, uploadedFiles });
 
     return new successfullyResponse({
       message: "Gallery item created successfully",
     }).json(res);
   }
 
- async getGalleryItems(req, res, next) {
-    const galleryItems = await GalleryService.getGalleryItems();
+  async getGalleryItems(req, res, next) {
+    const { name } = req.query;
+
+    if (!name) {
+      return next(new errorResponse({ message: "name is required", statusCode: 404 }));
+    }
+
+    const galleryItems = await GalleryService.getGalleryItems({ name });
     return new successfullyResponse({
       message: "Gallery items fetched successfully",
       meta: galleryItems,
