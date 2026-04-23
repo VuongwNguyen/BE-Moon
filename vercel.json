@@ -2,11 +2,27 @@
   "version": 2,
   "builds": [
     {
+      "src": "public/**",
+      "use": "@vercel/static"
+    },
+    {
       "src": "index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
+    {
+      "src": "/auth/(.*)",
+      "dest": "/public/auth/$1"
+    },
+    {
+      "src": "/portal/(.*)",
+      "dest": "/public/portal/$1"
+    },
+    {
+      "src": "/admin/(.*)",
+      "dest": "/public/admin/$1"
+    },
     {
       "src": "/(.*)",
       "dest": "index.js"
