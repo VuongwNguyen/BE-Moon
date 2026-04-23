@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/auth/(.*)", "destination": "/public/auth/$1" },
+    { "source": "/portal/(.*)", "destination": "/public/portal/$1" },
+    { "source": "/admin/(.*)", "destination": "/public/admin/$1" },
+    { "source": "/(.*)", "destination": "/index.js" }
+  ]
+}
