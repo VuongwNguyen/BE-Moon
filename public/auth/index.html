@@ -7,20 +7,14 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      min-height: 100vh;
-      background: #0a0a1f;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: sans-serif;
-      color: #fff;
+      min-height: 100vh; background: #0a0a1f;
+      display: flex; align-items: center; justify-content: center;
+      font-family: sans-serif; color: #fff;
     }
     .card {
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      padding: 32px;
-      width: 360px;
+      border-radius: 12px; padding: 32px; width: 360px;
     }
     h2 { text-align: center; margin-bottom: 24px; color: #e0b3ff; }
     .tabs { display: flex; margin-bottom: 24px; gap: 8px; }
@@ -34,73 +28,203 @@
       background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
       border-radius: 6px; color: #fff; font-size: 14px;
     }
+    input.otp-input {
+      font-size: 28px; font-weight: bold; letter-spacing: 12px;
+      text-align: center;
+    }
     button[type=submit] {
       width: 100%; padding: 12px; background: #a259f7;
       border: none; border-radius: 6px; color: #fff;
       font-size: 15px; cursor: pointer; margin-top: 4px;
     }
     button[type=submit]:hover { background: #8b3de8; }
+    .btn-resend {
+      width: 100%; padding: 10px; margin-top: 8px;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px; color: #fff; font-size: 14px; cursor: pointer;
+    }
+    .btn-resend:disabled { opacity: 0.4; cursor: not-allowed; }
     .msg { text-align: center; margin-top: 12px; font-size: 13px; min-height: 20px; }
     .msg.error { color: #ff6b6b; }
     .msg.success { color: #6bffb8; }
+    .otp-hint { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 16px; text-align: center; }
+    .screen { display: none; }
+    .screen.active { display: block; }
+    .back-btn {
+      background: none; border: none; color: rgba(255,255,255,0.5);
+      font-size: 13px; cursor: pointer; margin-bottom: 16px; padding: 0;
+    }
+    .back-btn:hover { color: #fff; }
   </style>
 </head>
 <body>
   <div class="card">
     <h2>✨ Galaxy</h2>
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('login')">Đăng nhập</button>
-      <button class="tab" onclick="switchTab('register')">Đăng ký</button>
+
+    <!-- Screen 1: Login / Register -->
+    <div class="screen active" id="screen-auth">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('login')">Đăng nhập</button>
+        <button class="tab" onclick="switchTab('register')">Đăng ký</button>
+      </div>
+      <form id="form-auth">
+        <input type="email" id="email" placeholder="Email" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <button type="submit" id="submit-btn">Đăng nhập</button>
+      </form>
+      <div class="msg" id="msg-auth"></div>
     </div>
-    <form id="form">
-      <input type="email" id="email" placeholder="Email" required />
-      <input type="password" id="password" placeholder="Password" required />
-      <button type="submit" id="submit-btn">Đăng nhập</button>
-    </form>
-    <div class="msg" id="msg"></div>
+
+    <!-- Screen 2: OTP Verification -->
+    <div class="screen" id="screen-otp">
+      <button class="back-btn" onclick="showScreen('auth')">← Quay lại</button>
+      <p class="otp-hint">Nhập mã OTP 6 số đã gửi tới<br><strong id="otp-email-display"></strong></p>
+      <form id="form-otp">
+        <input type="text" class="otp-input" id="otp" placeholder="______"
+          maxlength="6" inputmode="numeric" autocomplete="one-time-code" required />
+        <button type="submit">Xác thực</button>
+      </form>
+      <button class="btn-resend" id="btn-resend" onclick="resendOtp()">Gửi lại OTP</button>
+      <div class="msg" id="msg-otp"></div>
+    </div>
   </div>
 
   <script>
     let mode = 'login';
+    let pendingEmail = '';
+    let resendTimer = null;
+
+    function showScreen(name) {
+      document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+      document.getElementById('screen-' + name).classList.add('active');
+    }
 
     function switchTab(tab) {
       mode = tab;
-      document.querySelectorAll('.tab').forEach((t, i) => {
+      document.querySelectorAll('.tab').forEach(function(t, i) {
         t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
       });
       document.getElementById('submit-btn').textContent = tab === 'login' ? 'Đăng nhập' : 'Đăng ký';
-      document.getElementById('msg').textContent = '';
+      document.getElementById('msg-auth').textContent = '';
     }
 
-    document.getElementById('form').addEventListener('submit', async (e) => {
+    function startResendCountdown(seconds) {
+      var btn = document.getElementById('btn-resend');
+      btn.disabled = true;
+      var remaining = seconds;
+      btn.textContent = 'Gửi lại sau ' + remaining + 's';
+      resendTimer = setInterval(function() {
+        remaining--;
+        if (remaining <= 0) {
+          clearInterval(resendTimer);
+          btn.disabled = false;
+          btn.textContent = 'Gửi lại OTP';
+        } else {
+          btn.textContent = 'Gửi lại sau ' + remaining + 's';
+        }
+      }, 1000);
+    }
+
+    function showOtpScreen(email, countdown) {
+      pendingEmail = email;
+      document.getElementById('otp-email-display').textContent = email;
+      document.getElementById('otp').value = '';
+      document.getElementById('msg-otp').textContent = '';
+      showScreen('otp');
+      if (resendTimer) clearInterval(resendTimer);
+      startResendCountdown(countdown || 60);
+    }
+
+    document.getElementById('form-auth').addEventListener('submit', async function(e) {
       e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const msg = document.getElementById('msg');
+      var email = document.getElementById('email').value;
+      var password = document.getElementById('password').value;
+      var msg = document.getElementById('msg-auth');
       msg.textContent = '';
 
       try {
-        const res = await fetch(`/auth/${mode}`, {
+        var res = await fetch('/auth/' + mode, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email: email, password: password }),
         });
-        const data = await res.json();
+        var data = await res.json();
+
+        if (res.status === 403 && data.message && data.message.includes('not verified')) {
+          showOtpScreen(email);
+          return;
+        }
         if (!res.ok) {
           msg.className = 'msg error';
           msg.textContent = data.message || 'Có lỗi xảy ra';
+          return;
+        }
+        if (mode === 'register') {
+          showOtpScreen(email);
           return;
         }
         localStorage.setItem('token', data.meta.token);
         localStorage.setItem('user', JSON.stringify(data.meta.user));
         msg.className = 'msg success';
         msg.textContent = 'Thành công! Đang chuyển hướng...';
-        setTimeout(() => { window.location.href = '/portal'; }, 800);
-      } catch {
+        setTimeout(function() { window.location.href = '/portal/'; }, 800);
+      } catch(err) {
         msg.className = 'msg error';
         msg.textContent = 'Lỗi kết nối server';
       }
     });
+
+    document.getElementById('form-otp').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var otp = document.getElementById('otp').value;
+      var msg = document.getElementById('msg-otp');
+      msg.textContent = '';
+
+      try {
+        var res = await fetch('/auth/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: pendingEmail, otp: otp }),
+        });
+        var data = await res.json();
+        if (!res.ok) {
+          msg.className = 'msg error';
+          msg.textContent = data.message || 'OTP không hợp lệ';
+          return;
+        }
+        localStorage.setItem('token', data.meta.token);
+        localStorage.setItem('user', JSON.stringify(data.meta.user));
+        msg.className = 'msg success';
+        msg.textContent = 'Xác thực thành công! Đang chuyển hướng...';
+        setTimeout(function() { window.location.href = '/portal/'; }, 800);
+      } catch(err) {
+        msg.className = 'msg error';
+        msg.textContent = 'Lỗi kết nối server';
+      }
+    });
+
+    async function resendOtp() {
+      var msg = document.getElementById('msg-otp');
+      try {
+        var res = await fetch('/auth/resend-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: pendingEmail }),
+        });
+        var data = await res.json();
+        if (!res.ok) {
+          msg.className = 'msg error';
+          msg.textContent = data.message || 'Lỗi gửi OTP';
+          return;
+        }
+        msg.className = 'msg success';
+        msg.textContent = 'OTP đã được gửi lại!';
+        startResendCountdown(60);
+      } catch(err) {
+        msg.className = 'msg error';
+        msg.textContent = 'Lỗi kết nối server';
+      }
+    }
   </script>
 </body>
 </html>

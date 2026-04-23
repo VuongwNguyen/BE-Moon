@@ -4,6 +4,8 @@ const { requireAuth } = require("../middlewares/auth");
 const AuthController = require("../controllers/auth.controller");
 
 router.post("/register", asyncHandler(AuthController.register));
+router.post("/verify-otp", asyncHandler(AuthController.verifyOtp));
+router.post("/resend-otp", asyncHandler(AuthController.resendOtp));
 router.post("/login", asyncHandler(AuthController.login));
 router.get("/me", requireAuth, asyncHandler(AuthController.me));
 
