@@ -1,8 +1,9 @@
 const { model, Schema } = require("mongoose");
 
 const gallerySchema = new Schema({
-  name: {
-    type: String,
+  galaxyId: {
+    type: Schema.Types.ObjectId,
+    ref: "Galaxy",
     required: true,
     index: true,
   },
