@@ -110,7 +110,11 @@ document.getElementById('form-auth').addEventListener('submit', async function(e
     localStorage.setItem('token', data.meta.token);
     localStorage.setItem('user', JSON.stringify(data.meta.user));
     setMsg('msg-auth', 'Thành công!', 'success');
-    playTransition('/portal/');
+    if (data.meta.user.role === 'admin') {
+      playTransition('/portal/');
+    } else {
+      setTimeout(function() { window.location.href = '/portal/'; }, 600);
+    }
   } catch(err) {
     setMsg('msg-auth', 'Lỗi kết nối server', 'error');
     setLoading('submit-btn', false, label);
@@ -138,7 +142,11 @@ document.getElementById('form-otp').addEventListener('submit', async function(e)
     localStorage.setItem('token', data.meta.token);
     localStorage.setItem('user', JSON.stringify(data.meta.user));
     setMsg('msg-otp', 'Xác thực thành công!', 'success');
-    playTransition('/portal/');
+    if (data.meta.user.role === 'admin') {
+      playTransition('/portal/');
+    } else {
+      setTimeout(function() { window.location.href = '/portal/'; }, 600);
+    }
   } catch(err) {
     setMsg('msg-otp', 'Lỗi kết nối server', 'error');
     setLoading('verify-btn', false, 'Xác thực');
