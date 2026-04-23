@@ -16,5 +16,15 @@ router.get(
   "/items",
   asyncHandler(GalleryController.getGalleryItems)
 );
+router.delete(
+  "/items/:id",
+  requireAuth,
+  asyncHandler(GalleryController.deleteGalleryItem)
+);
+router.get(
+  "/my-items",
+  requireAuth,
+  asyncHandler(GalleryController.getMyGalleryItems)
+);
 
 module.exports = router;
