@@ -1505,15 +1505,15 @@ async function getHeartImages() {
   let heartImages = [...(window.dataLove2Loveloom?.data?.heartImages || [])];
 
   const params = new URLSearchParams(window.location.search);
-  const name = params.get("name");
+  const galaxyId = params.get("galaxyId");
 
-  if (!name) {
-    console.warn("⚠️ Không có ?name= trong URL, bỏ qua tải ảnh từ server.");
+  if (!galaxyId) {
+    console.warn("⚠️ Không có ?galaxyId= trong URL, bỏ qua tải ảnh từ server.");
     return heartImages;
   }
 
   try {
-    const res = await fetch(`/gallary/items?name=${encodeURIComponent(name)}`);
+    const res = await fetch(`/gallary/items?galaxyId=${encodeURIComponent(galaxyId)}`);
     const data = await res.json();
     heartImages.push(...data.meta.map((item) => item.imageUrl));
   } catch (err) {
