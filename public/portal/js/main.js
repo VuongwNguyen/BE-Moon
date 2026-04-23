@@ -4,14 +4,21 @@ if (!token) window.location.href = '/auth/';
 const user = JSON.parse(localStorage.getItem('user') || '{}');
 document.getElementById('user-email').textContent = user.email || '';
 
-// Admin: show link to admin panel
+// Admin: show admin tab
 if (user.role === 'admin') {
-  const adminLink = document.createElement('a');
-  adminLink.href = '/admin/';
-  adminLink.textContent = '🛡️ Admin Panel';
-  adminLink.style.cssText = 'font-size:13px;color:#ff9f9f;text-decoration:none;margin-left:12px;opacity:0.8;';
-  document.getElementById('user-email').appendChild(adminLink);
+  document.getElementById('tab-admin').style.display = '';
 }
+
+// Tab switching
+document.querySelectorAll('.tab-btn[data-tab]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    const tab = btn.getAttribute('data-tab');
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+  });
+});
 
 function logout() {
   localStorage.removeItem('token');
