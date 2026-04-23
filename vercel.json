@@ -12,16 +12,28 @@
   ],
   "routes": [
     {
-      "src": "/auth/(.*)",
+      "src": "/auth/(.+\\.[a-zA-Z0-9]+)",
       "dest": "/public/auth/$1"
     },
     {
-      "src": "/portal/(.*)",
+      "src": "/portal/(.+\\.[a-zA-Z0-9]+)",
       "dest": "/public/portal/$1"
     },
     {
-      "src": "/admin/(.*)",
+      "src": "/admin/(.+\\.[a-zA-Z0-9]+)",
       "dest": "/public/admin/$1"
+    },
+    {
+      "src": "/auth/?$",
+      "dest": "/public/auth/index.html"
+    },
+    {
+      "src": "/portal/?$",
+      "dest": "/public/portal/index.html"
+    },
+    {
+      "src": "/admin/?$",
+      "dest": "/public/admin/index.html"
     },
     {
       "src": "/(.*)",
