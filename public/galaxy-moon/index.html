@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Galaxy</title>
     <link rel="icon" type="image/png" href="/heart.png" sizes="16x16" />
-    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./css/style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <!-- Importmap cho THREE.js -->
@@ -113,7 +113,7 @@
         };
     </script>
 
-    <script type="module" src="./script.js"></script>
+    <script type="module" src="./js/script.js"></script>
 
     <!-- Khởi tạo Music Manager -->
     <script>
@@ -123,7 +123,7 @@
 
             init() {
                 // Đường dẫn nhạc cố định
-                this.audio = new Audio('./natt.mp3');
+                this.audio = new Audio('./assets/music/natt.mp3');
                 this.audio.loop = true;
                 this.audio.volume = 0.7;
                 this.audio.preload = "auto";
