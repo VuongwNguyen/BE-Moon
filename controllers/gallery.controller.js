@@ -1,16 +1,25 @@
 const GalleryService = require("../services/gallery.service");
+const GalaxyModel = require("../models/galaxy");
 const { successfullyResponse, errorResponse } = require("../context/responseHandle");
 
 class GalleryController {
   async createGallery(req, res, next) {
-    const { name, title, description } = req.body;
+    const { galaxyId, title, description } = req.body;
 
-    if (!name) {
-      return next(new errorResponse({ message: "name is required", statusCode: 400 }));
+    if (!galaxyId) {
+      return next(new errorResponse({ message: "galaxyId is required", statusCode: 400 }));
+    }
+
+    const galaxy = await GalaxyModel.findById(galaxyId);
+    if (!galaxy) {
+      return next(new errorResponse({ message: "Galaxy not found", statusCode: 404 }));
+    }
+    if (galaxy.userId.toString() !== req.user._id.toString()) {
+      return next(new errorResponse({ message: "Forbidden", statusCode: 403 }));
     }
 
     const { uploadedFiles } = req;
-    await GalleryService.createGallery({ name, title, description, uploadedFiles });
+    await GalleryService.createGallery({ galaxyId, title, description, uploadedFiles });
 
     return new successfullyResponse({
       message: "Gallery item created successfully",
@@ -18,13 +27,13 @@ class GalleryController {
   }
 
   async getGalleryItems(req, res, next) {
-    const { name } = req.query;
+    const { galaxyId } = req.query;
 
-    if (!name) {
-      return next(new errorResponse({ message: "name is required", statusCode: 404 }));
+    if (!galaxyId) {
+      return next(new errorResponse({ message: "galaxyId is required", statusCode: 404 }));
     }
 
-    const galleryItems = await GalleryService.getGalleryItems({ name });
+    const galleryItems = await GalleryService.getGalleryItems({ galaxyId });
     return new successfullyResponse({
       message: "Gallery items fetched successfully",
       meta: galleryItems,

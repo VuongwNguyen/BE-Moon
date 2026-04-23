@@ -1,22 +1,22 @@
 const GalleryModel = require("../models/gallery");
+const GalaxyModel = require("../models/galaxy");
 const { errorResponse } = require("../context/responseHandle");
 
 class GalleryService {
-  async createGallery({ name, title, description, uploadedFiles = [] }) {
+  async createGallery({ galaxyId, title, description, uploadedFiles = [] }) {
     uploadedFiles.forEach(async (file) => {
       await GalleryModel.create({
-        name,
+        galaxyId,
         title,
         description,
         imageUrl: file.url,
       });
     });
-
     return;
   }
 
-  async getGalleryItems({ name }) {
-    const galleryItems = await GalleryModel.find({ name, status: "active" })
+  async getGalleryItems({ galaxyId }) {
+    const galleryItems = await GalleryModel.find({ galaxyId, status: "active" })
       .sort({ createdAt: -1 })
       .limit(200);
 
