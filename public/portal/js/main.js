@@ -4,6 +4,15 @@ if (!token) window.location.href = '/auth/';
 const user = JSON.parse(localStorage.getItem('user') || '{}');
 document.getElementById('user-email').textContent = user.email || '';
 
+// Admin: show link to admin panel
+if (user.role === 'admin') {
+  const adminLink = document.createElement('a');
+  adminLink.href = '/admin/';
+  adminLink.textContent = '🛡️ Admin Panel';
+  adminLink.style.cssText = 'font-size:13px;color:#ff9f9f;text-decoration:none;margin-left:12px;opacity:0.8;';
+  document.getElementById('user-email').appendChild(adminLink);
+}
+
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');

@@ -1,3 +1,5 @@
+import { playTransition } from './transition.js';
+
 var mode = 'login';
 var pendingEmail = '';
 var resendTimer = null;
@@ -107,8 +109,8 @@ document.getElementById('form-auth').addEventListener('submit', async function(e
     }
     localStorage.setItem('token', data.meta.token);
     localStorage.setItem('user', JSON.stringify(data.meta.user));
-    setMsg('msg-auth', 'Thành công! Đang chuyển hướng...', 'success');
-    setTimeout(function() { window.location.href = '/portal/'; }, 800);
+    setMsg('msg-auth', 'Thành công!', 'success');
+    playTransition(data.meta.user.role === 'admin' ? '/admin/' : '/portal/');
   } catch(err) {
     setMsg('msg-auth', 'Lỗi kết nối server', 'error');
     setLoading('submit-btn', false, label);
@@ -135,8 +137,8 @@ document.getElementById('form-otp').addEventListener('submit', async function(e)
     }
     localStorage.setItem('token', data.meta.token);
     localStorage.setItem('user', JSON.stringify(data.meta.user));
-    setMsg('msg-otp', 'Xác thực thành công! Đang chuyển hướng...', 'success');
-    setTimeout(function() { window.location.href = '/portal/'; }, 800);
+    setMsg('msg-otp', 'Xác thực thành công!', 'success');
+    playTransition(data.meta.user.role === 'admin' ? '/admin/' : '/portal/');
   } catch(err) {
     setMsg('msg-otp', 'Lỗi kết nối server', 'error');
     setLoading('verify-btn', false, 'Xác thực');

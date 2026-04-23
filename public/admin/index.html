@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Galaxy</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { min-height: 100vh; background: #0a0a1f; font-family: sans-serif; color: #fff; padding: 32px 16px; }
+    header {
+      max-width: 960px; margin: 0 auto 32px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 16px;
+    }
+    .header-left h1 { color: #e0b3ff; font-size: 20px; }
+    .badge {
+      display: inline-block; padding: 2px 10px; border-radius: 99px;
+      font-size: 11px; background: rgba(255,107,107,0.2); color: #ff6b6b;
+      margin-left: 8px; vertical-align: middle;
+    }
+    .header-right { display: flex; gap: 8px; }
+    .btn {
+      padding: 8px 16px; border-radius: 6px; border: none;
+      cursor: pointer; font-size: 13px; color: #fff;
+    }
+    .btn-ghost { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.15); }
+    .container { max-width: 960px; margin: 0 auto; }
+    .coming-soon {
+      text-align: center; padding: 80px 0; color: rgba(255,255,255,0.3);
+    }
+    .coming-soon .icon { font-size: 48px; margin-bottom: 16px; }
+    .coming-soon h2 { font-size: 24px; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+    .coming-soon p { font-size: 14px; }
+    .nav { display: flex; gap: 4px; margin-bottom: 24px; }
+    .nav-item {
+      padding: 8px 16px; border-radius: 6px; border: none;
+      cursor: pointer; font-size: 14px; color: rgba(255,255,255,0.6);
+      background: transparent;
+    }
+    .nav-item.active { background: rgba(162,89,247,0.2); color: #e0b3ff; }
+    .nav-item:hover:not(.active) { background: rgba(255,255,255,0.05); color: #fff; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1>🛡️ Admin Panel <span class="badge">ADMIN</span></h1>
+      <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px" id="admin-email"></div>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-ghost" id="btn-portal">Portal</button>
+      <button class="btn btn-ghost" id="btn-logout">Đăng xuất</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="nav">
+      <button class="nav-item active">Dashboard</button>
+      <button class="nav-item">Users</button>
+      <button class="nav-item">Payments</button>
+    </div>
+
+    <div class="coming-soon">
+      <div class="icon">🚀</div>
+      <h2>Admin Panel đang được xây dựng</h2>
+      <p>Quản lý users, subscription và doanh thu sẽ sớm có ở đây.</p>
+    </div>
+  </div>
+
+  <script src="./js/main.js"></script>
+</body>
+</html>
