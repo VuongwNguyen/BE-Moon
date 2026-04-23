@@ -1513,7 +1513,7 @@ async function getHeartImages() {
   }
 
   try {
-    const res = await fetch(`https://be-moon.onrender.com/gallary/items?name=${encodeURIComponent(name)}`);
+    const res = await fetch(`/gallary/items?name=${encodeURIComponent(name)}`);
     const data = await res.json();
     heartImages.push(...data.meta.map((item) => item.imageUrl));
   } catch (err) {
