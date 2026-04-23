@@ -94,12 +94,12 @@
       <h1>✨ Galaxy Portal</h1>
       <div class="user-info" id="user-email"></div>
     </div>
-    <button class="logout" onclick="logout()">Đăng xuất</button>
+    <button class="logout" id="btn-logout">Đăng xuất</button>
   </header>
 
   <div class="container">
     <div class="section-title">Galaxies của bạn</div>
-    <button class="btn-new" onclick="openModal()">+ Tạo galaxy mới</button>
+    <button class="btn-new" id="btn-open-modal">+ Tạo galaxy mới</button>
     <div class="galaxy-grid" id="galaxy-grid"></div>
   </div>
 
@@ -109,8 +109,8 @@
       <input type="text" id="galaxy-name" placeholder="Tên galaxy (vd: moon, emiu...)" />
       <div class="msg" id="modal-msg"></div>
       <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeModal()">Hủy</button>
-        <button class="btn-create" onclick="createGalaxy()">Tạo</button>
+        <button class="btn-cancel" id="btn-cancel">Hủy</button>
+        <button class="btn-create" id="btn-create">Tạo</button>
       </div>
     </div>
   </div>
@@ -122,8 +122,27 @@
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     document.getElementById('user-email').textContent = user.email || '';
 
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/auth/';
+    }
+
+    function openModal() {
+      document.getElementById('modal').classList.add('open');
+      document.getElementById('galaxy-name').value = '';
+      document.getElementById('modal-msg').textContent = '';
+      document.getElementById('btn-create').disabled = false;
+      document.getElementById('btn-create').textContent = 'Tạo';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.remove('open');
+    }
+
     async function loadGalaxies() {
       const grid = document.getElementById('galaxy-grid');
+      grid.textContent = '';
       try {
         const res = await fetch('/galaxies/my', {
           headers: { 'Authorization': 'Bearer ' + token }
@@ -148,7 +167,7 @@
         grid.appendChild(p);
         return;
       }
-      galaxies.forEach(g => {
+      galaxies.forEach(function(g) {
         const a = document.createElement('a');
         a.className = 'galaxy-card';
         a.href = '/galaxy-moon/?galaxyId=' + g._id;
@@ -173,40 +192,38 @@
       });
     }
 
-    function openModal() {
-      document.getElementById('modal').classList.add('open');
-      document.getElementById('galaxy-name').value = '';
-      document.getElementById('modal-msg').textContent = '';
-    }
+    document.getElementById('btn-logout').addEventListener('click', logout);
+    document.getElementById('btn-open-modal').addEventListener('click', openModal);
+    document.getElementById('btn-cancel').addEventListener('click', closeModal);
 
-    function closeModal() {
-      document.getElementById('modal').classList.remove('open');
-    }
-
-    async function createGalaxy() {
+    document.getElementById('btn-create').addEventListener('click', async function() {
       const name = document.getElementById('galaxy-name').value.trim();
       const msg = document.getElementById('modal-msg');
+      const btn = document.getElementById('btn-create');
       if (!name) { msg.textContent = 'Nhập tên galaxy'; return; }
+      btn.disabled = true;
+      btn.textContent = 'Đang tạo...';
       try {
         const res = await fetch('/galaxies', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({ name })
+          body: JSON.stringify({ name: name })
         });
         const data = await res.json();
-        if (!res.ok) { msg.textContent = data.message || 'Lỗi'; return; }
+        if (!res.ok) {
+          msg.textContent = data.message || 'Lỗi';
+          btn.disabled = false;
+          btn.textContent = 'Tạo';
+          return;
+        }
         closeModal();
         loadGalaxies();
       } catch {
         msg.textContent = 'Lỗi kết nối';
+        btn.disabled = false;
+        btn.textContent = 'Tạo';
       }
-    }
-
-    function logout() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/auth/';
-    }
+    });
 
     loadGalaxies();
   </script>
