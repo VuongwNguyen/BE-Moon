@@ -19,7 +19,7 @@ class PaymentController {
 
   async webhook(req, res, next) {
     await PaymentService.handleWebhook(req.body);
-    res.json({ error: '0', message: 'Success' });
+    return res.json({ error: '0', message: 'Success' });
   }
 
   async getStatus(req, res, next) {
