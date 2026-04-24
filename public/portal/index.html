@@ -367,6 +367,101 @@
       color: var(--red);
       letter-spacing: 0.02em;
     }
+
+    /* ── Subscription ────────────────────────────── */
+    .sub-section { max-width: 520px; }
+    .sub-current {
+      background: var(--surface);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+    }
+    .sub-current .plan-label {
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--accent-light);
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .sub-current .plan-expiry { font-size: 13px; color: var(--text-sub); }
+    .sub-plans {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .plan-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .plan-card:hover { border-color: var(--border-accent); }
+    .plan-card .plan-name {
+      font-family: 'Cinzel', serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent-light);
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+    .plan-card .plan-features {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-bottom: 14px;
+      line-height: 1.7;
+    }
+    .plan-card .plan-price { font-size: 13px; color: var(--text); margin-bottom: 14px; }
+    .plan-card .plan-price strong { font-size: 17px; }
+    .period-toggle { display: flex; gap: 6px; margin-bottom: 20px; }
+    .period-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--text-sub);
+      font-size: 12px;
+      font-family: 'Jost', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .period-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-subscribe {
+      width: 100%;
+      padding: 9px;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      font-family: 'Jost', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-subscribe:hover { background: var(--accent-dark); }
+    .btn-subscribe:disabled { opacity: 0.5; cursor: not-allowed; }
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1a1a2e;
+      border: 1px solid var(--border-accent);
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-size: 14px;
+      color: var(--text);
+      z-index: 200;
+      transition: transform 0.3s ease;
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { border-color: rgba(110,231,183,0.4); color: var(--green); }
+    .toast.error { border-color: rgba(248,113,113,0.4); color: var(--red); }
   </style>
 </head>
 <body>
@@ -384,6 +479,7 @@
       <button class="tab-btn" data-tab="admin" id="tab-admin" style="display:none">
         🛡 Admin <span class="admin-badge">ADMIN</span>
       </button>
+      <button class="tab-btn" data-tab="subscription">Subscription</button>
     </div>
 
     <div class="tab-panel active" id="panel-galaxies">
@@ -397,7 +493,15 @@
         <p>Quản lý users, subscription và doanh thu sẽ sớm có ở đây.</p>
       </div>
     </div>
+
+    <div class="tab-panel" id="panel-subscription">
+      <div class="sub-section" id="sub-section">
+        <div class="empty" id="sub-loading">Dang tai...</div>
+      </div>
+    </div>
   </div>
+
+  <div class="toast" id="toast"></div>
 
   <div class="modal-overlay" id="modal">
     <div class="modal">
@@ -412,5 +516,6 @@
   </div>
 
   <script src="./js/main.js"></script>
+  <script src="./js/subscription.js"></script>
 </body>
 </html>
