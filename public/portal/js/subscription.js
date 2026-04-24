@@ -116,6 +116,7 @@
 
   function updatePlanBadges(sub) {
     const planLabel = sub ? (PLANS[sub.plan] ? PLANS[sub.plan].label.toUpperCase() : sub.plan.toUpperCase()) : null;
+    // admin hiện "ADMIN" thay vì plan name
 
     // Badge trong header (cạnh email)
     const userInfoEl = document.getElementById('user-email');
@@ -181,6 +182,11 @@
 
   // Fetch status lúc load trang để hiện badge ngay (không cần click tab)
   async function initBadges() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user.role === 'admin') {
+      updatePlanBadges({ plan: 'admin', expiredAt: null });
+      return;
+    }
     try {
       const res = await fetch('/payment/status', {
         headers: { 'Authorization': 'Bearer ' + token },
