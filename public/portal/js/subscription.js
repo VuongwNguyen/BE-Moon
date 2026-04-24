@@ -71,6 +71,10 @@
     nameEl.textContent = plan.label;
 
     const featuresEl = el('div', 'plan-features');
+    const maxLine = document.createElement('div');
+    maxLine.textContent = '🌌 Tối đa ' + (planKey === 'plus' ? '3' : '10') + ' galaxies';
+    maxLine.style.fontWeight = '500';
+    featuresEl.appendChild(maxLine);
     plan.features.forEach(function (f) {
       const line = document.createElement('div');
       line.textContent = f;

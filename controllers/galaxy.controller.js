@@ -7,7 +7,7 @@ class GalaxyController {
     if (!name) {
       return next(new errorResponse({ message: "name is required", statusCode: 400 }));
     }
-    const galaxy = await GalaxyService.createGalaxy({ userId: req.user._id, name });
+    const galaxy = await GalaxyService.createGalaxy({ userId: req.user._id, name, userRole: req.user.role });
     return new successfullyResponse({
       message: "Galaxy created",
       meta: galaxy,

@@ -46,6 +46,23 @@ class GalleryService {
       });
     }
 
+    // Delete from ImageKit
+    if (image.imageUrl) {
+      const ImageKit = require("imagekit");
+      const imagekit = new ImageKit({
+        publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+        privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+        urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+      });
+      
+      try {
+        const fileId = image.imageUrl.split('/').pop().split('?')[0];
+        await imagekit.deleteFile(fileId);
+      } catch (error) {
+        console.error("Failed to delete image from ImageKit:", error);
+      }
+    }
+
     await GalleryModel.findByIdAndDelete(id);
     return;
   }

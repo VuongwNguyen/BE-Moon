@@ -11,9 +11,9 @@ function generateOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-function signToken(user) {
+function signToken(user, sessionId) {
   return jwt.sign(
-    { _id: user._id, email: user.email, role: user.role },
+    { _id: user._id, email: user.email, role: user.role, sid: sessionId },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
   );
@@ -112,7 +112,11 @@ class AuthService {
       try { await this.resendOtp({ email }); } catch (_) {}
       throw new errorResponse({ message: "Email not verified. A new OTP has been sent.", statusCode: 403 });
     }
-    const token = signToken(user);
+    const MAX_SESSIONS = 3;
+    const sessionId = require('crypto').randomBytes(16).toString('hex');
+    user.sessions = [...(user.sessions || []), sessionId].slice(-MAX_SESSIONS);
+    await user.save();
+    const token = signToken(user, sessionId);
     return { token, user: { _id: user._id, email: user.email, role: user.role } };
   }
 
