@@ -1,0 +1,40 @@
+const { model, Schema } = require("mongoose");
+
+const subscriptionSchema = new Schema({
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+    index: true,
+  },
+  plan: {
+    type: String,
+    enum: ["plus", "pro"],
+    required: true,
+  },
+  period: {
+    type: String,
+    enum: ["monthly", "yearly"],
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ["active", "expired", "cancelled"],
+    default: "active",
+  },
+  startDate: {
+    type: Date,
+    required: true,
+  },
+  expiredAt: {
+    type: Date,
+    required: true,
+    index: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+module.exports = model("Subscription", subscriptionSchema, "subscriptions");
