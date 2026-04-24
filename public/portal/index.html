@@ -492,6 +492,54 @@
       font-family: 'Jost', sans-serif;
     }
     .btn-delete-row:hover { background: rgba(248,113,113,0.2); }
+
+    /* ── Color field ─────────────────────────────── */
+    .color-field {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 6px 12px;
+      margin-bottom: 10px;
+      transition: border-color 0.2s;
+    }
+    .color-field:focus-within { border-color: rgba(139,92,246,0.4); }
+    .color-field label { font-size: 11px; color: var(--text-sub); width: 68px; flex-shrink: 0; letter-spacing: 0.05em; }
+    .color-picker {
+      width: 28px; height: 28px;
+      border: none; border-radius: 6px;
+      padding: 0; cursor: pointer;
+      background: none; flex-shrink: 0;
+      outline: none;
+    }
+    .color-field input[type="text"] {
+      flex: 1; background: none; border: none;
+      color: var(--text); font-size: 13px;
+      font-family: 'Jost', sans-serif;
+      outline: none; padding: 0;
+    }
+    .color-swatch {
+      display: inline-block; width: 14px; height: 14px;
+      border-radius: 3px; border: 1px solid rgba(255,255,255,0.15);
+      vertical-align: middle; margin-right: 4px;
+    }
+
+    /* ── Skeleton loading ────────────────────────── */
+    .skel {
+      height: 14px; border-radius: 4px; width: 80%;
+      background: linear-gradient(90deg,
+        rgba(255,255,255,0.05) 0%,
+        rgba(255,255,255,0.1) 50%,
+        rgba(255,255,255,0.05) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
     .admin-layout {
       display: flex;
       gap: 24px;
@@ -649,10 +697,23 @@
   <div class="modal-overlay" id="theme-modal">
     <div class="modal">
       <h3>Add Theme</h3>
-      <input type="text" id="theme-name" placeholder="Theme name" />
-      <input type="text" id="theme-primary" placeholder="Primary color (e.g., #8b5cf6)" />
-      <input type="text" id="theme-secondary" placeholder="Secondary color" />
-      <input type="text" id="theme-bg" placeholder="Background color" />
+      <input type="text" id="theme-name" placeholder="Theme name" style="margin-bottom:14px" />
+      <div class="color-field">
+        <label>Primary</label>
+        <input type="color" class="color-picker" id="theme-primary-picker" value="#8b5cf6">
+        <input type="text" id="theme-primary" placeholder="#8b5cf6" maxlength="7">
+      </div>
+      <div class="color-field">
+        <label>Secondary</label>
+        <input type="color" class="color-picker" id="theme-secondary-picker" value="#48b8b8">
+        <input type="text" id="theme-secondary" placeholder="#48b8b8" maxlength="7">
+      </div>
+      <div class="color-field">
+        <label>Background</label>
+        <input type="color" class="color-picker" id="theme-bg-picker" value="#06060e">
+        <input type="text" id="theme-bg" placeholder="#06060e" maxlength="7">
+      </div>
+      <div class="msg" id="theme-modal-msg" style="font-size:13px;min-height:18px;margin-bottom:8px;color:#f87171"></div>
       <div class="modal-actions">
         <button class="btn-cancel" id="btn-cancel-theme">Cancel</button>
         <button class="btn-create" id="btn-save-theme">Save</button>

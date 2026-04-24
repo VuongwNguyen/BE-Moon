@@ -130,6 +130,25 @@
       caret-color: var(--text);
     }
 
+    /* ── Eye toggle ──────────────────────────────── */
+    .input-group { position: relative; }
+    .eye-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      cursor: pointer;
+      padding: 2px;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+    .eye-btn:hover { color: var(--text); }
+    .has-eye { padding-right: 40px; }
+
     /* OTP input */
     input.otp-input {
       font-size: 28px;
@@ -266,7 +285,12 @@
           <input type="email" id="email" placeholder="Email" required />
         </div>
         <div class="input-group">
-          <input type="password" id="password" placeholder="Mật khẩu" required />
+          <input type="password" id="password" class="has-eye" placeholder="Mật khẩu" required />
+          <button type="button" class="eye-btn" id="toggle-password" tabindex="-1" aria-label="Hiện/ẩn mật khẩu">
+            <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
         </div>
         <button type="submit" class="btn-primary" id="submit-btn">Đăng nhập</button>
       </form>
@@ -293,6 +317,15 @@
     <canvas id="transition-canvas"></canvas>
   </div>
 
+  <script>
+    document.getElementById('toggle-password').addEventListener('click', function() {
+      var input = document.getElementById('password');
+      var showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      var icon = document.getElementById('eye-icon');
+      icon.style.opacity = showing ? '1' : '0.45';
+    });
+  </script>
   <script type="module" src="./js/main.js"></script>
 </body>
 </html>
