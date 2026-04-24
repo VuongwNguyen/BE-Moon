@@ -246,7 +246,7 @@
     .caption-item {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 8px;
       padding: 8px 12px;
       background: var(--surface-2);
       border: 1px solid var(--border);
@@ -254,18 +254,46 @@
       margin-bottom: 6px;
       font-size: 13px;
       color: var(--text);
+      transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+      cursor: grab;
     }
+    .caption-item:active { cursor: grabbing; }
+    .caption-item.dragging { opacity: 0.35; }
+    .caption-item.drag-over {
+      border-color: var(--accent);
+      background: rgba(139,92,246,0.1);
+    }
+    .drag-handle {
+      color: var(--text-sub);
+      font-size: 15px;
+      flex-shrink: 0;
+      opacity: 0.5;
+      user-select: none;
+    }
+    .caption-text { flex: 1; }
     .caption-item button {
       background: none;
       border: none;
       color: var(--red);
       cursor: pointer;
       font-size: 16px;
-      padding: 0 4px;
-      opacity: 0.7;
+      padding: 0 2px;
+      opacity: 0.6;
+      flex-shrink: 0;
       transition: opacity 0.2s;
     }
     .caption-item button:hover { opacity: 1; }
+
+    /* ── Save indicator ───────────────────────────── */
+    .save-indicator {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: var(--text-sub);
+      min-height: 16px;
+      transition: color 0.2s;
+    }
+    .save-indicator.saved { color: var(--green); }
+    .save-indicator.error { color: var(--red); }
 
     /* ── Masonry Grid ─────────────────────────────── */
     .masonry-grid {
@@ -332,6 +360,33 @@
     }
     .delete-image:hover {
       background: #b91c1c !important;
+    }
+
+    /* ── Subscription lock ───────────────────────── */
+    .feature-lock-msg {
+      margin-top: 8px;
+      padding: 7px 12px;
+      background: rgba(139,92,246,0.08);
+      border: 1px solid rgba(139,92,246,0.22);
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .feature-lock-msg a {
+      color: var(--accent-light);
+      text-decoration: none;
+      margin-left: auto;
+      font-weight: 500;
+    }
+    .feature-lock-msg a:hover { text-decoration: underline; }
+    .section-locked select,
+    .section-locked input,
+    .section-locked button {
+      opacity: 0.38;
+      pointer-events: none;
     }
 
     /* ── Empty / Loading states ───────────────────── */
@@ -456,20 +511,23 @@
 
     <!-- Customization -->
     <div class="card">
-      <div class="card-label">Customization</div>
-      <div style="margin-bottom: 16px;">
+      <div class="card-label" style="justify-content: space-between;">
+        <span>Customization</span>
+        <span id="saveIndicator" class="save-indicator"></span>
+      </div>
+      <div id="themeSection" style="margin-bottom: 16px;">
         <label style="display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px;">Theme</label>
         <select id="themeSelect" style="width: 100%; padding: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Jost', sans-serif; font-size: 13px;">
           <option value="">No theme</option>
         </select>
       </div>
-      <div style="margin-bottom: 16px;">
+      <div id="musicSection" style="margin-bottom: 16px;">
         <label style="display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px;">Background Music</label>
         <select id="musicSelect" style="width: 100%; padding: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Jost', sans-serif; font-size: 13px;">
           <option value="">No music</option>
         </select>
       </div>
-      <div style="margin-bottom: 16px;">
+      <div id="captionSection" style="margin-bottom: 16px;">
         <label style="display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px;">Captions</label>
         <div id="captionList" style="margin-bottom: 8px;"></div>
         <div style="display: flex; gap: 8px;">
@@ -477,7 +535,6 @@
           <button class="btn btn-secondary" id="addCaptionBtn">Add</button>
         </div>
       </div>
-      <button class="btn btn-primary" id="saveCustomBtn">Save Changes</button>
     </div>
 
     <!-- Upload -->

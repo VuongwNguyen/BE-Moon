@@ -7,7 +7,33 @@ const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x000000, 0.0015);
 let arr = [];
 
+async function fetchGalaxyView() {
+  const galaxyId = new URLSearchParams(window.location.search).get('galaxyId');
+  if (!galaxyId) return null;
+  try {
+    const res = await fetch(`/galaxies/${galaxyId}/view`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.meta || null;
+  } catch {
+    return null;
+  }
+}
+
 async function main() {
+  // Load galaxy settings before building the scene
+  const galaxyView = await fetchGalaxyView();
+
+  // Apply captions → ringTexts
+  if (galaxyView?.caption?.length) {
+    window.dataLove2Loveloom.data.ringTexts = galaxyView.caption;
+  }
+
+  // Init music with dynamic URL (null = no music → button hidden)
+  if (window.musicManager) {
+    window.musicManager.init(galaxyView?.music?.url || null);
+  }
+
   const camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
@@ -86,6 +112,13 @@ async function main() {
     scene.add(nebula);
   }
 
+  // Apply theme colors to fog/background
+  if (galaxyView?.theme?.colors?.background) {
+    const bgColor = new THREE.Color(galaxyView.theme.colors.background);
+    scene.background = bgColor;
+    scene.fog = new THREE.FogExp2(bgColor.getHex(), 0.0015);
+  }
+
   // ---- TẠO THIÊN HÀ (GALAXY) ----
   const galaxyParameters = {
     count: 100000,
@@ -94,8 +127,8 @@ async function main() {
     spin: 0.5,
     randomness: 0.2,
     randomnessPower: 20,
-    insideColor: new THREE.Color(0xd63ed6),
-    outsideColor: new THREE.Color(0x48b8b8),
+    insideColor: new THREE.Color(galaxyView?.theme?.colors?.primary || 0xd63ed6),
+    outsideColor: new THREE.Color(galaxyView?.theme?.colors?.secondary || 0x48b8b8),
   };
 
   // Danh sách hình ảnh trái tim, kết hợp dữ liệu từ subdomain và mặc định

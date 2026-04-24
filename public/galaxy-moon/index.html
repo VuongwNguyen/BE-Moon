@@ -108,7 +108,7 @@
             template: "galaxy",
             data: {
                 keychain: { name: "Loveloom", phone: "Loveloom", address: "Loveloom" },
-                ringTexts: ["Happy One Month Anniversary! ❤️", "Made with Love 💜", "Presented by Yinnz 💖"],
+                ringTexts: [], // populated from galaxy.caption via script.js
             }
         };
     </script>
@@ -120,20 +120,28 @@
         const musicManager = {
             audio: null,
             isPlaying: false,
+            _initialized: false,
 
-            init() {
-                // Đường dẫn nhạc cố định
-                this.audio = new Audio('https://ik.imagekit.io/g1v8sjzcr/moon/music/natt_M9w9YbYZY.mp3');
+            init(url) {
+                if (this._initialized) return;
+                this._initialized = true;
+
+                const toggleBtn = document.getElementById('toggle-audio');
+
+                if (!url) {
+                    if (toggleBtn) toggleBtn.style.display = 'none';
+                    return;
+                }
+
+                this.audio = new Audio(url);
                 this.audio.loop = true;
                 this.audio.volume = 0.7;
                 this.audio.preload = "auto";
-                this.audio.autoplay = true; // Bắt buộc autoplay
-                this.audio.muted = false; // Đảm bảo không bị mute
+                this.audio.muted = false;
 
                 this.audio.onplay = () => {
                     this.isPlaying = true;
                     this.updateUI();
-                    console.log('🎵 Nhạc đang phát!');
                 };
 
                 this.audio.onpause = () => {
@@ -142,34 +150,26 @@
                 };
 
                 this.audio.oncanplay = () => {
-                    // Phát ngay khi có thể phát
                     this.audio.play().catch(e => console.warn('oncanplay play failed:', e));
                 };
 
                 this.audio.onloadeddata = () => {
-                    // Phát ngay khi data đã tải
                     this.audio.play().catch(e => console.warn('onloadeddata play failed:', e));
                 };
 
                 this.audio.onloadedmetadata = () => {
-                    // Phát ngay khi metadata đã tải
                     this.audio.play().catch(e => console.warn('onloadedmetadata play failed:', e));
                 };
 
-                // Phát ngay lập tức
                 this.audio.play().catch(e => console.warn('Immediate play failed:', e));
 
-                // Thử lại mỗi 500ms trong 5 giây đầu
                 let attempts = 0;
                 const maxAttempts = 10;
                 const retryPlay = () => {
                     if (attempts < maxAttempts && !this.isPlaying) {
                         attempts++;
                         this.audio.play().catch(e => {
-                            console.warn(`Retry attempt ${attempts} failed:`, e);
-                            if (attempts < maxAttempts) {
-                                setTimeout(retryPlay, 500);
-                            }
+                            if (attempts < maxAttempts) setTimeout(retryPlay, 500);
                         });
                     }
                 };
@@ -217,23 +217,20 @@
         window.musicManager = musicManager;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Khởi tạo ngay lập tức
-            musicManager.init();
-            
-            // Force autoplay khi trang được focus
+            // Force autoplay khi trang được focus (sau khi init đã được gọi từ script.js)
             window.addEventListener('focus', () => {
-                if (!musicManager.isPlaying) {
+                if (musicManager.audio && !musicManager.isPlaying) {
                     musicManager.audio.play().catch(e => console.warn('Focus play failed:', e));
                 }
             });
 
             // Force autoplay khi page visibility thay đổi
             document.addEventListener('visibilitychange', () => {
-                if (!document.hidden && !musicManager.isPlaying) {
+                if (!document.hidden && musicManager.audio && !musicManager.isPlaying) {
                     musicManager.audio.play().catch(e => console.warn('Visibility play failed:', e));
                 }
             });
-            
+
             const toggleBtn = document.getElementById('toggle-audio');
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', () => {
@@ -241,14 +238,6 @@
                 });
             }
         });
-
-        // Thêm thử nghiệm autoplay ngay lập tức khi script load
-        setTimeout(() => {
-            if (!window.musicManager) {
-                window.musicManager = musicManager;
-                musicManager.init();
-            }
-        }, 1);
     </script>
 </body>
 

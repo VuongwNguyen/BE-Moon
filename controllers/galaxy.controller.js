@@ -33,10 +33,16 @@ class GalaxyController {
     return new successfullyResponse({ message: "Galaxy deleted" }).json(res);
   }
 
+  async getGalaxyView(req, res, next) {
+    const view = await GalaxyService.getGalaxyView(req.params.id);
+    return new successfullyResponse({ message: "Galaxy view fetched", meta: view }).json(res);
+  }
+
   async updateGalaxy(req, res, next) {
     const galaxy = await GalaxyService.updateGalaxy({
       galaxyId: req.params.id,
       userId: req.user._id,
+      user: req.user,
       data: req.body
     });
     return new successfullyResponse({ message: "Galaxy updated", meta: galaxy }).json(res);
