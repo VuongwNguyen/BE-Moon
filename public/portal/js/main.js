@@ -17,6 +17,9 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(function(btn) {
     document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
     btn.classList.add('active');
     document.getElementById('panel-' + tab).classList.add('active');
+    if (tab === 'subscription' && window._loadSubscription) {
+      window._loadSubscription();
+    }
   });
 });
 
