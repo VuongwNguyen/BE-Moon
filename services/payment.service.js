@@ -4,12 +4,13 @@ const SubscriptionModel = require('../models/subscription');
 const PaymentModel = require('../models/payment');
 const { PLANS } = require('../config/plans');
 const { errorResponse } = require('../context/responseHandle');
+require('dotenv').config();
 
-const payos = new PayOS(
-  process.env.PAYOS_CLIENT_ID,
-  process.env.PAYOS_API_KEY,
-  process.env.PAYOS_CHECKSUM_KEY
-);
+const payos = new PayOS({
+  clientId: process.env.PAYOS_CLIENT_ID,
+  apiKey: process.env.PAYOS_API_KEY,
+  checksumKey: process.env.PAYOS_CHECKSUM_KEY,
+});
 
 class PaymentService {
   async createPaymentLink({ userId, userEmail, plan, period }) {
@@ -39,7 +40,7 @@ class PaymentService {
 
     let payosResponse;
     try {
-      payosResponse = await payos.createPaymentLink({
+      payosResponse = await payos.paymentRequests.create({
         orderCode,
         amount,
         description,
@@ -57,12 +58,12 @@ class PaymentService {
   async handleWebhook(webhookBody) {
     let webhookData;
     try {
-      webhookData = payos.verifyPaymentWebhookData(webhookBody);
+      webhookData = await payos.webhooks.verify(webhookBody);
     } catch {
       throw new errorResponse({ message: 'Invalid webhook signature', statusCode: 400 });
     }
 
-    const { orderCode, transactionId, code } = webhookData;
+    const { orderCode, reference, code } = webhookData;
 
     const payment = await PaymentModel.findOne({ payosOrderCode: orderCode });
     if (!payment) return;
@@ -76,7 +77,7 @@ class PaymentService {
       const paidAt = new Date();
       await PaymentModel.findByIdAndUpdate(payment._id, {
         status: 'paid',
-        payosTransactionId: String(transactionId),
+        payosTransactionId: reference,
         paidAt,
       });
 

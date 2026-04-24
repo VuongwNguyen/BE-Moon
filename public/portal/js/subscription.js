@@ -137,6 +137,7 @@
   }
 
   async function handleSubscribe(btn, plan, period, planLabel) {
+    const originalText = btn.textContent;
     btn.disabled = true;
     btn.textContent = 'Dang xu ly...';
     try {
@@ -152,14 +153,14 @@
       if (!res.ok) {
         showToast(data.message || 'Loi tao link thanh toan', 'error');
         btn.disabled = false;
-        btn.textContent = 'Nang len ' + planLabel;
+        btn.textContent = originalText;
         return;
       }
       window.location.href = data.meta.checkoutUrl;
     } catch {
       showToast('Loi ket noi', 'error');
       btn.disabled = false;
-      btn.textContent = 'Nang len ' + planLabel;
+      btn.textContent = originalText;
     }
   }
 
