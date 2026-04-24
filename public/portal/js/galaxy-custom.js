@@ -98,7 +98,7 @@ function applyLock(sectionId, planLabel) {
 
 async function applySubscriptionLock() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (user.role === 'admin') return;
+  if (user.role === 'admin' || user.role === 'partner') return;
   try {
     const res = await fetch(`${API_BASE}/payment/status`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -265,7 +265,8 @@ document.getElementById('musicSelect').addEventListener('change', scheduleSave);
 // ── Initialize ────────────────────────────────────
 (async () => {
   await applySubscriptionLock();
-  await Promise.all([loadOptions(), loadGalaxyCustomization()]);
+  await loadOptions();
+  await loadGalaxyCustomization();
 })();
 
 window.removeCaption = removeCaption;

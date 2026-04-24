@@ -167,6 +167,9 @@
   }
 
   async function loadSubscription() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isPrivileged = user.role === 'admin' || user.role === 'partner';
+
     const section = document.getElementById('sub-section');
     while (section.firstChild) section.removeChild(section.firstChild);
     const loading = el('div', 'empty');
@@ -181,7 +184,7 @@
       const data = await res.json();
       const sub = data.meta || null;
       render(sub);
-      updatePlanBadges(sub);
+      if (!isPrivileged) updatePlanBadges(sub);
     } catch {
       while (section.firstChild) section.removeChild(section.firstChild);
       const errEl = el('div', 'empty');
@@ -193,8 +196,8 @@
   // Fetch status lúc load trang để hiện badge ngay (không cần click tab)
   async function initBadges() {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (user.role === 'admin') {
-      updatePlanBadges({ plan: 'admin', expiredAt: null });
+    if (user.role === 'admin' || user.role === 'partner') {
+      updatePlanBadges({ plan: user.role, expiredAt: null });
       return;
     }
     try {

@@ -4,7 +4,7 @@ const { errorResponse } = require('../context/responseHandle');
 const { PLAN_RANK } = require('../config/plans');
 
 const requireSubscription = (minPlan) => async (req, res, next) => {
-  if (req.user.role === 'admin') return next();
+  if (req.user.role === 'admin' || req.user.role === 'partner') return next();
 
   const sub = await SubscriptionModel.findOne({ userId: req.user._id, status: 'active' });
 
