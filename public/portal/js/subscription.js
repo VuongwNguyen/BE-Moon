@@ -114,6 +114,47 @@
     section.appendChild(grid);
   }
 
+  function updatePlanBadges(sub) {
+    const planLabel = sub ? (PLANS[sub.plan] ? PLANS[sub.plan].label.toUpperCase() : sub.plan.toUpperCase()) : null;
+
+    // Badge trong header (cạnh email)
+    const userInfoEl = document.getElementById('user-email');
+    if (userInfoEl) {
+      let badge = document.getElementById('plan-badge-header');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.id = 'plan-badge-header';
+        badge.className = 'plan-badge';
+        userInfoEl.appendChild(badge);
+      }
+      badge.textContent = planLabel || '';
+      badge.style.display = planLabel ? '' : 'none';
+    }
+
+    // Badge trên tab button
+    const tabBtn = document.querySelector('.tab-btn[data-tab="subscription"]');
+    if (tabBtn) {
+      let tabText = tabBtn.querySelector('.tab-text');
+      let tabBadge = tabBtn.querySelector('.plan-badge');
+      if (!tabText) {
+        // Wrap existing text in span
+        const text = document.createElement('span');
+        text.className = 'tab-text';
+        text.textContent = 'Subscription';
+        while (tabBtn.firstChild) tabBtn.removeChild(tabBtn.firstChild);
+        tabBtn.appendChild(text);
+      }
+      let badge = tabBtn.querySelector('.plan-badge');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'plan-badge';
+        tabBtn.appendChild(badge);
+      }
+      badge.textContent = planLabel ? planLabel + ' ✓' : '';
+      badge.style.display = planLabel ? '' : 'none';
+    }
+  }
+
   async function loadSubscription() {
     const section = document.getElementById('sub-section');
     while (section.firstChild) section.removeChild(section.firstChild);
@@ -127,7 +168,9 @@
       });
       if (res.status === 401) return;
       const data = await res.json();
-      render(data.meta || null);
+      const sub = data.meta || null;
+      render(sub);
+      updatePlanBadges(sub);
     } catch {
       while (section.firstChild) section.removeChild(section.firstChild);
       const errEl = el('div', 'empty');
@@ -135,6 +178,20 @@
       section.appendChild(errEl);
     }
   }
+
+  // Fetch status lúc load trang để hiện badge ngay (không cần click tab)
+  async function initBadges() {
+    try {
+      const res = await fetch('/payment/status', {
+        headers: { 'Authorization': 'Bearer ' + token },
+      });
+      if (res.status === 401) return;
+      const data = await res.json();
+      updatePlanBadges(data.meta || null);
+    } catch { /* silent */ }
+  }
+
+  initBadges();
 
   async function handleSubscribe(btn, plan, period, planLabel) {
     const originalText = btn.textContent;
