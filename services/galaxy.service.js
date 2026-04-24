@@ -32,6 +32,14 @@ class GalaxyService {
     }
     await GalaxyModel.findByIdAndDelete(galaxyId);
   }
+
+  async updateGalaxy({ galaxyId, userId, data }) {
+    const galaxy = await GalaxyModel.findOne({ _id: galaxyId, userId });
+    if (!galaxy) {
+      throw new errorResponse({ message: "Galaxy not found", statusCode: 404 });
+    }
+    return await GalaxyModel.findByIdAndUpdate(galaxyId, data, { new: true });
+  }
 }
 
 module.exports = new GalaxyService();

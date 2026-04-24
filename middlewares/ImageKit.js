@@ -55,6 +55,28 @@ class ImageKitMiddleware {
       return next();
     }
   }
-}
+
+  async uploadMusic(req, res, next) {
+    if (!req.file) return next();
+    
+    try {
+      const result = await imagekit.upload({
+        file: req.file.buffer,
+        fileName: `${Date.now()}-${req.file.originalname}`,
+        folder: "moon/music",
+      });
+      
+      req.musicUrl = result.url;
+      next();
+    } catch (error) {
+      console.error('ImageKit upload error:', error);
+      throw new errorResponse({
+        message: 'Failed to upload music: ' + error.message,
+        statusCode: 500,
+      });
+    }
+  }
+  }
+
 
 module.exports = new ImageKitMiddleware();

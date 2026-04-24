@@ -242,6 +242,31 @@
     }
     .hidden { display: none; }
 
+    /* ── Caption items ────────────────────────────── */
+    .caption-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .caption-item button {
+      background: none;
+      border: none;
+      color: var(--red);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0 4px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .caption-item button:hover { opacity: 1; }
+
     /* ── Masonry Grid ─────────────────────────────── */
     .masonry-grid {
       columns: 3 180px;
@@ -429,6 +454,32 @@
       </div>
     </header>
 
+    <!-- Customization -->
+    <div class="card">
+      <div class="card-label">Customization</div>
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px;">Theme</label>
+        <select id="themeSelect" style="width: 100%; padding: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Jost', sans-serif; font-size: 13px;">
+          <option value="">No theme</option>
+        </select>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px;">Background Music</label>
+        <select id="musicSelect" style="width: 100%; padding: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Jost', sans-serif; font-size: 13px;">
+          <option value="">No music</option>
+        </select>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px;">Captions</label>
+        <div id="captionList" style="margin-bottom: 8px;"></div>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="captionInput" placeholder="Add caption..." style="flex: 1; padding: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Jost', sans-serif; font-size: 13px;">
+          <button class="btn btn-secondary" id="addCaptionBtn">Add</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="saveCustomBtn">Save Changes</button>
+    </div>
+
     <!-- Upload -->
     <div class="card">
       <div class="card-label">Upload Images</div>
@@ -469,5 +520,6 @@
   </div>
 
   <script src="js/galaxy.js"></script>
+  <script src="js/galaxy-custom.js"></script>
 </body>
 </html>

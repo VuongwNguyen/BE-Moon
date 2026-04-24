@@ -12,6 +12,18 @@ const galaxySchema = new Schema({
     required: true,
     trim: true,
   },
+  themeId: {
+    type: Schema.Types.ObjectId,
+    ref: "Theme",
+  },
+  backgroundMusicId: {
+    type: Schema.Types.ObjectId,
+    ref: "BackgroundMusic",
+  },
+  caption: {
+    type: [String],
+    default: [],
+  },
   status: {
     type: String,
     enum: ["active", "inactive"],

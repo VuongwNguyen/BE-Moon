@@ -8,5 +8,6 @@ router.post('/create', requireAuth, asyncHandler(PaymentController.createPayment
 router.post('/webhook', asyncHandler(PaymentController.webhook));
 router.get('/status', requireAuth, asyncHandler(PaymentController.getStatus));
 router.get('/history', requireAuth, asyncHandler(PaymentController.getHistory));
+router.get('/cancel', asyncHandler(PaymentController.cancel));
 
 module.exports = router;

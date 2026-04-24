@@ -32,6 +32,15 @@ class GalaxyController {
     await GalaxyService.deleteGalaxy({ galaxyId: req.params.id, userId: req.user._id });
     return new successfullyResponse({ message: "Galaxy deleted" }).json(res);
   }
+
+  async updateGalaxy(req, res, next) {
+    const galaxy = await GalaxyService.updateGalaxy({
+      galaxyId: req.params.id,
+      userId: req.user._id,
+      data: req.body
+    });
+    return new successfullyResponse({ message: "Galaxy updated", meta: galaxy }).json(res);
+  }
 }
 
 module.exports = new GalaxyController();

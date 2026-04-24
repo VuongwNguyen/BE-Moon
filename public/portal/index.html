@@ -475,6 +475,66 @@
       margin-left: 6px;
       vertical-align: middle;
     }
+    table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+    .btn-delete-row {
+      padding: 5px 12px;
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.2);
+      color: var(--red);
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: 'Jost', sans-serif;
+    }
+    .btn-delete-row:hover { background: rgba(248,113,113,0.2); }
+    .admin-layout {
+      display: flex;
+      gap: 24px;
+    }
+    .admin-sidebar {
+      width: 200px;
+      flex-shrink: 0;
+    }
+    .admin-nav {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+    }
+    .admin-nav-item {
+      display: block;
+      padding: 10px 14px;
+      color: var(--text-sub);
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .admin-nav-item:hover {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+    .admin-nav-item.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .admin-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .admin-section {
+      display: none;
+    }
+    .admin-section.active {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -501,9 +561,67 @@
     </div>
 
     <div class="tab-panel" id="panel-admin">
-      <div class="admin-coming">
-        <div class="icon">🚀</div>
-        <p>Quản lý users, subscription và doanh thu sẽ sớm có ở đây.</p>
+      <div class="admin-layout">
+        <div class="admin-sidebar">
+          <nav class="admin-nav">
+            <a class="admin-nav-item active" data-section="media">🎨 Media</a>
+            <a class="admin-nav-item" data-section="users">👥 Users</a>
+            <a class="admin-nav-item" data-section="analytics">📊 Analytics</a>
+          </nav>
+        </div>
+        
+        <div class="admin-content">
+          <!-- Media Section -->
+          <div class="admin-section active" id="admin-media">
+            <div style="margin-bottom: 40px;">
+              <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--accent-light);">Themes</h2>
+              <button class="btn-new" id="btn-add-theme">+ Add Theme</button>
+              <table style="width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden;">
+                <thead>
+                  <tr style="background: rgba(139,92,246,0.1);">
+                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">Name</th>
+                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">Primary</th>
+                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">Status</th>
+                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="theme-table"></tbody>
+              </table>
+            </div>
+
+            <div>
+              <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--accent-light);">Background Music</h2>
+              <button class="btn-new" id="btn-add-music">+ Add Music</button>
+              <table style="width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden;">
+                <thead>
+                  <tr style="background: rgba(139,92,246,0.1);">
+                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">Name</th>
+                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">URL</th>
+                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">Status</th>
+                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="music-table"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Users Section -->
+          <div class="admin-section" id="admin-users">
+            <div class="admin-coming">
+              <div class="icon">👥</div>
+              <p>User management coming soon</p>
+            </div>
+          </div>
+
+          <!-- Analytics Section -->
+          <div class="admin-section" id="admin-analytics">
+            <div class="admin-coming">
+              <div class="icon">📊</div>
+              <p>Analytics coming soon</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -528,7 +646,34 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="theme-modal">
+    <div class="modal">
+      <h3>Add Theme</h3>
+      <input type="text" id="theme-name" placeholder="Theme name" />
+      <input type="text" id="theme-primary" placeholder="Primary color (e.g., #8b5cf6)" />
+      <input type="text" id="theme-secondary" placeholder="Secondary color" />
+      <input type="text" id="theme-bg" placeholder="Background color" />
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btn-cancel-theme">Cancel</button>
+        <button class="btn-create" id="btn-save-theme">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="music-modal">
+    <div class="modal">
+      <h3>Add Music</h3>
+      <input type="text" id="music-name" placeholder="Music name" />
+      <input type="file" id="music-file" accept="audio/*" style="margin-bottom: 15px;" />
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btn-cancel-music">Cancel</button>
+        <button class="btn-create" id="btn-save-music">Save</button>
+      </div>
+    </div>
+  </div>
+
   <script src="./js/main.js"></script>
   <script src="./js/subscription.js"></script>
+  <script src="./js/admin.js"></script>
 </body>
 </html>

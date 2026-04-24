@@ -57,6 +57,7 @@ class PaymentService {
   }
 
   async handleWebhook(webhookBody) {
+    console.log('Received PayOS webhook:', webhookBody);
     let webhookData;
     try {
       webhookData = await payos.webhooks.verify(webhookBody);
@@ -133,6 +134,14 @@ class PaymentService {
 
   async getHistory(userId) {
     return PaymentModel.find({ userId }).sort({ createdAt: -1 }).limit(50);
+  }
+
+  async cancelPayment(orderCode) {
+    const payment = await PaymentModel.findOne({ payosOrderCode: orderCode });
+    if (!payment) return;
+    if (payment.status === 'pending') {
+      await PaymentModel.findByIdAndUpdate(payment._id, { status: 'cancelled' });
+    }
   }
 }
 

@@ -31,6 +31,14 @@ class PaymentController {
     const history = await PaymentService.getHistory(req.user._id);
     return new successfullyResponse({ message: 'Payment history fetched', meta: history }).json(res);
   }
+
+  async cancel(req, res, next) {
+    const { orderCode } = req.query;
+    if (orderCode) {
+      await PaymentService.cancelPayment(parseInt(orderCode));
+    }
+    return res.redirect(process.env.PAYOS_RETURN_URL.replace('payment=success', 'payment=cancel'));
+  }
 }
 
 module.exports = new PaymentController();

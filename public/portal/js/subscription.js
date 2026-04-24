@@ -4,8 +4,9 @@
 
   const PLANS = {
     plus: { label: 'Plus',  monthly: 10000, yearly: 109000, features: ['Themes'] },
-    pro:  { label: 'Pro',   monthly: 19000, yearly: 159000, features: ['Themes', 'Nhac nen', 'Text / Caption'] },
+    pro:  { label: 'Pro',   monthly: 19000, yearly: 159000, features: ['Themes', 'Nhạc nền', 'Text / Caption'] },
   };
+  const PLAN_RANK = { plus: 1, pro: 2 };
 
   let selectedPeriod = 'monthly';
 
@@ -24,10 +25,10 @@
   // Handle ?payment= query param
   const params = new URLSearchParams(window.location.search);
   if (params.get('payment') === 'success') {
-    showToast('Thanh toan thanh cong! Subscription da duoc kich hoat.', 'success');
+    showToast('Thanh toán thành công! Subscription đã được kích hoạt.', 'success');
     history.replaceState({}, '', '/portal/');
   } else if (params.get('payment') === 'cancel') {
-    showToast('Thanh toan bi huy.', 'error');
+    showToast('Thanh toán bị huỷ.', 'error');
     history.replaceState({}, '', '/portal/');
   }
 
@@ -43,7 +44,7 @@
     const planInfo = PLANS[sub.plan];
     label.textContent = (planInfo ? planInfo.label : sub.plan) + ' Plan';
     const expiry = el('div', 'plan-expiry');
-    expiry.textContent = 'Het han: ' + new Date(sub.expiredAt).toLocaleDateString('vi-VN');
+    expiry.textContent = 'Hết hạn: ' + new Date(sub.expiredAt).toLocaleDateString('vi-VN');
     div.appendChild(label);
     div.appendChild(expiry);
     return div;
@@ -53,7 +54,7 @@
     const toggle = el('div', 'period-toggle');
     ['monthly', 'yearly'].forEach(function (p) {
       const btn = el('button', 'period-btn' + (p === selectedPeriod ? ' active' : ''));
-      btn.textContent = p === 'monthly' ? 'Theo thang' : 'Theo nam';
+      btn.textContent = p === 'monthly' ? 'Theo tháng' : 'Theo năm';
       btn.addEventListener('click', function () {
         selectedPeriod = p;
         render(sub);
@@ -80,15 +81,24 @@
     const strong = document.createElement('strong');
     strong.textContent = fmtVND(plan[selectedPeriod]);
     priceEl.appendChild(strong);
-    const periodText = document.createTextNode(' / ' + (selectedPeriod === 'monthly' ? 'thang' : 'nam'));
+    const periodText = document.createTextNode(' / ' + (selectedPeriod === 'monthly' ? 'tháng' : 'năm'));
     priceEl.appendChild(periodText);
 
     const isCurrent = sub && sub.plan === planKey;
+    const currentRank = sub ? (PLAN_RANK[sub.plan] || 0) : 0;
+    const cardRank = PLAN_RANK[planKey] || 0;
+    const isIncluded = currentRank > cardRank;
+
     const btn = el('button', 'btn-subscribe');
-    btn.textContent = isCurrent ? 'Gia han' : ('Nang len ' + plan.label);
-    btn.addEventListener('click', function () {
-      handleSubscribe(btn, planKey, selectedPeriod, plan.label);
-    });
+    if (isIncluded) {
+      btn.textContent = 'Đã bao gồm';
+      btn.disabled = true;
+    } else {
+      btn.textContent = isCurrent ? 'Gia hạn' : ('Nâng lên ' + plan.label);
+      btn.addEventListener('click', function () {
+        handleSubscribe(btn, planKey, selectedPeriod, plan.label);
+      });
+    }
 
     card.appendChild(nameEl);
     card.appendChild(featuresEl);
@@ -160,7 +170,7 @@
     const section = document.getElementById('sub-section');
     while (section.firstChild) section.removeChild(section.firstChild);
     const loading = el('div', 'empty');
-    loading.textContent = 'Dang tai...';
+    loading.textContent = 'Đang tải...';
     section.appendChild(loading);
 
     try {
@@ -175,7 +185,7 @@
     } catch {
       while (section.firstChild) section.removeChild(section.firstChild);
       const errEl = el('div', 'empty');
-      errEl.textContent = 'Loi tai subscription';
+      errEl.textContent = 'Lỗi tải subscription';
       section.appendChild(errEl);
     }
   }
@@ -202,7 +212,7 @@
   async function handleSubscribe(btn, plan, period, planLabel) {
     const originalText = btn.textContent;
     btn.disabled = true;
-    btn.textContent = 'Dang xu ly...';
+    btn.textContent = 'Đang xử lý...';
     try {
       const res = await fetch('/payment/create', {
         method: 'POST',
@@ -214,14 +224,14 @@
       });
       const data = await res.json();
       if (!res.ok) {
-        showToast(data.message || 'Loi tao link thanh toan', 'error');
+        showToast(data.message || 'Lỗi tạo link thanh toán', 'error');
         btn.disabled = false;
         btn.textContent = originalText;
         return;
       }
       window.location.href = data.meta.checkoutUrl;
     } catch {
-      showToast('Loi ket noi', 'error');
+      showToast('Lỗi kết nối', 'error');
       btn.disabled = false;
       btn.textContent = originalText;
     }
