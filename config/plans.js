@@ -3,13 +3,13 @@ const PLANS = {
   plus: {
     monthly: 10000,
     yearly: 109000,
-    features: ['Themes'],
+    features: ['themes'],
     label: 'Plus',
   },
   pro: {
     monthly: 19000,
     yearly: 159000,
-    features: ['Themes', 'Nhac nen', 'Text / Caption'],
+    features: ['themes', 'music', 'text'],
     label: 'Pro',
   },
 };
