@@ -72,47 +72,51 @@ class PaymentService {
       return;
     }
 
-    const paidAt = new Date();
-    await PaymentModel.findByIdAndUpdate(payment._id, {
-      status: 'paid',
-      payosTransactionId: String(transactionId),
-      paidAt,
-    });
-
-    const existingSub = await SubscriptionModel.findOne({ userId: payment.userId, status: 'active' });
-
-    let subscription;
-    if (existingSub) {
-      const baseDate = existingSub.expiredAt > paidAt ? existingSub.expiredAt : paidAt;
-      const newExpiredAt = new Date(baseDate);
-      if (payment.period === 'monthly') {
-        newExpiredAt.setMonth(newExpiredAt.getMonth() + 1);
-      } else {
-        newExpiredAt.setFullYear(newExpiredAt.getFullYear() + 1);
-      }
-      subscription = await SubscriptionModel.findByIdAndUpdate(
-        existingSub._id,
-        { plan: payment.plan, period: payment.period, expiredAt: newExpiredAt },
-        { new: true }
-      );
-    } else {
-      const expiredAt = new Date(paidAt);
-      if (payment.period === 'monthly') {
-        expiredAt.setMonth(expiredAt.getMonth() + 1);
-      } else {
-        expiredAt.setFullYear(expiredAt.getFullYear() + 1);
-      }
-      subscription = await SubscriptionModel.create({
-        userId: payment.userId,
-        plan: payment.plan,
-        period: payment.period,
-        status: 'active',
-        startDate: paidAt,
-        expiredAt,
+    try {
+      const paidAt = new Date();
+      await PaymentModel.findByIdAndUpdate(payment._id, {
+        status: 'paid',
+        payosTransactionId: String(transactionId),
+        paidAt,
       });
-    }
 
-    await PaymentModel.findByIdAndUpdate(payment._id, { subscriptionId: subscription._id });
+      const existingSub = await SubscriptionModel.findOne({ userId: payment.userId, status: 'active' });
+
+      let subscription;
+      if (existingSub) {
+        const baseDate = existingSub.expiredAt > paidAt ? existingSub.expiredAt : paidAt;
+        const newExpiredAt = new Date(baseDate);
+        if (payment.period === 'monthly') {
+          newExpiredAt.setMonth(newExpiredAt.getMonth() + 1);
+        } else {
+          newExpiredAt.setFullYear(newExpiredAt.getFullYear() + 1);
+        }
+        subscription = await SubscriptionModel.findByIdAndUpdate(
+          existingSub._id,
+          { plan: payment.plan, period: payment.period, expiredAt: newExpiredAt },
+          { new: true }
+        );
+      } else {
+        const expiredAt = new Date(paidAt);
+        if (payment.period === 'monthly') {
+          expiredAt.setMonth(expiredAt.getMonth() + 1);
+        } else {
+          expiredAt.setFullYear(expiredAt.getFullYear() + 1);
+        }
+        subscription = await SubscriptionModel.create({
+          userId: payment.userId,
+          plan: payment.plan,
+          period: payment.period,
+          status: 'active',
+          startDate: paidAt,
+          expiredAt,
+        });
+      }
+
+      await PaymentModel.findByIdAndUpdate(payment._id, { subscriptionId: subscription._id });
+    } catch (err) {
+      throw new errorResponse({ message: 'Failed to process payment: ' + err.message, statusCode: 500 });
+    }
   }
 
   async getStatus(userId) {
