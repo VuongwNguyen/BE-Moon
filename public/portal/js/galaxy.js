@@ -5,205 +5,277 @@ class GalaxyManager {
     this.init();
   }
 
+  showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.animation = 'toastOut 0.25s ease forwards';
+      setTimeout(() => toast.remove(), 260);
+    }, 3200);
+  }
+
   async init() {
     if (!this.galaxyId || !this.token) {
       window.location.href = '/portal/';
       return;
     }
-
+    this.setupLightbox();
     this.setupEventListeners();
     await this.loadImages();
     await this.loadGalaxyInfo();
+  }
+
+  setupLightbox() {
+    const lb = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightbox-img');
+    document.getElementById('lightbox-close').addEventListener('click', () => lb.classList.remove('open'));
+    lb.addEventListener('click', (e) => { if (e.target === lb) lb.classList.remove('open'); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') lb.classList.remove('open'); });
+    this._openLightbox = (src) => { lbImg.src = src; lb.classList.add('open'); };
   }
 
   setupEventListeners() {
     document.getElementById('uploadBtn').onclick = () => this.handleUpload();
     document.getElementById('copyLinkBtn').onclick = () => this.copyGalaxyLink();
     document.getElementById('deleteGalaxyBtn').onclick = () => this.deleteGalaxy();
-    
-    // File input change
+
     document.getElementById('fileInput').onchange = (e) => {
-      const files = e.target.files;
-      if (files.length > 0) {
-        document.querySelector('.upload-area p').textContent = `${files.length} file(s) selected`;
-      }
+      const count = e.target.files.length;
+      const hint = document.getElementById('uploadHint');
+      hint.textContent = count > 0
+        ? `${count} file${count > 1 ? 's' : ''} selected — ready to upload`
+        : 'Supports JPG, PNG, GIF, WebP';
     };
+
+    const zone = document.getElementById('uploadZone');
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const files = e.dataTransfer.files;
+      if (files.length) {
+        const input = document.getElementById('fileInput');
+        const dt = new DataTransfer();
+        for (const f of files) dt.items.add(f);
+        input.files = dt.files;
+        document.getElementById('uploadHint').textContent =
+          `${files.length} file${files.length > 1 ? 's' : ''} selected — ready to upload`;
+      }
+    });
   }
 
   async loadGalaxyInfo() {
     try {
-      const response = await fetch(`/api/galaxy/${this.galaxyId}`, {
+      const res = await fetch(`/galaxies/${this.galaxyId}`, {
         headers: { 'Authorization': `Bearer ${this.token}` }
       });
-      
-      if (response.ok) {
-        const galaxy = await response.json();
-        document.getElementById('galaxyName').textContent = galaxy.name || 'Galaxy Management';
+      if (res.ok) {
+        const galaxy = await res.json();
+        const name = galaxy.name || 'Galaxy';
+        document.getElementById('galaxyName').textContent = name;
+        document.title = `${name} — Portal`;
       }
-    } catch (error) {
-      console.error('Error loading galaxy info:', error);
+    } catch (e) {
+      console.error('Error loading galaxy info:', e);
     }
   }
 
   async loadImages() {
     try {
-      const response = await fetch(`/gallary/my-items?galaxyId=${this.galaxyId}`, {
+      const res = await fetch(`/gallary/my-items?galaxyId=${this.galaxyId}`, {
         headers: { 'Authorization': `Bearer ${this.token}` }
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to load images');
-      }
-
-      const data = await response.json();
-      const images = data.meta || [];
-      this.renderImages(images);
-    } catch (error) {
-      console.error('Error loading images:', error);
-      document.getElementById('imageGrid').innerHTML = '<div class="loading">Error loading images</div>';
+      if (!res.ok) throw new Error('Failed to load images');
+      const data = await res.json();
+      this.renderImages(data.meta || []);
+    } catch (e) {
+      console.error('Error loading images:', e);
+      const grid = document.getElementById('imageGrid');
+      const empty = document.createElement('div');
+      empty.className = 'grid-empty';
+      const icon = document.createElement('div');
+      icon.className = 'empty-icon';
+      icon.textContent = '⚠️';
+      const msg = document.createElement('div');
+      msg.textContent = 'Error loading images';
+      empty.appendChild(icon);
+      empty.appendChild(msg);
+      grid.replaceChildren(empty);
     }
   }
 
   renderImages(images) {
     const grid = document.getElementById('imageGrid');
-    
+    const label = document.getElementById('imagesLabel');
+
+    label.textContent = 'Images';
+
     if (images.length === 0) {
-      grid.innerHTML = '<div class="loading">No images uploaded yet</div>';
+      const empty = document.createElement('div');
+      empty.className = 'grid-empty';
+      const icon = document.createElement('div');
+      icon.className = 'empty-icon';
+      icon.textContent = '🌌';
+      const msg = document.createElement('div');
+      msg.textContent = 'No images yet — upload some above';
+      empty.appendChild(icon);
+      empty.appendChild(msg);
+      grid.replaceChildren(empty);
       return;
     }
 
-    grid.innerHTML = images.map(image => `
-      <div class="image-item">
-        <img src="${image.imageUrl}?tr=w-200,h-200,fo-auto" alt="${image.title}">
-        <button class="delete-image" onclick="galaxyManager.deleteImage('${image._id}')" title="Delete image">×</button>
-      </div>
-    `).join('');
+    const badge = document.createElement('span');
+    badge.className = 'count-badge';
+    badge.textContent = images.length;
+    label.appendChild(badge);
+
+    const items = images.map(image => {
+      const wrap = document.createElement('div');
+      wrap.className = 'masonry-item';
+
+      const img = document.createElement('img');
+      img.src = `${image.imageUrl}?tr=w-500,q-80`;
+      img.alt = image.title || '';
+      img.loading = 'lazy';
+      img.style.cursor = 'zoom-in';
+      img.addEventListener('click', () => this._openLightbox(`${image.imageUrl}?tr=w-1200,q-90`));
+
+      const overlay = document.createElement('div');
+      overlay.className = 'masonry-overlay';
+
+      const del = document.createElement('button');
+      del.className = 'delete-image';
+      del.title = 'Delete';
+      del.textContent = '×';
+      del.addEventListener('click', () => this.deleteImage(image._id));
+
+      overlay.appendChild(del);
+      wrap.appendChild(img);
+      wrap.appendChild(overlay);
+      return wrap;
+    });
+
+    grid.replaceChildren(...items);
   }
 
   async handleUpload() {
     const fileInput = document.getElementById('fileInput');
     const files = fileInput.files;
-    
     if (files.length === 0) {
-      alert('Please select files to upload');
+      this.showToast('Please select images to upload', 'error');
       return;
     }
 
     const formData = new FormData();
-    for (let file of files) {
-      formData.append('files', file);
-    }
+    for (const file of files) formData.append('files', file);
     formData.append('galaxyId', this.galaxyId);
     formData.append('title', 'Uploaded image');
     formData.append('description', 'Image uploaded from portal');
 
-    const progressContainer = document.getElementById('uploadProgress');
+    const progressWrap = document.getElementById('uploadProgress');
     const progressBar = document.getElementById('progressBar');
-    
-    progressContainer.classList.remove('hidden');
+    const progressLabel = document.getElementById('progressLabel');
+    progressWrap.classList.remove('hidden');
     progressBar.style.width = '0%';
 
     try {
       const xhr = new XMLHttpRequest();
-      
+
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
-          const percent = (e.loaded / e.total) * 100;
-          progressBar.style.width = percent + '%';
+          const pct = Math.round((e.loaded / e.total) * 100);
+          progressBar.style.width = `${pct}%`;
+          progressLabel.textContent = `Uploading… ${pct}%`;
         }
       };
 
       xhr.onload = () => {
-        progressContainer.classList.add('hidden');
+        progressWrap.classList.add('hidden');
         if (xhr.status === 200) {
           fileInput.value = '';
-          document.querySelector('.upload-area p').textContent = 'Click to select images or drag & drop';
-          this.loadImages(); // Reload images
+          document.getElementById('uploadHint').textContent = 'Supports JPG, PNG, GIF, WebP';
+          this.loadImages();
+          this.showToast('Images uploaded successfully', 'success');
         } else {
-          alert('Upload failed');
+          this.showToast('Upload failed — please try again', 'error');
         }
       };
 
       xhr.onerror = () => {
-        progressContainer.classList.add('hidden');
-        alert('Upload failed');
+        progressWrap.classList.add('hidden');
+        this.showToast('Upload failed — please try again', 'error');
       };
 
       xhr.open('POST', '/gallary/upload');
       xhr.setRequestHeader('Authorization', `Bearer ${this.token}`);
       xhr.send(formData);
-    } catch (error) {
-      console.error('Upload error:', error);
-      progressContainer.classList.add('hidden');
-      alert('Upload failed');
+    } catch (e) {
+      console.error('Upload error:', e);
+      progressWrap.classList.add('hidden');
+      this.showToast('Upload failed — please try again', 'error');
     }
   }
 
   async deleteImage(imageId) {
-    if (!confirm('Are you sure you want to delete this image?')) {
-      return;
-    }
-
+    if (!confirm('Delete this image?')) return;
     try {
-      const response = await fetch(`/gallary/items/${imageId}`, {
+      const res = await fetch(`/gallary/items/${imageId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${this.token}` }
       });
-
-      if (response.ok) {
-        this.loadImages(); // Reload images
+      if (res.ok) {
+        this.loadImages();
+        this.showToast('Image deleted', 'success');
       } else {
-        alert('Failed to delete image');
+        this.showToast('Failed to delete image', 'error');
       }
-    } catch (error) {
-      console.error('Delete error:', error);
-      alert('Failed to delete image');
+    } catch (e) {
+      console.error('Delete error:', e);
+      this.showToast('Failed to delete image', 'error');
     }
   }
 
   copyGalaxyLink() {
     const link = `${window.location.origin}/galaxy-moon/?galaxyId=${this.galaxyId}`;
-    navigator.clipboard.writeText(link).then(() => {
-      alert('Galaxy link copied to clipboard!');
-    }).catch(() => {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = link;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      alert('Galaxy link copied to clipboard!');
-    });
+    navigator.clipboard.writeText(link)
+      .then(() => this.showToast('Galaxy link copied!', 'success'))
+      .catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = link;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        this.showToast('Galaxy link copied!', 'success');
+      });
   }
 
   async deleteGalaxy() {
-    if (!confirm('Are you sure you want to delete this entire galaxy? This will delete all images and cannot be undone.')) {
-      return;
-    }
-    
-    if (!confirm('This action is permanent. Are you absolutely sure?')) {
-      return;
-    }
-
+    if (!confirm('Delete this entire galaxy? All images will be permanently removed.')) return;
+    if (!confirm('This cannot be undone. Are you absolutely sure?')) return;
     try {
-      const response = await fetch(`/api/galaxy/${this.galaxyId}`, {
+      const res = await fetch(`/galaxies/${this.galaxyId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${this.token}` }
       });
-
-      if (response.ok) {
-        alert('Galaxy deleted successfully');
-        window.location.href = '/portal/';
+      if (res.ok) {
+        this.showToast('Galaxy deleted', 'success');
+        setTimeout(() => { window.location.href = '/portal/'; }, 1400);
       } else {
-        alert('Failed to delete galaxy');
+        this.showToast('Failed to delete galaxy', 'error');
       }
-    } catch (error) {
-      console.error('Delete galaxy error:', error);
-      alert('Failed to delete galaxy');
+    } catch (e) {
+      console.error('Delete galaxy error:', e);
+      this.showToast('Failed to delete galaxy', 'error');
     }
   }
 }
 
-// Initialize when page loads
 const galaxyManager = new GalaxyManager();

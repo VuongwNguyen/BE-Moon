@@ -23,6 +23,11 @@ class GalaxyController {
     }).json(res);
   }
 
+  async getGalaxy(req, res, next) {
+    const galaxy = await GalaxyService.getGalaxy({ galaxyId: req.params.id, userId: req.user._id });
+    return new successfullyResponse({ message: "Galaxy fetched", meta: galaxy }).json(res);
+  }
+
   async deleteGalaxy(req, res, next) {
     await GalaxyService.deleteGalaxy({ galaxyId: req.params.id, userId: req.user._id });
     return new successfullyResponse({ message: "Galaxy deleted" }).json(res);

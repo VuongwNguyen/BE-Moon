@@ -14,6 +14,14 @@ class GalaxyService {
     return await GalaxyModel.find({ userId, status: "active" }).sort({ createdAt: -1 });
   }
 
+  async getGalaxy({ galaxyId, userId }) {
+    const galaxy = await GalaxyModel.findOne({ _id: galaxyId, userId });
+    if (!galaxy) {
+      throw new errorResponse({ message: "Galaxy not found", statusCode: 404 });
+    }
+    return galaxy;
+  }
+
   async deleteGalaxy({ galaxyId, userId }) {
     const galaxy = await GalaxyModel.findById(galaxyId);
     if (!galaxy) {

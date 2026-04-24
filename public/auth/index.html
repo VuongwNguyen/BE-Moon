@@ -7,67 +7,242 @@
   <script type="importmap">
     { "imports": { "three": "https://unpkg.com/three@0.152.2/build/three.module.js" } }
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #06060e;
+      --surface: rgba(255,255,255,0.04);
+      --surface-2: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --border-accent: rgba(139,92,246,0.4);
+      --text: #ede9fe;
+      --text-sub: rgba(255,255,255,0.42);
+      --accent: #8b5cf6;
+      --accent-dark: #7c3aed;
+      --accent-light: #c4b5fd;
+      --red: #f87171;
+      --green: #6ee7b7;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      min-height: 100vh; background: #0a0a1f;
-      display: flex; align-items: center; justify-content: center;
-      font-family: sans-serif; color: #fff;
+      min-height: 100vh;
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 70% 50% at 20% 10%, rgba(109,40,217,0.22) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 60% at 80% 90%, rgba(79,25,175,0.15) 0%, transparent 65%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Jost', sans-serif;
+      color: var(--text);
+      padding: 24px;
     }
+
+    /* ── Card ────────────────────────────────────── */
     .card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px; padding: 32px; width: 360px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 380px;
+      backdrop-filter: blur(12px);
     }
-    h2 { text-align: center; margin-bottom: 24px; color: #e0b3ff; }
-    .tabs { display: flex; margin-bottom: 24px; gap: 8px; }
+
+    /* ── Logo ────────────────────────────────────── */
+    .brand {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .brand-star {
+      display: block;
+      font-size: 22px;
+      color: var(--accent-light);
+      opacity: 0.75;
+      margin-bottom: 8px;
+    }
+    .brand h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--text);
+    }
+
+    /* ── Tabs ────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
     .tab {
-      flex: 1; padding: 8px; border: none; border-radius: 6px;
-      cursor: pointer; background: rgba(255,255,255,0.08); color: #fff;
+      flex: 1;
+      padding: 9px;
+      border: none;
+      background: none;
+      color: var(--text-sub);
+      font-family: 'Jost', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.2s;
     }
-    .tab.active { background: #a259f7; }
+    .tab.active {
+      color: var(--accent-light);
+      border-bottom-color: var(--accent);
+    }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    /* ── Inputs ──────────────────────────────────── */
+    .input-group {
+      position: relative;
+      margin-bottom: 12px;
+    }
     input {
-      width: 100%; padding: 10px 12px; margin-bottom: 12px;
-      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 6px; color: #fff; font-size: 14px;
+      width: 100%;
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: 'Jost', sans-serif;
+      font-weight: 400;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
     }
+    input::placeholder { color: var(--text-sub); }
+    input:focus {
+      border-color: var(--border-accent);
+      background: rgba(139,92,246,0.06);
+    }
+    input:-webkit-autofill,
+    input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 40px #0d0d20 inset !important;
+      -webkit-text-fill-color: var(--text) !important;
+      caret-color: var(--text);
+    }
+
+    /* OTP input */
     input.otp-input {
-      font-size: 28px; font-weight: bold; letter-spacing: 12px; text-align: center;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: 16px;
+      text-align: center;
+      padding: 14px;
     }
+
+    /* ── Buttons ─────────────────────────────────── */
     .btn-primary {
-      width: 100%; padding: 12px; background: #a259f7;
-      border: none; border-radius: 6px; color: #fff;
-      font-size: 15px; cursor: pointer; margin-top: 4px;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      border: none;
+      border-radius: 9px;
+      color: #fff;
+      font-size: 14px;
+      font-family: 'Jost', sans-serif;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
     }
-    .btn-primary:hover:not(:disabled) { background: #8b3de8; }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(139,92,246,0.3);
+    }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
     .btn-secondary {
-      width: 100%; padding: 10px; margin-top: 8px;
-      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 6px; color: #fff; font-size: 14px; cursor: pointer;
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: var(--text-sub);
+      font-size: 13px;
+      font-family: 'Jost', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--border-accent);
+      color: var(--text);
     }
     .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Spinner ─────────────────────────────────── */
     .spinner {
       width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff; border-radius: 50%;
-      animation: spin 0.7s linear infinite; flex-shrink: 0;
+      border: 2px solid rgba(255,255,255,0.25);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .msg { text-align: center; margin-top: 12px; font-size: 13px; min-height: 20px; }
-    .msg.error { color: #ff6b6b; }
-    .msg.success { color: #6bffb8; }
-    .otp-hint { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 16px; text-align: center; }
+
+    /* ── Messages ────────────────────────────────── */
+    .msg {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 13px;
+      min-height: 20px;
+      letter-spacing: 0.02em;
+    }
+    .msg.error  { color: var(--red); }
+    .msg.success { color: var(--green); }
+
+    /* ── OTP screen ──────────────────────────────── */
+    .otp-hint {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-bottom: 20px;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .otp-hint strong { color: var(--accent-light); font-weight: 500; }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      font-size: 13px;
+      font-family: 'Jost', sans-serif;
+      cursor: pointer;
+      margin-bottom: 20px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.15s;
+    }
+    .back-btn:hover { color: var(--text); }
+
+    /* ── Screens ─────────────────────────────────── */
     .screen { display: none; }
     .screen.active { display: block; }
-    .back-btn {
-      background: none; border: none; color: rgba(255,255,255,0.5);
-      font-size: 13px; cursor: pointer; margin-bottom: 16px; padding: 0;
-    }
-    .back-btn:hover { color: #fff; }
+
+    /* ── Transition overlay ──────────────────────── */
     #transition-overlay {
-      display: none; position: fixed; inset: 0; z-index: 9999;
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
       background-color: transparent;
     }
     #transition-canvas { width: 100%; height: 100%; display: block; }
@@ -75,7 +250,10 @@
 </head>
 <body>
   <div class="card">
-    <h2>✨ Galaxy</h2>
+    <div class="brand">
+      <span class="brand-star">✦</span>
+      <h1>Galaxy</h1>
+    </div>
 
     <!-- Screen 1: Login / Register -->
     <div class="screen active" id="screen-auth">
@@ -84,8 +262,12 @@
         <button class="tab" id="tab-register">Đăng ký</button>
       </div>
       <form id="form-auth">
-        <input type="email" id="email" placeholder="Email" required />
-        <input type="password" id="password" placeholder="Password" required />
+        <div class="input-group">
+          <input type="email" id="email" placeholder="Email" required />
+        </div>
+        <div class="input-group">
+          <input type="password" id="password" placeholder="Mật khẩu" required />
+        </div>
         <button type="submit" class="btn-primary" id="submit-btn">Đăng nhập</button>
       </form>
       <div class="msg" id="msg-auth"></div>
@@ -96,8 +278,10 @@
       <button class="back-btn" id="back-btn">← Quay lại</button>
       <p class="otp-hint">Nhập mã OTP 6 số đã gửi tới<br><strong id="otp-email-display"></strong></p>
       <form id="form-otp">
-        <input type="text" class="otp-input" id="otp" placeholder="______"
-          maxlength="6" inputmode="numeric" autocomplete="one-time-code" required />
+        <div class="input-group">
+          <input type="text" class="otp-input" id="otp" placeholder="______"
+            maxlength="6" inputmode="numeric" autocomplete="one-time-code" required />
+        </div>
         <button type="submit" class="btn-primary" id="verify-btn">Xác thực</button>
       </form>
       <button class="btn-secondary" id="btn-resend">Gửi lại OTP</button>
@@ -105,7 +289,6 @@
     </div>
   </div>
 
-  <!-- Transition overlay -->
   <div id="transition-overlay">
     <canvas id="transition-canvas"></canvas>
   </div>

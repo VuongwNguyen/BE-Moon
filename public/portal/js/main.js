@@ -68,7 +68,6 @@ function renderGalaxies(grid, galaxies) {
   galaxies.forEach(function(g) {
     const card = document.createElement('div');
     card.className = 'galaxy-card';
-    card.style.cursor = 'pointer';
     card.dataset.galaxyId = g._id;
 
     const name = document.createElement('div');
@@ -79,46 +78,59 @@ function renderGalaxies(grid, galaxies) {
     status.className = 'galaxy-status';
     status.textContent = g.status;
 
+    const idRow = document.createElement('div');
+    idRow.className = 'galaxy-id-row';
+
     const id = document.createElement('div');
     id.className = 'galaxy-id';
     id.textContent = g._id;
 
+    const copyIdBtn = document.createElement('button');
+    copyIdBtn.className = 'btn-copy-id';
+    copyIdBtn.title = 'Copy ID';
+    copyIdBtn.textContent = '⎘';
+    copyIdBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const link = `${window.location.origin}/galaxy-moon/?galaxyId=${g._id}`;
+      navigator.clipboard.writeText(link).then(() => {
+        copyIdBtn.textContent = '✓';
+        setTimeout(() => { copyIdBtn.textContent = '⎘'; }, 1500);
+      });
+    });
+
+    idRow.appendChild(id);
+    idRow.appendChild(copyIdBtn);
+
     const actions = document.createElement('div');
-    actions.style.marginTop = '12px';
-    actions.style.display = 'flex';
-    actions.style.gap = '8px';
+    actions.className = 'galaxy-actions';
 
     const manageBtn = document.createElement('button');
+    manageBtn.className = 'btn-manage';
     manageBtn.textContent = 'Manage';
-    manageBtn.style.cssText = 'background: #a259f7; border: none; color: #fff; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;';
-    manageBtn.onclick = (e) => {
+    manageBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       window.location.href = `/portal/galaxy.html?galaxyId=${g._id}`;
-    };
+    });
 
     const viewBtn = document.createElement('button');
-    viewBtn.textContent = 'View';
-    viewBtn.style.cssText = 'background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;';
-    viewBtn.onclick = (e) => {
+    viewBtn.className = 'btn-view';
+    viewBtn.textContent = 'View ↗';
+    viewBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       window.open(`/galaxy-moon/?galaxyId=${g._id}`, '_blank');
-    };
+    });
 
     actions.appendChild(manageBtn);
     actions.appendChild(viewBtn);
-
     card.appendChild(name);
     card.appendChild(status);
-    card.appendChild(id);
+    card.appendChild(idRow);
     card.appendChild(actions);
-    
-    // Click on card (not buttons) goes to management
-    card.onclick = (e) => {
-      if (e.target === card || e.target === name || e.target === status || e.target === id) {
-        window.location.href = `/portal/galaxy.html?galaxyId=${g._id}`;
-      }
-    };
-    
+
+    card.addEventListener('click', () => {
+      window.location.href = `/portal/galaxy.html?galaxyId=${g._id}`;
+    });
+
     grid.appendChild(card);
   });
 }

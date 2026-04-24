@@ -4,19 +4,12 @@ const path = require("path");
 const uploader = multer({
   storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
-    let ext = path.extname(file.originalname);
-    if (
-      ext !== ".mp4" &&
-      ext !== ".mkv" &&
-      ext !== ".jpeg" &&
-      ext !== ".png" &&
-      ext !== ".jpg" &&
-      ext !== ".JPG"  
-    ) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const allowed = [".jpg", ".jpeg", ".png", ".mp4", ".mkv"];
+    if (!allowed.includes(ext)) {
       cb(new Error("File type is not supported"));
       return;
     }
-
     cb(null, true);
   },
 });
