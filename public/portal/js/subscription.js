@@ -1,20 +1,20 @@
 // public/portal/js/subscription.js
 (function () {
-  var token = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
 
-  var PLANS = {
+  const PLANS = {
     plus: { label: 'Plus',  monthly: 10000, yearly: 109000, features: ['Themes'] },
     pro:  { label: 'Pro',   monthly: 19000, yearly: 159000, features: ['Themes', 'Nhac nen', 'Text / Caption'] },
   };
 
-  var selectedPeriod = 'monthly';
+  let selectedPeriod = 'monthly';
 
   function fmtVND(amount) {
     return amount.toLocaleString('vi-VN') + 'd';
   }
 
   function showToast(msg, type) {
-    var el = document.getElementById('toast');
+    const el = document.getElementById('toast');
     el.textContent = msg;
     el.className = 'toast ' + (type || '');
     el.classList.add('show');
@@ -22,7 +22,7 @@
   }
 
   // Handle ?payment= query param
-  var params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
   if (params.get('payment') === 'success') {
     showToast('Thanh toan thanh cong! Subscription da duoc kich hoat.', 'success');
     history.replaceState({}, '', '/portal/');
@@ -32,17 +32,17 @@
   }
 
   function el(tag, className) {
-    var node = document.createElement(tag);
+    const node = document.createElement(tag);
     if (className) node.className = className;
     return node;
   }
 
   function renderCurrentPlan(sub) {
-    var div = el('div', 'sub-current');
-    var label = el('div', 'plan-label');
-    var planInfo = PLANS[sub.plan];
+    const div = el('div', 'sub-current');
+    const label = el('div', 'plan-label');
+    const planInfo = PLANS[sub.plan];
     label.textContent = (planInfo ? planInfo.label : sub.plan) + ' Plan';
-    var expiry = el('div', 'plan-expiry');
+    const expiry = el('div', 'plan-expiry');
     expiry.textContent = 'Het han: ' + new Date(sub.expiredAt).toLocaleDateString('vi-VN');
     div.appendChild(label);
     div.appendChild(expiry);
@@ -50,9 +50,9 @@
   }
 
   function renderPeriodToggle(sub) {
-    var toggle = el('div', 'period-toggle');
+    const toggle = el('div', 'period-toggle');
     ['monthly', 'yearly'].forEach(function (p) {
-      var btn = el('button', 'period-btn' + (p === selectedPeriod ? ' active' : ''));
+      const btn = el('button', 'period-btn' + (p === selectedPeriod ? ' active' : ''));
       btn.textContent = p === 'monthly' ? 'Theo thang' : 'Theo nam';
       btn.addEventListener('click', function () {
         selectedPeriod = p;
@@ -64,27 +64,27 @@
   }
 
   function renderPlanCard(planKey, plan, sub) {
-    var card = el('div', 'plan-card');
+    const card = el('div', 'plan-card');
 
-    var nameEl = el('div', 'plan-name');
+    const nameEl = el('div', 'plan-name');
     nameEl.textContent = plan.label;
 
-    var featuresEl = el('div', 'plan-features');
+    const featuresEl = el('div', 'plan-features');
     plan.features.forEach(function (f) {
-      var line = document.createElement('div');
+      const line = document.createElement('div');
       line.textContent = f;
       featuresEl.appendChild(line);
     });
 
-    var priceEl = el('div', 'plan-price');
-    var strong = document.createElement('strong');
+    const priceEl = el('div', 'plan-price');
+    const strong = document.createElement('strong');
     strong.textContent = fmtVND(plan[selectedPeriod]);
     priceEl.appendChild(strong);
-    var periodText = document.createTextNode(' / ' + (selectedPeriod === 'monthly' ? 'thang' : 'nam'));
+    const periodText = document.createTextNode(' / ' + (selectedPeriod === 'monthly' ? 'thang' : 'nam'));
     priceEl.appendChild(periodText);
 
-    var isCurrent = sub && sub.plan === planKey;
-    var btn = el('button', 'btn-subscribe');
+    const isCurrent = sub && sub.plan === planKey;
+    const btn = el('button', 'btn-subscribe');
     btn.textContent = isCurrent ? 'Gia han' : ('Nang len ' + plan.label);
     btn.addEventListener('click', function () {
       handleSubscribe(btn, planKey, selectedPeriod, plan.label);
@@ -98,7 +98,7 @@
   }
 
   function render(sub) {
-    var section = document.getElementById('sub-section');
+    const section = document.getElementById('sub-section');
     while (section.firstChild) section.removeChild(section.firstChild);
 
     if (sub) {
@@ -107,7 +107,7 @@
 
     section.appendChild(renderPeriodToggle(sub));
 
-    var grid = el('div', 'sub-plans');
+    const grid = el('div', 'sub-plans');
     Object.keys(PLANS).forEach(function (planKey) {
       grid.appendChild(renderPlanCard(planKey, PLANS[planKey], sub));
     });
@@ -115,22 +115,22 @@
   }
 
   async function loadSubscription() {
-    var section = document.getElementById('sub-section');
+    const section = document.getElementById('sub-section');
     while (section.firstChild) section.removeChild(section.firstChild);
-    var loading = el('div', 'empty');
+    const loading = el('div', 'empty');
     loading.textContent = 'Dang tai...';
     section.appendChild(loading);
 
     try {
-      var res = await fetch('/payment/status', {
+      const res = await fetch('/payment/status', {
         headers: { 'Authorization': 'Bearer ' + token },
       });
       if (res.status === 401) return;
-      var data = await res.json();
+      const data = await res.json();
       render(data.meta || null);
     } catch {
       while (section.firstChild) section.removeChild(section.firstChild);
-      var errEl = el('div', 'empty');
+      const errEl = el('div', 'empty');
       errEl.textContent = 'Loi tai subscription';
       section.appendChild(errEl);
     }
@@ -140,7 +140,7 @@
     btn.disabled = true;
     btn.textContent = 'Dang xu ly...';
     try {
-      var res = await fetch('/payment/create', {
+      const res = await fetch('/payment/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +148,7 @@
         },
         body: JSON.stringify({ plan: plan, period: period }),
       });
-      var data = await res.json();
+      const data = await res.json();
       if (!res.ok) {
         showToast(data.message || 'Loi tao link thanh toan', 'error');
         btn.disabled = false;
