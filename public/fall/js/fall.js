@@ -320,7 +320,8 @@ async function init() {
       const texIdx = Math.floor(Math.random() * textures.length);
       const tex = textures[texIdx];
       if (!tex) continue;
-      const p = makePolaroidFromTex(tex, c, colOffsets, zPos);
+      const zOffset = (Math.random() - 0.5) * ROW_DEPTH * 0.8; // stagger within row
+      const p = makePolaroidFromTex(tex, c, colOffsets, zPos + zOffset);
       polaroids.push(p);
     }
     window._nextRowZ = zPos - ROW_DEPTH;
