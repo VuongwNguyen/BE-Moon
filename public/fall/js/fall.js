@@ -56,11 +56,39 @@ function buildStarfield() {
 const stars = buildStarfield();
 scene.add(stars);
 
+// ── Particle dust ──────────────────────────────────────────────────────────
+function buildParticles() {
+  const count = 3000;
+  const pos = new Float32Array(count * 3);
+  const col = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    pos[i*3]   = (Math.random() - 0.5) * 40;
+    pos[i*3+1] = (Math.random() - 0.5) * 30;
+    pos[i*3+2] = -Math.random() * 600;
+    // Soft purple/white tones
+    const r = 0.7 + Math.random() * 0.3;
+    const g = 0.5 + Math.random() * 0.3;
+    const b = 0.9 + Math.random() * 0.1;
+    col[i*3] = r; col[i*3+1] = g; col[i*3+2] = b;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 0.12, vertexColors: true,
+    transparent: true, opacity: 0.55,
+    depthWrite: false, blending: THREE.AdditiveBlending
+  });
+  return new THREE.Points(geo, mat);
+}
+const dust = buildParticles();
+scene.add(dust);
+
 // ── Polaroid factory ───────────────────────────────────────────────────────
 const loader = new THREE.TextureLoader();
 const polaroids = [];
 
-function makePolaroid(imageUrl, index, total) {
+function makePolaroid(imageUrl, col, row, colOffsets, rowSpacing) {
   const group = new THREE.Group();
 
   // White frame
@@ -69,64 +97,56 @@ function makePolaroid(imageUrl, index, total) {
   const frame = new THREE.Mesh(frameGeo, frameMat);
   group.add(frame);
 
-  // Photo area (slightly inset, top portion)
+  // Photo area
   const photoGeo = new THREE.PlaneGeometry(2.8, 2.8);
   const photoMat = new THREE.MeshBasicMaterial({ color: 0x333333, side: THREE.DoubleSide });
   const photo = new THREE.Mesh(photoGeo, photoMat);
   photo.position.set(0, 0.3, 0.001);
   group.add(photo);
 
-  // Load texture async
   loader.load(imageUrl, (tex) => {
     tex.colorSpace = THREE.SRGBColorSpace;
     photo.material = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
   });
 
-  // Glow sprite behind polaroid
+  // Glow sprite
   const glowCanvas = document.createElement('canvas');
   glowCanvas.width = glowCanvas.height = 128;
   const gc = glowCanvas.getContext('2d');
   const grad = gc.createRadialGradient(64, 64, 0, 64, 64, 64);
   grad.addColorStop(0, 'rgba(200,160,255,0.35)');
   grad.addColorStop(1, 'rgba(0,0,0,0)');
-  gc.fillStyle = grad;
-  gc.fillRect(0, 0, 128, 128);
-  const glowTex = new THREE.CanvasTexture(glowCanvas);
-  const glowMat = new THREE.SpriteMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+  gc.fillStyle = grad; gc.fillRect(0, 0, 128, 128);
+  const glowMat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(glowCanvas), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
   const glow = new THREE.Sprite(glowMat);
   glow.scale.set(7, 7, 1);
   glow.position.z = -0.1;
   group.add(glow);
 
-  // Spread polaroids in a tunnel pattern
-  const angle = (index / total) * Math.PI * 2 + Math.random() * 0.8;
-  const radius = 6 + Math.random() * 10;
-  const depth = -index * 18 - Math.random() * 10;
+  // Grid placement: columns side by side, rows going deeper
+  const xBase = colOffsets[col];
+  const xJitter = (Math.random() - 0.5) * 1.2;
+  const yJitter = (Math.random() - 0.5) * 1.5;
+  const depth = -row * rowSpacing - Math.random() * 2 - 5;
 
-  group.position.set(
-    Math.cos(angle) * radius,
-    Math.sin(angle) * radius,
-    depth
-  );
+  group.position.set(xBase + xJitter, yJitter, depth);
 
-  // Random tilt — slight, dreamy
+  // Slight tilt
   group.rotation.set(
-    (Math.random() - 0.5) * 0.4,
-    (Math.random() - 0.5) * 0.4,
-    (Math.random() - 0.5) * 0.6
+    (Math.random() - 0.5) * 0.25,
+    (Math.random() - 0.5) * 0.2,
+    (Math.random() - 0.5) * 0.35
   );
 
   group.userData = {
-    baseZ: depth,
-    driftX: (Math.random() - 0.5) * 0.003,
-    driftY: (Math.random() - 0.5) * 0.003,
-    rotSpeed: (Math.random() - 0.5) * 0.0008,
+    driftX: (Math.random() - 0.5) * 0.002,
+    driftY: (Math.random() - 0.5) * 0.002,
+    rotSpeed: (Math.random() - 0.5) * 0.0006,
     phase: Math.random() * Math.PI * 2,
   };
 
   scene.add(group);
   polaroids.push(group);
-  return group;
 }
 
 // ── Caption sprites ────────────────────────────────────────────────────────
@@ -201,12 +221,25 @@ async function init() {
   // Music
   window.musicManager?.init(data.music);
 
-  // Build polaroids
+  // Build polaroids — 3-4 columns grid layout
   const images = data.images.length ? data.images : [];
-  const count = Math.max(images.length, 1);
-  totalDepth = count * 18 + 60;
+  const COLS = images.length <= 12 ? 3 : 4;
+  const COL_SPACING = 5.5;   // horizontal gap between columns
+  const ROW_SPACING = 7;     // depth gap between rows
+  const totalRows = Math.ceil(images.length / COLS);
+  totalDepth = totalRows * ROW_SPACING + 80;
 
-  images.forEach((url, i) => makePolaroid(url, i, count));
+  // Center columns horizontally
+  const colOffsets = [];
+  for (let c = 0; c < COLS; c++) {
+    colOffsets.push((c - (COLS - 1) / 2) * COL_SPACING);
+  }
+
+  images.forEach((url, i) => {
+    const col = i % COLS;
+    const row = Math.floor(i / COLS);
+    makePolaroid(url, col, row, colOffsets, ROW_SPACING);
+  });
 
   // Captions — spread between polaroids
   const captions = data.captions;
@@ -277,8 +310,12 @@ function animate() {
     });
   });
 
-  // Stars scroll with camera
+  // Stars + dust scroll with camera
   stars.position.z = cameraZ * 0.3;
+  dust.position.z  = cameraZ * 0.85;
+  // Gentle dust sway
+  dust.position.x = Math.sin(t * 0.15) * 0.5;
+  dust.position.y = Math.cos(t * 0.1)  * 0.3;
 
   renderer.render(scene, camera);
 }
