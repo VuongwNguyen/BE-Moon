@@ -56,7 +56,6 @@ function loadTab(tab) {
   if (tab === 'users') loadUsers();
   if (tab === 'payments') loadPayments();
   if (tab === 'media') { loadThemes(); loadMusics(); }
-  if (tab === 'analytics') loadAnalytics();
 }
 
 // ── Dashboard ─────────────────────────────────────
@@ -319,6 +318,7 @@ async function revokeSubscription(userId, email) {
 
 // ── Init ──────────────────────────────────────────
 loadStats();
+loadAnalytics();
 tabLoaded['dashboard'] = true;
 
 // ── Media: Themes ─────────────────────────────────

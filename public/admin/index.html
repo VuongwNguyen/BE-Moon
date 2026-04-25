@@ -156,7 +156,6 @@
     <button class="nav-item" data-tab="users">👥 Users</button>
     <button class="nav-item" data-tab="payments">💳 Payments</button>
     <button class="nav-item" data-tab="media">🎨 Media</button>
-    <button class="nav-item" data-tab="analytics">📈 Analytics</button>
   </div>
 
   <div class="container">
@@ -167,6 +166,17 @@
         <div class="stat-card"><div class="stat-label">Active Subs</div><div class="stat-value" id="stat-subs">—</div></div>
         <div class="stat-card"><div class="stat-label">Doanh thu tháng</div><div class="stat-value" id="stat-revenue">—</div></div>
         <div class="stat-card"><div class="stat-label">Total Payments</div><div class="stat-value" id="stat-payments">—</div></div>
+      </div>
+      <div class="table-wrap" style="margin-bottom:28px">
+        <div class="table-header"><h3>Tỉ lệ hủy thanh toán (30 ngày)</h3></div>
+        <div style="padding:20px"><canvas id="aa-cancel-chart" height="80"></canvas></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header"><h3>Payments gần đây</h3></div>
+        <table>
+          <thead><tr><th>Email</th><th>Plan</th><th>Số tiền</th><th>Status</th><th>Ngày</th></tr></thead>
+          <tbody id="aa-payments-tbody"><tr><td colspan="5" class="loading">Đang tải…</td></tr></tbody>
+        </table>
       </div>
     </div>
 
@@ -276,29 +286,6 @@
       </div>
     </div>
 
-    <!-- Analytics -->
-    <div class="tab" id="tab-analytics">
-      <div class="stats-grid" style="margin-bottom:28px">
-        <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value" id="aa-total-users">—</div></div>
-        <div class="stat-card"><div class="stat-label">Active Subs</div><div class="stat-value" id="aa-active-subs">—</div></div>
-        <div class="stat-card"><div class="stat-label">Doanh thu tháng</div><div class="stat-value" id="aa-revenue">—</div></div>
-        <div class="stat-card"><div class="stat-label">Total Payments</div><div class="stat-value" id="aa-payments">—</div></div>
-      </div>
-      <div class="table-wrap" style="margin-bottom:28px">
-        <div class="table-header"><h3>Tỉ lệ hủy thanh toán (30 ngày)</h3></div>
-        <div style="padding:20px"><canvas id="aa-cancel-chart" height="80"></canvas></div>
-      </div>
-      <div class="table-wrap">
-        <div class="table-header"><h3>Payments gần đây</h3></div>
-        <table>
-          <thead><tr><th>Email</th><th>Plan</th><th>Số tiền</th><th>Status</th><th>Ngày</th></tr></thead>
-          <tbody id="aa-payments-tbody"><tr><td colspan="5" class="loading">Đang tải…</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-  <!-- Grant Sub Modal -->
-  <div class="modal-overlay" id="grant-modal">
     <div class="modal">
       <h3>Cấp Subscription</h3>
       <div class="modal-info">User: <strong id="grant-email"></strong></div>
