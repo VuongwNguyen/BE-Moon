@@ -33,6 +33,18 @@ const userSchema = new Schema({
     type: Date,
     default: null,
   },
+  otpAttempts: {
+    type: Number,
+    default: 0,
+  },
+  loginAttempts: {
+    type: Number,
+    default: 0,
+  },
+  lockedUntil: {
+    type: Date,
+    default: null,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

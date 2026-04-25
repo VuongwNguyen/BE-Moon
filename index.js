@@ -13,6 +13,8 @@ const app = express();
 const port = process.env.PORT || 3030;
 const isDev = process.env.NODE_ENV !== "production";
 
+if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET is not set");
+
 // ── Database ──────────────────────────────────────
 connectToDatabase.connect();
 
