@@ -356,7 +356,28 @@ async function init() {
   animate();
 }
 
-// ── Render loop ────────────────────────────────────────────────────────────
+let frozen = false;
+let boostSpeed = 0;
+const BOOST = 0.5;
+const BOOST_DECAY = 0.015;
+
+// Scroll → boost
+renderer.domElement.addEventListener('wheel', e => {
+  if (!started) return;
+  if (e.deltaY > 0) boostSpeed = BOOST; // scroll down = speed up
+}, { passive: true });
+
+// Hold (mousedown/touchstart) → freeze
+renderer.domElement.addEventListener('mousedown', () => { if (started) frozen = true; });
+renderer.domElement.addEventListener('mouseup',   () => { frozen = false; });
+renderer.domElement.addEventListener('touchstart', () => { if (started) frozen = true; }, { passive: true });
+renderer.domElement.addEventListener('touchend',   () => { frozen = false; });
+
+// ── "Ngưng Đọng Thời Gian" overlay ────────────────────────────────────────
+const freezeEl = document.createElement('div');
+freezeEl.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.55);font-size:13px;letter-spacing:0.25em;text-transform:uppercase;pointer-events:none;opacity:0;transition:opacity 0.4s;font-family:Georgia,serif;text-shadow:0 0 20px rgba(180,120,255,0.8)';
+freezeEl.textContent = '✦ Ngưng Đọng Thời Gian ✦';
+document.body.appendChild(freezeEl);
 const clock = new THREE.Clock();
 
 function animate() {
@@ -364,18 +385,24 @@ function animate() {
   const t = clock.getElapsedTime();
 
   if (started) {
-    // Accelerate to target speed
-    if (fallSpeed < TARGET_SPEED) fallSpeed += ACCEL;
+    // Freeze overlay
+    freezeEl.style.opacity = frozen ? '1' : '0';
 
-    // Subtle random sway
+    if (!frozen) {
+      // Accelerate to target speed + boost decay
+      if (fallSpeed < TARGET_SPEED) fallSpeed += ACCEL;
+      if (boostSpeed > 0) boostSpeed = Math.max(0, boostSpeed - BOOST_DECAY);
+
+      cameraZ -= (fallSpeed + boostSpeed);
+    }
+
+    // Subtle random sway (always)
     if (Math.random() < 0.01) {
       targetSwayX = (Math.random() - 0.5) * 0.04;
       targetSwayY = (Math.random() - 0.5) * 0.02;
     }
     swayX += (targetSwayX - swayX) * 0.02;
     swayY += (targetSwayY - swayY) * 0.02;
-
-    cameraZ -= fallSpeed;
 
     // Loop: when camera passes all polaroids, reset
 
