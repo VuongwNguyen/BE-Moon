@@ -455,10 +455,7 @@ async function loadAnalytics() {
       api('/admin/cancellation-chart?days=30'),
     ]);
     const s = statsData.meta;
-    document.getElementById('aa-total-users').textContent = s.totalUsers;
-    document.getElementById('aa-active-subs').textContent = s.activeSubs;
-    document.getElementById('aa-revenue').textContent = fmtVND(s.monthRevenue);
-    document.getElementById('aa-payments').textContent = s.totalPayments;
+    // stats already rendered by loadStats(), skip duplicate update
 
     const canvas = document.getElementById('aa-cancel-chart');
     if (canvas && window.Chart) {
