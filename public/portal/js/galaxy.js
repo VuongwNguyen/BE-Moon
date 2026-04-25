@@ -78,7 +78,8 @@ class GalaxyManager {
       });
       if (res.ok) {
         const galaxy = await res.json();
-        const name = galaxy.name || 'Galaxy';
+        const name = galaxy.name || galaxy.meta?.name || 'Galaxy';
+        this._galaxyTemplate = galaxy.template || galaxy.meta?.template || 'galaxy';
         document.getElementById('galaxyName').textContent = name;
         document.title = `${name} — Portal`;
       }
@@ -243,7 +244,9 @@ class GalaxyManager {
   }
 
   copyGalaxyLink() {
-    const link = `${window.location.origin}/galaxy-moon/?galaxyId=${this.galaxyId}`;
+    const template = this._galaxyTemplate || 'galaxy';
+    const base = template === 'fall' ? '/fall/' : '/galaxy-moon/';
+    const link = `${window.location.origin}${base}?galaxyId=${this.galaxyId}`;
     navigator.clipboard.writeText(link)
       .then(() => this.showToast('Galaxy link copied!', 'success'))
       .catch(() => {

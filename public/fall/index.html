@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fall Through Memories</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; overflow: hidden; font-family: sans-serif; }
+    #canvas-container { width: 100vw; height: 100vh; }
+
+    /* ── Intro overlay ── */
+    #intro {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at center, #0a0015 0%, #000 100%);
+      cursor: pointer; transition: opacity 0.8s ease;
+    }
+    #intro.hidden { opacity: 0; pointer-events: none; }
+    #intro-title {
+      font-size: clamp(28px, 6vw, 56px);
+      color: #fff;
+      letter-spacing: 0.12em;
+      font-weight: 300;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    #intro-sub {
+      font-size: 14px; color: rgba(255,255,255,0.45);
+      letter-spacing: 0.2em; text-transform: uppercase;
+      margin-bottom: 48px;
+    }
+    .pulse-ring {
+      width: 64px; height: 64px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.5);
+      animation: pulse 2s ease-out infinite;
+    }
+    @keyframes pulse {
+      0%   { transform: scale(0.8); opacity: 1; }
+      100% { transform: scale(2);   opacity: 0; }
+    }
+    .tap-hint {
+      margin-top: 20px; font-size: 13px;
+      color: rgba(255,255,255,0.35); letter-spacing: 0.1em;
+    }
+
+    /* ── Audio button ── */
+    #btn-audio {
+      position: fixed; top: 20px; right: 20px; z-index: 200;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    #btn-audio:hover { background: rgba(255,255,255,0.15); }
+    #btn-audio.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <div id="intro">
+    <div id="intro-title">Fall Through Memories</div>
+    <div id="intro-sub">Rơi xuyên qua ký ức</div>
+    <div class="pulse-ring"></div>
+    <div class="tap-hint">Chạm để bắt đầu</div>
+  </div>
+
+  <button id="btn-audio" class="hidden">🔇</button>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.152.2/build/three.module.js",
+      "three/addons/controls/OrbitControls.js": "https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js"
+    }
+  }
+  </script>
+
+  <script>
+    // ── Music Manager ──────────────────────────────
+    const musicManager = {
+      audio: null,
+      playing: false,
+      init(url) {
+        if (!url) return;
+        this.audio = new Audio(url);
+        this.audio.loop = true;
+        this.audio.volume = 0.7;
+        const btn = document.getElementById('btn-audio');
+        btn.classList.remove('hidden');
+        btn.addEventListener('click', () => this.toggle());
+        this.audio.onplay  = () => { this.playing = true;  btn.textContent = '🔊'; };
+        this.audio.onpause = () => { this.playing = false; btn.textContent = '🔇'; };
+      },
+      play()   { this.audio?.play().catch(() => {}); },
+      toggle() { this.audio?.paused ? this.play() : this.audio?.pause(); }
+    };
+    window.musicManager = musicManager;
+  </script>
+
+  <script type="module" src="./js/fall.js"></script>
+</body>
+</html>

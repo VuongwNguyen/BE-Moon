@@ -53,6 +53,7 @@ function scheduleSave() {
 async function performSave() {
   const themeId = document.getElementById('themeSelect').value || null;
   const musicId = document.getElementById('musicSelect').value || null;
+  const template = document.getElementById('templateSelect').value || 'galaxy';
   try {
     const res = await fetch(`${API_BASE}/galaxies/${galaxyId}`, {
       method: 'PUT',
@@ -60,7 +61,7 @@ async function performSave() {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ themeId, backgroundMusicId: musicId, caption: currentCaptions }),
+      body: JSON.stringify({ themeId, backgroundMusicId: musicId, caption: currentCaptions, template }),
     });
     if (res.ok) {
       setSaveStatus('saved');
@@ -156,6 +157,7 @@ async function loadGalaxyCustomization() {
     if (!galaxy) return;
     if (galaxy.themeId) document.getElementById('themeSelect').value = galaxy.themeId;
     if (galaxy.backgroundMusicId) document.getElementById('musicSelect').value = galaxy.backgroundMusicId;
+    if (galaxy.template) document.getElementById('templateSelect').value = galaxy.template;
     if (Array.isArray(galaxy.caption)) {
       currentCaptions = galaxy.caption;
       renderCaptions();
@@ -261,6 +263,7 @@ document.getElementById('captionInput').addEventListener('keydown', (e) => {
 // ── Trigger auto-save on select changes ──────────
 document.getElementById('themeSelect').addEventListener('change', scheduleSave);
 document.getElementById('musicSelect').addEventListener('change', scheduleSave);
+document.getElementById('templateSelect').addEventListener('change', scheduleSave);
 
 // ── Initialize ────────────────────────────────────
 (async () => {

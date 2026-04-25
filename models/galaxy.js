@@ -29,6 +29,11 @@ const galaxySchema = new Schema({
     enum: ["active", "inactive"],
     default: "active",
   },
+  template: {
+    type: String,
+    enum: ["galaxy", "fall"],
+    default: "galaxy",
+  },
   createdAt: {
     type: Date,
     default: Date.now,
