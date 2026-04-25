@@ -192,89 +192,28 @@ const auroraMesh = buildAurora();
 const loader = new THREE.TextureLoader();
 const polaroids = [];
 
-function makePolaroid(imageUrl, col, row, colOffsets, rowSpacing) {
+function makePolaroidFromTex(tex, col, colOffsets, zPos) {
   const group = new THREE.Group();
-
-  // White frame
-  const frameGeo = new THREE.PlaneGeometry(3.2, 3.8);
-  const frameMat = new THREE.MeshBasicMaterial({ color: 0xf5f0e8, side: THREE.DoubleSide });
-  const frame = new THREE.Mesh(frameGeo, frameMat);
+  const frame = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.8), new THREE.MeshBasicMaterial({ color: 0xf5f0e8, side: THREE.DoubleSide }));
   group.add(frame);
-
-  // Photo area
-  const photoGeo = new THREE.PlaneGeometry(2.8, 2.8);
-  const photoMat = new THREE.MeshBasicMaterial({ color: 0x333333, side: THREE.DoubleSide });
-  const photo = new THREE.Mesh(photoGeo, photoMat);
+  const photo = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 2.8), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
   photo.position.set(0, 0.3, 0.001);
   group.add(photo);
-
-  loader.load(imageUrl, (tex) => {
-    tex.colorSpace = THREE.SRGBColorSpace;
-    photo.material = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
-  });
-
-  // Glow sprite
-  const glowCanvas = document.createElement('canvas');
-  glowCanvas.width = glowCanvas.height = 128;
-  const gc = glowCanvas.getContext('2d');
-  const grad = gc.createRadialGradient(64, 64, 0, 64, 64, 64);
-  grad.addColorStop(0, 'rgba(200,160,255,0.35)');
-  grad.addColorStop(1, 'rgba(0,0,0,0)');
-  gc.fillStyle = grad; gc.fillRect(0, 0, 128, 128);
-  const glowMat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(glowCanvas), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
-  const glow = new THREE.Sprite(glowMat);
-  glow.scale.set(7, 7, 1);
-  glow.position.z = -0.1;
+  const gc = document.createElement('canvas'); gc.width = gc.height = 128;
+  const gctx = gc.getContext('2d');
+  const gr = gctx.createRadialGradient(64,64,0,64,64,64);
+  gr.addColorStop(0,'rgba(200,160,255,0.35)'); gr.addColorStop(1,'rgba(0,0,0,0)');
+  gctx.fillStyle = gr; gctx.fillRect(0,0,128,128);
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(gc), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  glow.scale.set(7,7,1); glow.position.z = -0.1;
   group.add(glow);
-
-  // Grid placement: columns side by side, rows going deeper
-  const xBase = colOffsets[col];
-  const xJitter = (Math.random() - 0.5) * 1.2;
-  const yJitter = (Math.random() - 0.5) * 1.5;
-  const depth = -row * rowSpacing - Math.random() * 2 - 5;
-
-  group.position.set(xBase + xJitter, yJitter, depth);
-
-  // Slight tilt
-  group.rotation.set(
-    (Math.random() - 0.5) * 0.25,
-    (Math.random() - 0.5) * 0.2,
-    (Math.random() - 0.5) * 0.35
-  );
-
-  group.userData = {
-    driftX: (Math.random() - 0.5) * 0.002,
-    driftY: (Math.random() - 0.5) * 0.002,
-    rotSpeed: (Math.random() - 0.5) * 0.0006,
-    phase: Math.random() * Math.PI * 2,
-  };
-
+  group.position.set(colOffsets[col] + (Math.random()-0.5)*1.2, (Math.random()-0.5)*1.5, zPos);
+  group.rotation.set((Math.random()-0.5)*0.25, (Math.random()-0.5)*0.2, (Math.random()-0.5)*0.35);
+  group.userData = { driftX:(Math.random()-0.5)*0.002, driftY:(Math.random()-0.5)*0.002, rotSpeed:(Math.random()-0.5)*0.0006, phase:Math.random()*Math.PI*2 };
   scene.add(group);
-  polaroids.push(group);
+  return group;
 }
 
-// ── Caption sprites ────────────────────────────────────────────────────────
-function makeCaption(text, zPos) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512; canvas.height = 80;
-  const ctx = canvas.getContext('2d');
-  ctx.font = '300 32px Georgia, serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.85)';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.shadowColor = 'rgba(180,120,255,0.8)';
-  ctx.shadowBlur = 18;
-  ctx.fillText(text, 256, 40);
-
-  const tex = new THREE.CanvasTexture(canvas);
-  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
-  const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(14, 2.2, 1);
-  sprite.position.set((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 4, zPos);
-  sprite.userData = { driftX: (Math.random() - 0.5) * 0.002 };
-  scene.add(sprite);
-  return sprite;
-}
 
 // ── Camera fall state ──────────────────────────────────────────────────────
 let started = false;
@@ -325,32 +264,78 @@ async function init() {
   // Music
   window.musicManager?.init(data.music);
 
-  // Build polaroids — 3-4 columns grid layout
+  // Build polaroids — infinite pool, pre-spawn ahead of camera
   const images = data.images.length ? data.images : [];
-  const COLS = images.length <= 12 ? 3 : 4;
-  const COL_SPACING = 5.5;   // horizontal gap between columns
-  const ROW_SPACING = 7;     // depth gap between rows
-  const totalRows = Math.ceil(images.length / COLS);
-  totalDepth = totalRows * ROW_SPACING + 80;
+  if (!images.length) { animate(); return; }
 
-  // Center columns horizontally
-  const colOffsets = [];
-  for (let c = 0; c < COLS; c++) {
-    colOffsets.push((c - (COLS - 1) / 2) * COL_SPACING);
+  const COLS = images.length <= 12 ? 3 : 4;
+  const COL_SPACING = 5.5;
+  const colOffsets = Array.from({ length: COLS }, (_, c) => (c - (COLS - 1) / 2) * COL_SPACING);
+
+  // Pre-load all textures once
+  const textures = await Promise.all(images.map(url => new Promise(res => {
+    loader.load(url, tex => { tex.colorSpace = THREE.SRGBColorSpace; res(tex); }, undefined, () => res(null));
+  })));
+
+  // Pool: COLS * VISIBLE_ROWS polaroids
+  const VISIBLE_ROWS = 6;
+  const ROW_DEPTH = 7;
+  let nextRowZ = -5;
+
+  // Caption queue
+  const captions = data.captions;
+  let captionIdx = 0;
+  const captionSprites = [];
+
+  function spawnCaption(zPos) {
+    if (!captions.length) return;
+    const text = captions[captionIdx % captions.length];
+    captionIdx++;
+    const canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 80;
+    const ctx = canvas.getContext('2d');
+    ctx.font = '300 32px Georgia, serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(180,120,255,0.9)'; ctx.shadowBlur = 20;
+    ctx.fillText(text, 256, 40);
+    const mat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthWrite: false });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(14, 2.2, 1);
+    sprite.position.set((Math.random()-0.5)*6, (Math.random()-0.5)*3, zPos);
+    scene.add(sprite);
+    captionSprites.push(sprite);
   }
 
-  images.forEach((url, i) => {
-    const col = i % COLS;
-    const row = Math.floor(i / COLS);
-    makePolaroid(url, col, row, colOffsets, ROW_SPACING);
-  });
+  let rowCount = 0;
 
-  // Captions — spread between polaroids
-  const captions = data.captions;
-  captions.forEach((text, i) => {
-    const z = -((i + 0.5) / Math.max(captions.length, 1)) * totalDepth;
-    makeCaption(text, z);
-  });
+  function spawnRow(zPos) {
+    rowCount++;
+    if (captions.length && rowCount % 5 === 0) {
+      spawnCaption(zPos - ROW_DEPTH * 0.5);
+      window._nextRowZ = zPos - ROW_DEPTH * 2.5;
+      return;
+    }
+    for (let c = 0; c < COLS; c++) {
+      const texIdx = Math.floor(Math.random() * textures.length);
+      const tex = textures[texIdx];
+      if (!tex) continue;
+      const p = makePolaroidFromTex(tex, c, colOffsets, zPos);
+      polaroids.push(p);
+    }
+    window._nextRowZ = zPos - ROW_DEPTH;
+  }
+
+  // Pre-spawn initial rows
+  for (let r = 0; r < VISIBLE_ROWS; r++) {
+    spawnRow(nextRowZ);
+  }
+
+  // Store spawn function for animate loop
+  window._spawnRow = spawnRow;
+  window._colOffsets = colOffsets;
+  window._nextRowZ = nextRowZ;
+  window._captionSprites = captionSprites;
 
   // Animate
   animate();
@@ -378,7 +363,6 @@ function animate() {
     cameraZ -= fallSpeed;
 
     // Loop: when camera passes all polaroids, reset
-    if (cameraZ < -totalDepth) cameraZ = 0;
 
     camera.position.z = cameraZ;
     camera.position.x += (swayX - camera.position.x) * 0.05;
@@ -393,7 +377,29 @@ function animate() {
     camera.rotation.x = Math.sin(t * 0.2) * 0.02;
   }
 
-  // Drift polaroids
+  // Infinite spawn: spawn new rows ahead, remove old ones behind
+  if (window._spawnRow) {
+    const SPAWN_AHEAD = 50;
+    while (window._nextRowZ > cameraZ - SPAWN_AHEAD) {
+      window._spawnRow(window._nextRowZ);
+    }
+    // Remove polaroids too far behind camera
+    for (let i = polaroids.length - 1; i >= 0; i--) {
+      if (polaroids[i].position.z > cameraZ + 20) {
+        scene.remove(polaroids[i]);
+        polaroids.splice(i, 1);
+      }
+    }
+    // Remove caption sprites too far behind
+    if (window._captionSprites) {
+      for (let i = window._captionSprites.length - 1; i >= 0; i--) {
+        if (window._captionSprites[i].position.z > cameraZ + 20) {
+          scene.remove(window._captionSprites[i]);
+          window._captionSprites.splice(i, 1);
+        }
+      }
+    }
+  }
   polaroids.forEach(p => {
     p.position.x += p.userData.driftX;
     p.position.y += p.userData.driftY;
