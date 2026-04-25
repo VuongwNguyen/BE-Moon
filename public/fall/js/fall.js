@@ -84,6 +84,110 @@ function buildParticles() {
 const dust = buildParticles();
 scene.add(dust);
 
+// ── Shooting stars ─────────────────────────────────────────────────────────
+const shootingStars = [];
+
+function randomCurve() {
+  const s = new THREE.Vector3(-150 + Math.random()*80, -60 + Math.random()*120, cameraZ - 20 - Math.random()*60);
+  const e = new THREE.Vector3(s.x + 300 + Math.random()*150, s.y + (-80+Math.random()*160), s.z + (-60+Math.random()*120));
+  const c1 = new THREE.Vector3(s.x+120+Math.random()*80, s.y+(-40+Math.random()*80), s.z+(-40+Math.random()*80));
+  const c2 = new THREE.Vector3(e.x-120+Math.random()*80, e.y+(-40+Math.random()*80), e.z+(-40+Math.random()*80));
+  return new THREE.CubicBezierCurve3(s, c1, c2, e);
+}
+
+function spawnShootingStar() {
+  const TRAIL = 80;
+  const headGeo = new THREE.SphereGeometry(0.8, 8, 8);
+  const headMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending });
+  const head = new THREE.Mesh(headGeo, headMat);
+
+  const curve = randomCurve();
+  const pts = Array.from({ length: TRAIL }, (_, i) => curve.getPoint(i / (TRAIL - 1)));
+  const trailGeo = new THREE.BufferGeometry().setFromPoints(pts);
+  const trailMat = new THREE.LineBasicMaterial({ color: 0xaaddff, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending });
+  const trail = new THREE.Line(trailGeo, trailMat);
+
+  const g = new THREE.Group();
+  g.add(head); g.add(trail);
+  g.userData = { curve, progress: 0, speed: 0.0012 + Math.random()*0.001, life: 0, maxLife: 280, head, trail, pts, TRAIL };
+  scene.add(g);
+  shootingStars.push(g);
+}
+
+function updateShootingStars(t) {
+  for (let i = shootingStars.length - 1; i >= 0; i--) {
+    const s = shootingStars[i];
+    s.userData.life++;
+    s.userData.progress += s.userData.speed;
+
+    let opacity = 1;
+    if (s.userData.life < 25) opacity = s.userData.life / 25;
+    else if (s.userData.life > s.userData.maxLife - 25) opacity = (s.userData.maxLife - s.userData.life) / 25;
+
+    if (s.userData.progress >= 1 || s.userData.life >= s.userData.maxLife) {
+      scene.remove(s);
+      shootingStars.splice(i, 1);
+      continue;
+    }
+
+    const pos = s.userData.curve.getPoint(s.userData.progress);
+    s.userData.head.position.copy(pos);
+    s.userData.head.material.opacity = opacity;
+
+    const pts = s.userData.pts;
+    for (let j = 0; j < s.userData.TRAIL; j++) {
+      const tp = Math.max(0, s.userData.progress - j * 0.008);
+      pts[j].copy(s.userData.curve.getPoint(tp));
+    }
+    s.userData.trail.geometry.setFromPoints(pts);
+    s.userData.trail.material.opacity = opacity * 0.55;
+  }
+  if (shootingStars.length < 3 && Math.random() < 0.018) spawnShootingStar();
+}
+
+// ── Aurora ─────────────────────────────────────────────────────────────────
+function buildAurora() {
+  // Wide ribbon plane in the background
+  const geo = new THREE.PlaneGeometry(200, 40, 60, 1);
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 } },
+    vertexShader: `
+      uniform float uTime;
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        vec3 pos = position;
+        pos.y += sin(pos.x * 0.08 + uTime * 0.6) * 5.0
+                + sin(pos.x * 0.15 + uTime * 0.4) * 3.0;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float uTime;
+      varying vec2 vUv;
+      void main() {
+        float alpha = sin(vUv.x * 3.14159) * (1.0 - vUv.y) * 0.35;
+        alpha *= 0.6 + 0.4 * sin(vUv.x * 8.0 + uTime * 0.7);
+        // Green-teal-purple gradient
+        vec3 c1 = vec3(0.0, 0.9, 0.6);
+        vec3 c2 = vec3(0.5, 0.1, 0.9);
+        vec3 col = mix(c1, c2, vUv.x + 0.3 * sin(uTime * 0.3));
+        gl_FragColor = vec4(col, alpha);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(0, 18, -80);
+  mesh.rotation.x = 0.15;
+  scene.add(mesh);
+  return mesh;
+}
+const auroraMesh = buildAurora();
+
 // ── Polaroid factory ───────────────────────────────────────────────────────
 const loader = new THREE.TextureLoader();
 const polaroids = [];
@@ -313,9 +417,15 @@ function animate() {
   // Stars + dust scroll with camera
   stars.position.z = cameraZ * 0.3;
   dust.position.z  = cameraZ * 0.85;
-  // Gentle dust sway
   dust.position.x = Math.sin(t * 0.15) * 0.5;
   dust.position.y = Math.cos(t * 0.1)  * 0.3;
+
+  // Aurora follows camera
+  auroraMesh.material.uniforms.uTime.value = t;
+  auroraMesh.position.z = cameraZ - 80;
+
+  // Shooting stars
+  updateShootingStars(t);
 
   renderer.render(scene, camera);
 }
