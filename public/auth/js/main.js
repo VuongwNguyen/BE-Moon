@@ -1,5 +1,10 @@
 import { playTransition } from './transition.js';
 
+// Guard: đã đăng nhập → về portal
+if (localStorage.getItem('token')) {
+  window.location.replace('/portal/');
+}
+
 var mode = 'login';
 var pendingEmail = '';
 var resendTimer = null;
