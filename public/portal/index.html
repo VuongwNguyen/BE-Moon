@@ -591,6 +591,34 @@
     .admin-section.active {
       display: block;
     }
+
+    @media (max-width: 600px) {
+      body { padding: 20px 14px 60px; }
+
+      header {
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+      .header-brand h1 { font-size: 16px; }
+
+      /* header buttons stack */
+      header > div { flex-wrap: wrap; }
+
+      .tabs-nav { overflow-x: auto; }
+      .tab-btn { padding: 10px 14px; font-size: 12px; white-space: nowrap; }
+
+      .galaxy-grid { grid-template-columns: 1fr; }
+
+      /* modal full-width */
+      .modal { width: calc(100vw - 32px); padding: 22px 18px; }
+
+      /* sub plans single col */
+      .sub-plans { grid-template-columns: 1fr; }
+
+      /* toast no overflow */
+      .toast { white-space: normal; max-width: calc(100vw - 48px); }
+    }
   </style>
 </head>
 <body>

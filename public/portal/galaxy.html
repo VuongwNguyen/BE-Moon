@@ -492,6 +492,24 @@
       transition: background 0.2s;
     }
     #lightbox-close:hover { background: rgba(255,255,255,0.2); }
+
+    @media (max-width: 600px) {
+      body { padding: 20px 14px 80px; }
+
+      header { margin-bottom: 28px; }
+      #galaxyName { font-size: 18px; }
+
+      .masonry-grid { columns: 2 140px; }
+
+      .action-row { flex-direction: column; }
+      .action-row .btn { width: 100%; justify-content: center; }
+
+      /* always show delete button on touch */
+      .delete-image { opacity: 1; transform: scale(1); }
+
+      #toast-container { bottom: 16px; right: 16px; left: 16px; }
+      .toast { max-width: 100%; white-space: normal; }
+    }
   </style>
 </head>
 <body>
