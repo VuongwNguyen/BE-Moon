@@ -320,9 +320,23 @@ async function init() {
       const texIdx = Math.floor(Math.random() * textures.length);
       const tex = textures[texIdx];
       if (!tex) continue;
-      const zOffset = (Math.random() - 0.5) * ROW_DEPTH * 0.8; // stagger within row
+      // Each photo fully independent Z — spread across 3x row depth
+      const zOffset = (Math.random() - 0.5) * ROW_DEPTH * 3;
       const p = makePolaroidFromTex(tex, c, colOffsets, zPos + zOffset);
       polaroids.push(p);
+    }
+    // Spawn 1-2 mini floating photos in the gaps
+    const miniCount = 1 + Math.floor(Math.random() * 2);
+    for (let m = 0; m < miniCount; m++) {
+      const tex = textures[Math.floor(Math.random() * textures.length)];
+      if (!tex) continue;
+      const mini = makePolaroidFromTex(tex, Math.floor(Math.random() * COLS), colOffsets, zPos + (Math.random() - 0.5) * ROW_DEPTH * 2);
+      // Scale down to mini size
+      mini.scale.set(0.45, 0.45, 0.45);
+      // Push further to the sides
+      mini.position.x += (Math.random() > 0.5 ? 1 : -1) * (6 + Math.random() * 4);
+      mini.position.y += (Math.random() - 0.5) * 6;
+      polaroids.push(mini);
     }
     window._nextRowZ = zPos - ROW_DEPTH;
   }
