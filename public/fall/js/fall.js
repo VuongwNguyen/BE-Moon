@@ -218,8 +218,8 @@ function makePolaroidFromTex(tex, col, colOffsets, zPos) {
 // ── Camera fall state ──────────────────────────────────────────────────────
 let started = false;
 let fallSpeed = 0;
-const TARGET_SPEED = 0.12;
-const ACCEL = 0.0008;
+const TARGET_SPEED = 0.06;
+const ACCEL = 0.0004;
 let cameraZ = 0;
 let totalDepth = 0;
 
@@ -358,8 +358,8 @@ async function init() {
 
 let frozen = false;
 let boostSpeed = 0;
-const BOOST = 0.5;
-const BOOST_DECAY = 0.015;
+const BOOST = 1.0;
+const BOOST_DECAY = 0.02;
 
 // Scroll → boost
 renderer.domElement.addEventListener('wheel', e => {
