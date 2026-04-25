@@ -27,7 +27,10 @@
     .btn-primary:hover { background: #6d28d9; }
     .btn-danger { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
     .btn-danger:hover { background: rgba(239,68,68,0.25); }
+    .btn-warning { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+    .btn-warning:hover { background: rgba(245,158,11,0.25); }
     .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
     /* Nav */
     .nav { display: flex; gap: 2px; padding: 16px 32px 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
@@ -57,12 +60,12 @@
 
     /* Table */
     .table-wrap { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; }
-    .table-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    .table-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.07); flex-wrap: wrap; gap: 10px; }
     .table-header h3 { font-size: 14px; color: #c4b5fd; font-weight: 600; }
-    .search-row { display: flex; gap: 8px; }
+    .search-row { display: flex; gap: 8px; flex-wrap: wrap; }
     .search-input {
       background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 7px; padding: 7px 12px; color: #fff; font-size: 13px; width: 220px; outline: none;
+      border-radius: 7px; padding: 7px 12px; color: #fff; font-size: 13px; width: 200px; outline: none;
     }
     .search-input:focus { border-color: rgba(124,58,237,0.5); }
     .filter-select {
@@ -85,6 +88,8 @@
     .badge-paid { background: rgba(34,197,94,0.15); color: #4ade80; }
     .badge-pending { background: rgba(245,158,11,0.15); color: #fbbf24; }
     .badge-cancelled { background: rgba(239,68,68,0.15); color: #f87171; }
+    .badge-banned { background: rgba(239,68,68,0.2); color: #f87171; }
+    .badge-partner { background: rgba(34,197,94,0.2); color: #4ade80; }
 
     /* Pagination */
     .pagination { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.07); }
@@ -98,7 +103,7 @@
     .modal-overlay.open { display: flex; }
     .modal {
       background: #111128; border: 1px solid rgba(255,255,255,0.12); border-radius: 14px;
-      padding: 28px; width: 420px; max-width: 95vw;
+      padding: 28px; width: 420px; max-width: 95vw; max-height: 90vh; overflow-y: auto;
     }
     .modal h3 { font-size: 16px; color: #c4b5fd; margin-bottom: 18px; }
     .modal label { display: block; font-size: 12px; color: rgba(255,255,255,0.45); margin-bottom: 6px; }
@@ -113,9 +118,14 @@
     /* User detail panel */
     .detail-section { margin-bottom: 20px; }
     .detail-section h4 { font-size: 12px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
-    .detail-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+    .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
     .detail-row:last-child { border-bottom: none; }
     .detail-row .key { color: rgba(255,255,255,0.4); }
+    .detail-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.07); }
+
+    /* Inline role row */
+    .role-row { display: flex; gap: 8px; align-items: center; }
+    .role-row select { margin-bottom: 0; flex: 1; }
 
     /* Loading / empty */
     .loading { text-align: center; padding: 40px; color: rgba(255,255,255,0.3); font-size: 13px; }
@@ -145,6 +155,8 @@
     <button class="nav-item active" data-tab="dashboard">📊 Dashboard</button>
     <button class="nav-item" data-tab="users">👥 Users</button>
     <button class="nav-item" data-tab="payments">💳 Payments</button>
+    <button class="nav-item" data-tab="media">🎨 Media</button>
+    <button class="nav-item" data-tab="analytics">📈 Analytics</button>
   </div>
 
   <div class="container">
@@ -199,6 +211,20 @@
       <div class="table-wrap">
         <div class="table-header">
           <h3>Payments</h3>
+          <div class="search-row">
+            <input class="search-input" id="pay-search" placeholder="Tìm email…" style="width:180px" />
+            <select class="filter-select" id="pay-status-filter">
+              <option value="">Tất cả trạng thái</option>
+              <option value="paid">Paid</option>
+              <option value="pending">Pending</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <select class="filter-select" id="pay-plan-filter">
+              <option value="">Tất cả plan</option>
+              <option value="plus">Plus</option>
+              <option value="pro">Pro</option>
+            </select>
+          </div>
         </div>
         <table>
           <thead>
@@ -221,6 +247,55 @@
       </div>
     </div>
   </div>
+
+    <!-- Media -->
+    <div class="tab" id="tab-media">
+      <div style="margin-bottom:32px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="font-size:15px;color:#c4b5fd">Themes</h3>
+          <button class="btn btn-primary btn-sm" id="btn-add-theme">+ Add Theme</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Colors</th><th>Status</th><th></th></tr></thead>
+            <tbody id="theme-table"><tr><td colspan="4" class="loading">Đang tải…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="font-size:15px;color:#c4b5fd">Background Music</h3>
+          <button class="btn btn-primary btn-sm" id="btn-add-music">+ Add Music</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>URL</th><th>Status</th><th></th></tr></thead>
+            <tbody id="music-table"><tr><td colspan="4" class="loading">Đang tải…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics -->
+    <div class="tab" id="tab-analytics">
+      <div class="stats-grid" style="margin-bottom:28px">
+        <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value" id="aa-total-users">—</div></div>
+        <div class="stat-card"><div class="stat-label">Active Subs</div><div class="stat-value" id="aa-active-subs">—</div></div>
+        <div class="stat-card"><div class="stat-label">Doanh thu tháng</div><div class="stat-value" id="aa-revenue">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total Payments</div><div class="stat-value" id="aa-payments">—</div></div>
+      </div>
+      <div class="table-wrap" style="margin-bottom:28px">
+        <div class="table-header"><h3>Tỉ lệ hủy thanh toán (30 ngày)</h3></div>
+        <div style="padding:20px"><canvas id="aa-cancel-chart" height="80"></canvas></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header"><h3>Payments gần đây</h3></div>
+        <table>
+          <thead><tr><th>Email</th><th>Plan</th><th>Số tiền</th><th>Status</th><th>Ngày</th></tr></thead>
+          <tbody id="aa-payments-tbody"><tr><td colspan="5" class="loading">Đang tải…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
 
   <!-- Grant Sub Modal -->
   <div class="modal-overlay" id="grant-modal">
@@ -252,7 +327,52 @@
     </div>
   </div>
 
+  <!-- Theme Modal -->
+  <div class="modal-overlay" id="theme-modal">
+    <div class="modal">
+      <h3>Add Theme</h3>
+      <label>Name</label>
+      <input type="text" id="theme-name" placeholder="Theme name" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 12px;color:#fff;font-size:13px;outline:none;margin-bottom:14px" />
+      <label>Primary color</label>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+        <input type="color" id="theme-primary-picker" value="#8b5cf6" style="width:36px;height:36px;border:none;border-radius:6px;padding:0;cursor:pointer;background:none">
+        <input type="text" id="theme-primary" placeholder="#8b5cf6" maxlength="7" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 12px;color:#fff;font-size:13px;outline:none">
+      </div>
+      <label>Secondary color</label>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+        <input type="color" id="theme-secondary-picker" value="#48b8b8" style="width:36px;height:36px;border:none;border-radius:6px;padding:0;cursor:pointer;background:none">
+        <input type="text" id="theme-secondary" placeholder="#48b8b8" maxlength="7" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 12px;color:#fff;font-size:13px;outline:none">
+      </div>
+      <label>Background color</label>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+        <input type="color" id="theme-bg-picker" value="#06060e" style="width:36px;height:36px;border:none;border-radius:6px;padding:0;cursor:pointer;background:none">
+        <input type="text" id="theme-bg" placeholder="#06060e" maxlength="7" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 12px;color:#fff;font-size:13px;outline:none">
+      </div>
+      <div id="theme-modal-msg" style="font-size:12px;color:#f87171;min-height:16px;margin-bottom:8px"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="btn-cancel-theme">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-theme">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Music Modal -->
+  <div class="modal-overlay" id="music-modal">
+    <div class="modal">
+      <h3>Add Music</h3>
+      <label>Name</label>
+      <input type="text" id="music-name" placeholder="Music name" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 12px;color:#fff;font-size:13px;outline:none;margin-bottom:14px" />
+      <label>File</label>
+      <input type="file" id="music-file" accept="audio/*" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 12px;color:#fff;font-size:13px;outline:none;margin-bottom:14px" />
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="btn-cancel-music">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-music">Save</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script src="./js/main.js"></script>
 </body>
 </html>

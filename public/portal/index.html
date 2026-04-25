@@ -600,139 +600,20 @@
         <h1><i class="brand-star">✦</i> Lumora - ánh sáng của ký ức Portal</h1>
         <div class="user-info" id="user-email"></div>
       </div>
-      <button class="logout" id="btn-logout">Đăng xuất</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="logout" id="btn-admin-panel" style="display:none;border-color:rgba(248,113,113,0.3);color:#f87171">🛡 Admin Panel</button>
+        <button class="logout" id="btn-logout">Đăng xuất</button>
+      </div>
     </header>
 
     <div class="tabs-nav" id="tabs-nav">
       <button class="tab-btn active" data-tab="galaxies">Galaxies</button>
-      <button class="tab-btn" data-tab="admin" id="tab-admin" style="display:none">
-        🛡 Admin <span class="admin-badge">ADMIN</span>
-      </button>
       <button class="tab-btn" data-tab="subscription">Subscription</button>
     </div>
 
     <div class="tab-panel active" id="panel-galaxies">
       <button class="btn-new" id="btn-open-modal">+ Tạo galaxy mới</button>
       <div class="galaxy-grid" id="galaxy-grid"></div>
-    </div>
-
-    <div class="tab-panel" id="panel-admin">
-      <div class="admin-layout">
-        <div class="admin-sidebar">
-          <nav class="admin-nav">
-            <a class="admin-nav-item active" data-section="media">🎨 Media</a>
-            <a class="admin-nav-item" data-section="users">👥 Users</a>
-            <a class="admin-nav-item" data-section="analytics">📊 Analytics</a>
-          </nav>
-        </div>
-        
-        <div class="admin-content">
-          <!-- Media Section -->
-          <div class="admin-section active" id="admin-media">
-            <div style="margin-bottom: 40px;">
-              <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--accent-light);">Themes</h2>
-              <button class="btn-new" id="btn-add-theme">+ Add Theme</button>
-              <table style="width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden;">
-                <thead>
-                  <tr style="background: rgba(139,92,246,0.1);">
-                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">Name</th>
-                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">Primary</th>
-                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">Status</th>
-                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">Action</th>
-                  </tr>
-                </thead>
-                <tbody id="theme-table"></tbody>
-              </table>
-            </div>
-
-            <div>
-              <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--accent-light);">Background Music</h2>
-              <button class="btn-new" id="btn-add-music">+ Add Music</button>
-              <table style="width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden;">
-                <thead>
-                  <tr style="background: rgba(139,92,246,0.1);">
-                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">Name</th>
-                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">URL</th>
-                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">Status</th>
-                    <th style="padding: 12px; text-align: left; color: var(--accent-light); font-weight: 500;">Action</th>
-                  </tr>
-                </thead>
-                <tbody id="music-table"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Users Section -->
-          <div class="admin-section" id="admin-users">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-              <h2 style="font-size:16px;color:var(--accent-light)">Users</h2>
-              <div style="display:flex;gap:8px">
-                <input id="au-search" placeholder="Tìm email…" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:7px;padding:6px 11px;color:#fff;font-size:13px;outline:none;width:200px" />
-                <select id="au-plan" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:#fff;font-size:13px;outline:none;cursor:pointer">
-                  <option value="">Tất cả</option>
-                  <option value="plus">Plus</option>
-                  <option value="pro">Pro</option>
-                  <option value="none">Không sub</option>
-                </select>
-              </div>
-            </div>
-            <table style="width:100%;border-collapse:collapse;background:var(--surface);border-radius:var(--radius);overflow:hidden">
-              <thead><tr style="background:rgba(139,92,246,0.1)">
-                <th style="padding:11px 12px;text-align:left;color:var(--accent-light);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em">Email</th>
-                <th style="padding:11px 12px;text-align:left;color:var(--accent-light);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em">Role</th>
-                <th style="padding:11px 12px;text-align:left;color:var(--accent-light);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em">Plan</th>
-                <th style="padding:11px 12px;text-align:left;color:var(--accent-light);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em">Hết hạn</th>
-                <th style="padding:11px 12px;text-align:left;color:var(--accent-light);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em">Status</th>
-                <th style="padding:11px 12px"></th>
-              </tr></thead>
-              <tbody id="au-tbody"><tr><td colspan="6" style="padding:28px;text-align:center;color:rgba(255,255,255,0.3);font-size:13px">Đang tải…</td></tr></tbody>
-            </table>
-            <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:12px 4px">
-              <span id="au-page-info" style="font-size:12px;color:rgba(255,255,255,0.3)"></span>
-              <button id="au-prev" class="btn-view" style="padding:4px 10px;font-size:12px">‹</button>
-              <button id="au-next" class="btn-view" style="padding:4px 10px;font-size:12px">›</button>
-            </div>
-          </div>
-
-          <!-- Analytics Section -->
-          <div class="admin-section" id="admin-analytics">
-            <h2 style="font-size:16px;color:var(--accent-light);margin-bottom:20px">Analytics</h2>
-            <div id="aa-stats" style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:28px">
-              <div style="background:var(--surface);border-radius:var(--radius);padding:20px">
-                <div style="font-size:11px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Total Users</div>
-                <div id="aa-total-users" style="font-size:28px;font-weight:700;color:var(--accent-light)">—</div>
-              </div>
-              <div style="background:var(--surface);border-radius:var(--radius);padding:20px">
-                <div style="font-size:11px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Active Subs</div>
-                <div id="aa-active-subs" style="font-size:28px;font-weight:700;color:var(--accent-light)">—</div>
-              </div>
-              <div style="background:var(--surface);border-radius:var(--radius);padding:20px">
-                <div style="font-size:11px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Doanh thu tháng</div>
-                <div id="aa-revenue" style="font-size:28px;font-weight:700;color:var(--accent-light)">—</div>
-              </div>
-              <div style="background:var(--surface);border-radius:var(--radius);padding:20px">
-                <div style="font-size:11px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Total Payments</div>
-                <div id="aa-payments" style="font-size:28px;font-weight:700;color:var(--accent-light)">—</div>
-              </div>
-            </div>
-            <h3 style="font-size:14px;color:var(--accent-light);margin-bottom:14px">Tỉ lệ hủy thanh toán (30 ngày)</h3>
-            <div style="background:var(--surface);border-radius:var(--radius);padding:20px;margin-bottom:28px">
-              <canvas id="aa-cancel-chart" height="80"></canvas>
-            </div>
-            <h3 style="font-size:14px;color:var(--accent-light);margin-bottom:14px">Payments gần đây</h3>
-            <table style="width:100%;border-collapse:collapse;background:var(--surface);border-radius:var(--radius);overflow:hidden">
-              <thead><tr style="background:rgba(139,92,246,0.1)">
-                <th style="padding:11px 12px;text-align:left;color:var(--accent-light);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em">Email</th>
-                <th style="padding:11px 12px;text-align:left;color:var(--accent-light);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em">Plan</th>
-                <th style="padding:11px 12px;text-align:left;color:var(--accent-light);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em">Số tiền</th>
-                <th style="padding:11px 12px;text-align:left;color:var(--accent-light);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em">Status</th>
-                <th style="padding:11px 12px;text-align:left;color:var(--accent-light);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em">Ngày</th>
-              </tr></thead>
-              <tbody id="aa-payments-tbody"><tr><td colspan="5" style="padding:28px;text-align:center;color:rgba(255,255,255,0.3);font-size:13px">Đang tải…</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div class="tab-panel" id="panel-subscription">
@@ -756,48 +637,7 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="theme-modal">
-    <div class="modal">
-      <h3>Add Theme</h3>
-      <input type="text" id="theme-name" placeholder="Theme name" style="margin-bottom:14px" />
-      <div class="color-field">
-        <label>Primary</label>
-        <input type="color" class="color-picker" id="theme-primary-picker" value="#8b5cf6">
-        <input type="text" id="theme-primary" placeholder="#8b5cf6" maxlength="7">
-      </div>
-      <div class="color-field">
-        <label>Secondary</label>
-        <input type="color" class="color-picker" id="theme-secondary-picker" value="#48b8b8">
-        <input type="text" id="theme-secondary" placeholder="#48b8b8" maxlength="7">
-      </div>
-      <div class="color-field">
-        <label>Background</label>
-        <input type="color" class="color-picker" id="theme-bg-picker" value="#06060e">
-        <input type="text" id="theme-bg" placeholder="#06060e" maxlength="7">
-      </div>
-      <div class="msg" id="theme-modal-msg" style="font-size:13px;min-height:18px;margin-bottom:8px;color:#f87171"></div>
-      <div class="modal-actions">
-        <button class="btn-cancel" id="btn-cancel-theme">Cancel</button>
-        <button class="btn-create" id="btn-save-theme">Save</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="music-modal">
-    <div class="modal">
-      <h3>Add Music</h3>
-      <input type="text" id="music-name" placeholder="Music name" />
-      <input type="file" id="music-file" accept="audio/*" style="margin-bottom: 15px;" />
-      <div class="modal-actions">
-        <button class="btn-cancel" id="btn-cancel-music">Cancel</button>
-        <button class="btn-create" id="btn-save-music">Save</button>
-      </div>
-    </div>
-  </div>
-
   <script src="./js/main.js"></script>
   <script src="./js/subscription.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="./js/admin.js"></script>
 </body>
 </html>

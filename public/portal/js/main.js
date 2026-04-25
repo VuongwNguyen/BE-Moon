@@ -4,9 +4,13 @@ if (!token) window.location.href = '/auth/';
 const user = JSON.parse(localStorage.getItem('user') || '{}');
 document.getElementById('user-email').textContent = user.email || '';
 
-// Admin: show admin tab
+// Admin: show admin panel button
 if (user.role === 'admin') {
-  document.getElementById('tab-admin').style.display = '';
+  const btn = document.getElementById('btn-admin-panel');
+  if (btn) {
+    btn.style.display = '';
+    btn.addEventListener('click', () => { window.location.href = '/admin/'; });
+  }
 }
 
 // Tab switching
