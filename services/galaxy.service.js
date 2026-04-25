@@ -58,7 +58,8 @@ class GalaxyService {
       await Promise.allSettled(
         images.map(async (image) => {
           try {
-            const fileId = image.imageUrl.split('/').pop().split('?')[0];
+            const fileId = image.fileId;
+            if (!fileId) return;
             await imagekit.deleteFile(fileId);
           } catch (error) {
             console.error(`Failed to delete image ${image._id}:`, error);

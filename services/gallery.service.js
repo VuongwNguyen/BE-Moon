@@ -10,6 +10,7 @@ class GalleryService {
         title,
         description,
         imageUrl: file.url,
+        fileId: file.fileId || null,
       });
     });
     return;
@@ -18,7 +19,7 @@ class GalleryService {
   async getGalleryItems({ galaxyId }) {
     const galleryItems = await GalleryModel.find({ galaxyId, status: "active" })
       .sort({ createdAt: -1 })
-      .limit(200);
+      // .limit(200); // Consider pagination if needed
 
     if (!galleryItems) {
       throw new errorResponse({
@@ -56,7 +57,8 @@ class GalleryService {
       });
       
       try {
-        const fileId = image.imageUrl.split('/').pop().split('?')[0];
+        const fileId = image.fileId;
+        if (!fileId) throw new Error("No fileId stored");
         await imagekit.deleteFile(fileId);
       } catch (error) {
         console.error("Failed to delete image from ImageKit:", error);

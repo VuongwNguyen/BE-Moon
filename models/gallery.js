@@ -19,6 +19,10 @@ const gallerySchema = new Schema({
     type: String,
     required: true,
   },
+  fileId: {
+    type: String,
+    default: null,
+  },
   status: {
     enum: ["active", "inactive"],
     default: "active",
@@ -29,5 +33,7 @@ const gallerySchema = new Schema({
     default: Date.now,
   },
 });
+
+gallerySchema.index({ galaxyId: 1, status: 1 });
 
 module.exports = model("Gallery", gallerySchema, "gallery");
