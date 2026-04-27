@@ -8,11 +8,14 @@ class PaymentController {
     if (!plan || !period) {
       return next(new errorResponse({ message: 'plan and period are required', statusCode: 400 }));
     }
+    const baseUrl = req.protocol + '://' + req.get('host');
     const result = await PaymentService.createPaymentLink({
       userId: req.user._id,
       userEmail: req.user.email,
       plan,
       period,
+      returnUrl: baseUrl + '/portal/?payment=success',
+      cancelUrl: baseUrl + '/payment/cancel',
     });
     return new successfullyResponse({ message: 'Payment link created', meta: result }).json(res);
   }
@@ -37,7 +40,8 @@ class PaymentController {
     if (orderCode) {
       await PaymentService.cancelPayment(parseInt(orderCode));
     }
-    return res.redirect(process.env.PAYOS_RETURN_URL.replace('payment=success', 'payment=cancel'));
+    const baseUrl = req.protocol + '://' + req.get('host');
+    return res.redirect(baseUrl + '/portal/?payment=cancel');
   }
 }
 

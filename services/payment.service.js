@@ -14,7 +14,7 @@ const payos = new PayOS({
 });
 
 class PaymentService {
-  async createPaymentLink({ userId, userEmail, plan, period }) {
+  async createPaymentLink({ userId, userEmail, plan, period, returnUrl, cancelUrl }) {
     if (!PLANS[plan]) {
       throw new errorResponse({ message: 'Invalid plan', statusCode: 400 });
     }
@@ -45,8 +45,8 @@ class PaymentService {
         orderCode,
         amount,
         description,
-        returnUrl: process.env.PAYOS_RETURN_URL,
-        cancelUrl: process.env.PAYOS_CANCEL_URL,
+        returnUrl,
+        cancelUrl,
       });
     } catch (err) {
       await PaymentModel.findByIdAndDelete(payment._id);
