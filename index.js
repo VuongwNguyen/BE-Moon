@@ -36,8 +36,9 @@ app.use(cors({
 }));
 
 // ── Security headers ──────────────────────────────
+const hasSSL = process.env.HTTPS === "true";
 app.use(helmet({
-  hsts:false, // Tắt HSTS để tránh lỗi khi chạy local                                                                                                  
+  hsts: hasSSL ? { maxAge: 31536000, includeSubDomains: true } : false,
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
@@ -46,8 +47,10 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      mediaSrc: ["'self'", "https://ik.imagekit.io", "https://ik.imagekit.io"],
+      mediaSrc: ["'self'", "https://ik.imagekit.io"],
       connectSrc: ["'self'"],
+      // null = tắt directive này; khi có SSL thì set HTTPS=true trong .env để bật lại
+      upgradeInsecureRequests: hasSSL ? [] : null,
     },
   },
 }));
