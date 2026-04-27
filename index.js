@@ -37,6 +37,7 @@ app.use(cors({
 
 // ── Security headers ──────────────────────────────
 app.use(helmet({
+  hsts:false, // Tắt HSTS để tránh lỗi khi chạy local                                                                                                  
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
@@ -123,6 +124,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
+  const { networkInterfaces } = require('os');
+  const ip = Object.values(networkInterfaces()).flat().find(i => i.family === 'IPv4' && !i.internal)?.address;
   console.log(`Server is running on http://localhost:${port}`);
+  if (ip) console.log(`Local network:     http://${ip}:${port}`);
 });

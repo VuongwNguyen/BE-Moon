@@ -38,17 +38,38 @@ const getUsers = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
   const search = req.query.search?.trim();
   const planFilter = req.query.plan;
+  const now = new Date();
+
+  // Resolve user IDs by plan at DB level to avoid post-pagination filter bug
+  let userIdWhitelist = null;
+  if (planFilter) {
+    if (planFilter === 'none') {
+      const subscribedIds = await SubscriptionModel.distinct('userId', {
+        status: 'active',
+        expiredAt: { $gt: now },
+      });
+      userIdWhitelist = { $nin: subscribedIds };
+    } else {
+      const subscribedIds = await SubscriptionModel.distinct('userId', {
+        status: 'active',
+        expiredAt: { $gt: now },
+        plan: planFilter,
+      });
+      userIdWhitelist = { $in: subscribedIds };
+    }
+  }
 
   const query = {};
   if (search) query.email = { $regex: search, $options: 'i' };
+  if (userIdWhitelist) query._id = userIdWhitelist;
 
-  const users = await UserModel.find(query, 'email role isVerified createdAt')
-    .sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
-
-  const total = await UserModel.countDocuments(query);
+  const [users, total] = await Promise.all([
+    UserModel.find(query, 'email role isVerified lockedUntil createdAt')
+      .sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    UserModel.countDocuments(query),
+  ]);
 
   const userIds = users.map(u => u._id);
-  const now = new Date();
   const subs = await SubscriptionModel.find({
     userId: { $in: userIds },
     status: 'active',
@@ -58,22 +79,17 @@ const getUsers = asyncHandler(async (req, res) => {
   const subMap = {};
   subs.forEach(s => { subMap[s.userId.toString()] = s; });
 
-  let result = users.map(u => ({
+  const result = users.map(u => ({
     ...u,
     subscription: subMap[u._id.toString()] || null,
   }));
-
-  if (planFilter) {
-    if (planFilter === 'none') result = result.filter(u => !u.subscription);
-    else result = result.filter(u => u.subscription?.plan === planFilter);
-  }
 
   new successfullyResponse({ meta: { users: result, total, page, limit }, message: 'OK' }).json(res);
 });
 
 // GET /admin/users/:id
 const getUserDetail = asyncHandler(async (req, res) => {
-  const user = await UserModel.findById(req.params.id, 'email role isVerified createdAt').lean();
+  const user = await UserModel.findById(req.params.id, 'email role isVerified lockedUntil createdAt').lean();
   if (!user) throw new errorResponse({ message: 'User not found', statusCode: 404 });
 
   const now = new Date();
@@ -112,6 +128,41 @@ const grantSubscription = asyncHandler(async (req, res) => {
   new successfullyResponse({ meta: sub, message: 'Subscription granted' }).json(res);
 });
 
+// DELETE /admin/users/:id/subscription
+const revokeSubscription = asyncHandler(async (req, res) => {
+  const user = await UserModel.findById(req.params.id);
+  if (!user) throw new errorResponse({ message: 'User not found', statusCode: 404 });
+
+  const result = await SubscriptionModel.updateMany(
+    { userId: user._id, status: 'active' },
+    { status: 'cancelled' }
+  );
+
+  new successfullyResponse({ meta: { cancelled: result.modifiedCount }, message: 'Subscription revoked' }).json(res);
+});
+
+// PATCH /admin/users/:id/role  body: { role }
+const changeRole = asyncHandler(async (req, res) => {
+  const { role } = req.body;
+  if (!['admin', 'partner', 'user'].includes(role)) {
+    throw new errorResponse({ message: 'Invalid role', statusCode: 400 });
+  }
+
+  // Prevent self-demotion
+  if (req.params.id === req.user._id.toString() && role !== 'admin') {
+    throw new errorResponse({ message: 'Cannot change your own role', statusCode: 403 });
+  }
+
+  const user = await UserModel.findByIdAndUpdate(
+    req.params.id,
+    { role },
+    { new: true, select: 'email role isVerified' }
+  );
+  if (!user) throw new errorResponse({ message: 'User not found', statusCode: 404 });
+
+  new successfullyResponse({ meta: user, message: 'Role updated' }).json(res);
+});
+
 // PATCH /admin/users/:id/status  body: { isVerified }
 const toggleUserStatus = asyncHandler(async (req, res) => {
   const user = await UserModel.findByIdAndUpdate(
@@ -123,16 +174,51 @@ const toggleUserStatus = asyncHandler(async (req, res) => {
   new successfullyResponse({ meta: user, message: 'Updated' }).json(res);
 });
 
-// GET /admin/payments?page=1&limit=20
+// PATCH /admin/users/:id/ban  body: { banned: true/false, hours? }
+const banUser = asyncHandler(async (req, res) => {
+  const { banned, hours } = req.body;
+
+  if (req.params.id === req.user._id.toString()) {
+    throw new errorResponse({ message: 'Cannot ban yourself', statusCode: 403 });
+  }
+
+  let lockedUntil = null;
+  if (banned) {
+    // Default: permanent ban (100 years). Pass hours for temporary ban.
+    const ms = hours ? hours * 60 * 60 * 1000 : 100 * 365 * 24 * 60 * 60 * 1000;
+    lockedUntil = new Date(Date.now() + ms);
+  }
+
+  const user = await UserModel.findByIdAndUpdate(
+    req.params.id,
+    { lockedUntil, loginAttempts: banned ? 999 : 0 },
+    { new: true, select: 'email role isVerified lockedUntil' }
+  );
+  if (!user) throw new errorResponse({ message: 'User not found', statusCode: 404 });
+
+  new successfullyResponse({ meta: user, message: banned ? 'User banned' : 'User unbanned' }).json(res);
+});
+
+// GET /admin/payments?page=1&limit=20&status=&plan=&email=&startDate=&endDate=
 const getPayments = asyncHandler(async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(100, parseInt(req.query.limit) || 20);
   const skip = (page - 1) * limit;
 
+  const query = {};
+  if (req.query.status) query.status = req.query.status;
+  if (req.query.plan) query.plan = req.query.plan;
+  if (req.query.email) query.buyerEmail = { $regex: req.query.email.trim(), $options: 'i' };
+  if (req.query.startDate || req.query.endDate) {
+    query.createdAt = {};
+    if (req.query.startDate) query.createdAt.$gte = new Date(req.query.startDate);
+    if (req.query.endDate) query.createdAt.$lte = new Date(req.query.endDate);
+  }
+
   const [payments, total] = await Promise.all([
-    PaymentModel.find({}, 'buyerEmail plan period amount status paidAt createdAt payosOrderCode')
+    PaymentModel.find(query, 'buyerEmail plan period amount status paidAt createdAt payosOrderCode')
       .sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-    PaymentModel.countDocuments(),
+    PaymentModel.countDocuments(query),
   ]);
 
   new successfullyResponse({ meta: { payments, total, page, limit }, message: 'OK' }).json(res);
@@ -159,7 +245,6 @@ const getCancellationChart = asyncHandler(async (req, res) => {
     { $sort: { _id: 1 } },
   ]);
 
-  // Fill missing days with 0
   const map = {};
   rows.forEach(r => { map[r._id] = r; });
   const result = [];
@@ -173,4 +258,4 @@ const getCancellationChart = asyncHandler(async (req, res) => {
   new successfullyResponse({ meta: result, message: 'OK' }).json(res);
 });
 
-module.exports = { getStats, getUsers, getUserDetail, grantSubscription, toggleUserStatus, getPayments, getCancellationChart };
+module.exports = { getStats, getUsers, getUserDetail, grantSubscription, revokeSubscription, changeRole, toggleUserStatus, banUser, getPayments, getCancellationChart };
