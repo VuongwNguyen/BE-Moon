@@ -113,6 +113,9 @@ app.use((err, req, res, next) => {
   if (err.status === 404)
     return res.status(404).json({ status: false, message: "Not found", statusCode: 404 });
 
+  if (err.code === "LIMIT_FILE_SIZE")
+    return res.status(413).json({ status: false, message: "File quá lớn, tối đa 20MB", statusCode: 413 });
+
   if (!isDev) {
     // Không leak stack trace lên production
     console.error("[ERROR]", err.message);
