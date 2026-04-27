@@ -19,7 +19,7 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.VPS_APP_PATH }}
-            git pull origin main
+            git pull https://x-access-token:${{ secrets.GH_PAT }}@github.com/VuongwNguyen/BE-Moon.git main
             yarn install --frozen-lockfile
             pm2 restart galaxy
             sleep 3 && curl -sf http://localhost:3030/ping > /dev/null
