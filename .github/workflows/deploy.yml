@@ -18,6 +18,8 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             set -e
+            source ~/.nvm/nvm.sh 2>/dev/null || true
+            source ~/.profile 2>/dev/null || true
             cd ${{ secrets.VPS_APP_PATH }}
             git pull https://x-access-token:${{ secrets.GH_PAT }}@github.com/VuongwNguyen/BE-Moon.git main
             yarn install --frozen-lockfile
