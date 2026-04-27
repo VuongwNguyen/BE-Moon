@@ -6,7 +6,9 @@
   "license": "MIT",
   "scripts": {
     "start": "NODE_ENV=production node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "deploy": "git push origin main",
+    "redeploy": "gh workflow run deploy.yml --ref main"
   },
   "dependencies": {
     "@payos/node": "^2.0.5",
