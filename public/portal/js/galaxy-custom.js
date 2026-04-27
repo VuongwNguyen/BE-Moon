@@ -53,7 +53,11 @@ function scheduleSave() {
 async function performSave() {
   const themeId = document.getElementById('themeSelect').value || null;
   const musicId = document.getElementById('musicSelect').value || null;
-  const template = document.getElementById('templateSelect').value || 'galaxy';
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const payload = { themeId, backgroundMusicId: musicId, caption: currentCaptions };
+  if (user.role === 'admin') {
+    payload.template = document.getElementById('templateSelect').value || 'galaxy';
+  }
   try {
     const res = await fetch(`${API_BASE}/galaxies/${galaxyId}`, {
       method: 'PUT',
@@ -61,7 +65,7 @@ async function performSave() {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ themeId, backgroundMusicId: musicId, caption: currentCaptions, template }),
+      body: JSON.stringify(payload),
     });
     if (res.ok) {
       setSaveStatus('saved');
@@ -99,7 +103,11 @@ function applyLock(sectionId, planLabel) {
 
 async function applySubscriptionLock() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (user.role === 'admin' || user.role === 'partner') return;
+  if (user.role === 'admin') {
+    document.getElementById('templateSection').style.display = 'block';
+    return;
+  }
+  if (user.role === 'partner') return;
   try {
     const res = await fetch(`${API_BASE}/payment/status`, {
       headers: { Authorization: `Bearer ${token}` },

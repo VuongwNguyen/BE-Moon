@@ -98,6 +98,8 @@ class GalaxyService {
     }
 
     if (user.role !== "admin") {
+      delete data.template;
+
       const wantsTheme = data.themeId !== undefined;
       const wantsMusic = data.backgroundMusicId !== undefined;
       const wantsCaption = data.caption !== undefined;
