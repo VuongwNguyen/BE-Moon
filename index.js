@@ -5,6 +5,7 @@ const logger = require("morgan");
 const createError = require("http-errors");
 const cookieParser = require("cookie-parser");
 const path = require("path");
+const fs = require("fs");
 const { rateLimit } = require("express-rate-limit");
 const connectToDatabase = require("./connection");
 require("dotenv").config();
@@ -91,6 +92,36 @@ app.use(logger(isDev ? "dev" : "combined"));
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true, limit: "2mb" }));
 app.use(cookieParser());
+
+// ── Galaxy share OG tags ──────────────────────────
+const galaxyHtml = fs.readFileSync(path.join(__dirname, "public/galaxy-moon/index.html"), "utf8");
+const GalaxyModel = require("./models/galaxy");
+
+app.get("/galaxy-moon/", async (req, res, next) => {
+  const { galaxyId } = req.query;
+  if (!galaxyId) return next();
+  try {
+    const galaxy = await GalaxyModel.findById(galaxyId, "name").lean();
+    const name = galaxy?.name || "Lumora";
+    const title = `${name} — Lumora`;
+    const description = `Khám phá thiên hà ký ức "${name}" trong không gian 3D tuyệt đẹp.`;
+    const base = req.protocol + "://" + req.get("host");
+    const ogTags = `
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="${title}" />
+  <meta property="og:description" content="${description}" />
+  <meta property="og:image" content="${base}/og-image.png" />
+  <meta property="og:url" content="${base + req.originalUrl}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${title}" />
+  <meta name="twitter:description" content="${description}" />
+  <meta name="twitter:image" content="${base}/og-image.png" />`;
+    res.send(galaxyHtml.replace("<head>", "<head>" + ogTags));
+  } catch {
+    next();
+  }
+});
+
 app.use(express.static(path.join(__dirname, "public")));
 
 // ── Routes với rate limiting ───────────────────────
