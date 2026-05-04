@@ -153,10 +153,12 @@ function makeFrame(tex, imgSrc) {
   const grp = new THREE.Group();
 
   // Dark mat backing
-  grp.add(Object.assign(new THREE.Mesh(
+  const mat = new THREE.Mesh(
     new THREE.PlaneGeometry(fw+0.3, fh+0.3),
     new THREE.MeshBasicMaterial({color:0x030c16})
-  ), {position: new THREE.Vector3(0,0,-0.02)}));
+  );
+  mat.position.z = -0.02;
+  grp.add(mat);
 
   // Photo
   const img = new THREE.Mesh(
