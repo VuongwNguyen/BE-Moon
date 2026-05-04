@@ -296,6 +296,7 @@
         </div>
         <button type="submit" class="btn-primary" id="submit-btn">Đăng nhập</button>
       </form>
+      <button class="btn-secondary" id="btn-forgot" style="margin-top:12px;">Quên mật khẩu?</button>
       <div class="msg" id="msg-auth"></div>
     </div>
 
@@ -313,6 +314,45 @@
       <button class="btn-secondary" id="btn-resend">Gửi lại OTP</button>
       <div class="msg" id="msg-otp"></div>
     </div>
+
+    <!-- Screen 3: Forgot Password — nhập email -->
+    <div class="screen" id="screen-forgot">
+      <button class="back-btn" id="back-from-forgot">← Quay lại</button>
+      <p class="otp-hint" id="forgot-hint">Nhập email để nhận mã OTP đặt lại mật khẩu</p>
+      <form id="form-forgot">
+        <div class="input-group">
+          <input type="email" id="forgot-email" placeholder="Email" required />
+        </div>
+        <button type="submit" class="btn-primary" id="forgot-send-btn">Gửi OTP</button>
+      </form>
+      <div class="msg" id="msg-forgot"></div>
+    </div>
+
+    <!-- Screen 4: Forgot Password — nhập OTP + mật khẩu mới -->
+    <div class="screen" id="screen-reset">
+      <button class="back-btn" id="back-from-reset">← Quay lại</button>
+      <p class="otp-hint">Nhập mã OTP đã gửi tới<br><strong id="reset-email-display"></strong></p>
+      <form id="form-reset">
+        <div class="input-group">
+          <input type="text" class="otp-input" id="reset-otp" placeholder="______"
+            maxlength="6" inputmode="numeric" autocomplete="one-time-code" required />
+        </div>
+        <div class="input-group">
+          <input type="password" id="new-password" class="has-eye" placeholder="Mật khẩu mới (tối thiểu 8 ký tự)" required />
+          <button type="button" class="eye-btn" id="toggle-new-password" tabindex="-1" aria-label="Hiện/ẩn mật khẩu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+        <div class="input-group">
+          <input type="password" id="confirm-password" placeholder="Xác nhận mật khẩu mới" required />
+        </div>
+        <button type="submit" class="btn-primary" id="reset-btn">Đặt lại mật khẩu</button>
+      </form>
+      <button class="btn-secondary" id="btn-resend-reset">Gửi lại OTP</button>
+      <div class="msg" id="msg-reset"></div>
+    </div>
   </div>
 
   <div id="transition-overlay">
@@ -326,6 +366,34 @@
       input.type = showing ? 'password' : 'text';
       var icon = document.getElementById('eye-icon');
       icon.style.opacity = showing ? '1' : '0.45';
+    });
+    document.getElementById('toggle-new-password').addEventListener('click', function() {
+      var input = document.getElementById('new-password');
+      input.type = input.type === 'text' ? 'password' : 'text';
+    });
+  </script>
+  <script src="/shared/js/i18n.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.title = t.authTitle;
+      document.getElementById('tab-login').textContent = t.tabLogin;
+      document.getElementById('tab-register').textContent = t.tabRegister;
+      document.getElementById('email').placeholder = t.placeholderEmail;
+      document.getElementById('password').placeholder = t.placeholderPassword;
+      document.getElementById('submit-btn').textContent = t.btnLogin;
+      document.getElementById('btn-forgot').textContent = t.tabForgot;
+      document.getElementById('back-btn').textContent = t.btnBack;
+      document.getElementById('verify-btn').textContent = t.btnVerify;
+      document.getElementById('btn-resend').textContent = t.btnResend;
+      document.getElementById('back-from-forgot').textContent = t.btnBack;
+      document.getElementById('forgot-hint').textContent = t.forgotHint;
+      document.getElementById('forgot-email').placeholder = t.placeholderEmail;
+      document.getElementById('forgot-send-btn').textContent = t.btnSendOtp;
+      document.getElementById('back-from-reset').textContent = t.btnBack;
+      document.getElementById('new-password').placeholder = t.placeholderNewPassword;
+      document.getElementById('confirm-password').placeholder = t.placeholderConfirmPassword;
+      document.getElementById('reset-btn').textContent = t.btnResetPassword;
+      document.getElementById('btn-resend-reset').textContent = t.btnResend;
     });
   </script>
   <script type="module" src="./js/main.js"></script>

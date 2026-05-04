@@ -93,33 +93,65 @@ app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true, limit: "2mb" }));
 app.use(cookieParser());
 
-// ── Galaxy share OG tags ──────────────────────────
-const galaxyHtml = fs.readFileSync(path.join(__dirname, "public/galaxy-moon/index.html"), "utf8");
+// ── Template HTML (pre-loaded with absolute asset paths) ──────────────────
+const TEMPLATE_HTML = {
+  galaxy: fs.readFileSync(path.join(__dirname, "public/galaxy-moon/index.html"), "utf8")
+    .replace(/\.\/css\//g, "/galaxy-moon/css/")
+    .replace(/\.\/js\//g, "/galaxy-moon/js/"),
+  fall: fs.readFileSync(path.join(__dirname, "public/fall/index.html"), "utf8")
+    .replace(/\.\/js\//g, "/fall/js/"),
+};
+
 const GalaxyModel = require("./models/galaxy");
 
-app.get("/galaxy-moon/", async (req, res, next) => {
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// ── Single public view entry point ─────────────────────────────────────────
+app.get("/view/", async (req, res, next) => {
   const { galaxyId } = req.query;
-  if (!galaxyId) return next();
+  if (!galaxyId) return res.redirect("/");
   try {
-    const galaxy = await GalaxyModel.findById(galaxyId, "name").lean();
-    const name = galaxy?.name || "Lumora";
-    const title = `${name} — Lumora`;
-    const description = `Khám phá thiên hà ký ức "${name}" trong không gian 3D tuyệt đẹp.`;
+    const galaxy = await GalaxyModel.findById(galaxyId, "name template status").lean();
+    if (!galaxy || galaxy.status !== "active") {
+      return res.status(404).json({ status: false, message: "Galaxy not found", statusCode: 404 });
+    }
+    const template = galaxy.template || "galaxy";
+    const html = TEMPLATE_HTML[template] ?? TEMPLATE_HTML.galaxy;
+    const name = escapeHtml(galaxy.name || "Lumora");
     const base = req.protocol + "://" + req.get("host");
     const ogTags = `
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="${title}" />
-  <meta property="og:description" content="${description}" />
-  <meta property="og:image" content="${base}/og-image.png" />
-  <meta property="og:url" content="${base + req.originalUrl}" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="${title}" />
-  <meta name="twitter:description" content="${description}" />
+  <meta property="og:title" content="${name} — Lumora" />
+  <meta property=”og:description” content=”Khám phá thiên hà ký ức “${name}” trong không gian 3D tuyệt đẹp.” />
+  <meta property=”og:image” content=”${base}/og-image.png” />
+  <meta property=”og:url” content=”${base + req.originalUrl}” />
+  <meta name=”twitter:card” content=”summary_large_image” />
+  <meta name=”twitter:title” content=”${name} — Lumora” />
+  <meta name=”twitter:description” content=”Khám phá thiên hà ký ức “${name}” trong không gian 3D tuyệt đẹp.” />
   <meta name="twitter:image" content="${base}/og-image.png" />`;
-    res.send(galaxyHtml.replace("<head>", "<head>" + ogTags));
-  } catch {
-    next();
+    res.send(html.replace("<head>", "<head>" + ogTags));
+  } catch (err) {
+    next(err);
   }
+});
+
+// Redirect old template URLs with galaxyId to single entry point
+app.get("/galaxy-moon/", (req, res, next) => {
+  const { galaxyId } = req.query;
+  if (galaxyId) return res.redirect(`/view/?galaxyId=${encodeURIComponent(galaxyId)}`);
+  next();
+});
+
+app.get("/fall/", (req, res, next) => {
+  const { galaxyId } = req.query;
+  if (galaxyId) return res.redirect(`/view/?galaxyId=${encodeURIComponent(galaxyId)}`);
+  next();
 });
 
 app.use(express.static(path.join(__dirname, "public")));

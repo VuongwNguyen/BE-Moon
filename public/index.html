@@ -367,7 +367,19 @@
     <div class="copy">© 2026 Lumora - ánh sáng của ký ức</div>
   </footer>
 
+  <script src="/shared/js/i18n.js"></script>
   <script>
+    // Apply i18n
+    document.querySelector('a[href="#features"]').textContent = t.navFeatures;
+    document.querySelector('a[href="#pricing"]').textContent = t.navPricing;
+    document.querySelector('.nav-links a[href="/auth/"]:not(.btn-nav)').textContent = t.navLogin;
+    document.querySelector('.btn-nav').textContent = t.navStart;
+    document.querySelector('footer .links a[href="/terms/"]').textContent = t.footerTerms;
+    document.querySelector('footer .links a[href="/privacy/"]').textContent = t.footerPrivacy;
+    document.querySelector('footer .links a[href="/auth/"]').textContent = t.footerLogin;
+    document.querySelector('footer .copy').textContent = t.footerCopy;
+    document.querySelector('#demoOverlay div:nth-child(2)').textContent = t.demoClick;
+
     // Generate stars
     const container = document.getElementById('stars');
     for (let i = 0; i < 120; i++) {
@@ -407,7 +419,7 @@
     const demoGalaxyId = '69ebae5e63ef717f7b7e9dd0';
     
     demoOverlay.onclick = () => {
-      demoFrame.src = `/galaxy-moon/?galaxyId=${demoGalaxyId}`;
+      demoFrame.src = `/view/?galaxyId=${demoGalaxyId}`;
       demoOverlay.style.display = 'none';
     };
   </script>

@@ -51,6 +51,41 @@ class AuthController {
     }).json(res);
   }
 
+  async forgotPassword(req, res, next) {
+    const { email } = req.body;
+    if (!email) return next(new errorResponse({ message: "email is required", statusCode: 400 }));
+    await AuthService.forgotPassword({ email });
+    return new successfullyResponse({ message: "If this email exists, an OTP has been sent" }).json(res);
+  }
+
+  async verifyResetOtp(req, res, next) {
+    const { email, otp } = req.body;
+    if (!email || !otp) return next(new errorResponse({ message: "email and otp are required", statusCode: 400 }));
+    const result = await AuthService.verifyResetOtp({ email, otp });
+    return new successfullyResponse({ message: "OTP verified", meta: result }).json(res);
+  }
+
+  async resetPassword(req, res, next) {
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword) return next(new errorResponse({ message: "email and newPassword are required", statusCode: 400 }));
+    await AuthService.resetPassword({ email, newPassword });
+    return new successfullyResponse({ message: "Password reset successfully" }).json(res);
+  }
+
+  async changePassword(req, res, next) {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) return next(new errorResponse({ message: "currentPassword and newPassword are required", statusCode: 400 }));
+    await AuthService.changePassword({ userId: req.user._id, currentPassword, newPassword });
+    return new successfullyResponse({ message: "Password changed successfully" }).json(res);
+  }
+
+  async deleteAccount(req, res, next) {
+    const { password } = req.body;
+    if (!password) return next(new errorResponse({ message: "password is required", statusCode: 400 }));
+    await AuthService.deleteAccount({ userId: req.user._id, password });
+    return new successfullyResponse({ message: "Account deleted" }).json(res);
+  }
+
   async me(req, res, next) {
     const result = await AuthService.me(req.user._id);
     return new successfullyResponse({

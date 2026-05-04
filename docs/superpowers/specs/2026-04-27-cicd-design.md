@@ -17,7 +17,7 @@ push to main (or manual trigger)
         ├─ SSH into VPS
         ├─ git pull origin main
         ├─ yarn install --frozen-lockfile
-        └─ pm2 restart my-app
+        └─ pm2 restart galaxy
 ```
 
 ## Triggers
@@ -66,14 +66,14 @@ jobs:
             cd ${{ secrets.VPS_APP_PATH }}
             git pull origin main
             yarn install --frozen-lockfile
-            pm2 restart my-app
+            pm2 restart galaxy
 ```
 
 ## Key Decisions
 
 - `--frozen-lockfile`: installs exactly what's in `yarn.lock`, prevents surprise updates on production
 - `appleboy/ssh-action@v1.2.0`: most widely used SSH deploy action, no extra software needed on VPS
-- PM2 app name `my-app`: matches existing `pm2 start npm --name my-app -- run start`
+- PM2 app name `galaxy`: matches existing process name on VPS
 - SSH key type `ed25519`: modern, smaller, faster than RSA
 
 ## Out of Scope

@@ -37,6 +37,11 @@ const userSchema = new Schema({
     type: Number,
     default: 0,
   },
+  otpPurpose: {
+    type: String,
+    enum: ["verify", "reset", "reset-verified"],
+    default: null,
+  },
   loginAttempts: {
     type: Number,
     default: 0,

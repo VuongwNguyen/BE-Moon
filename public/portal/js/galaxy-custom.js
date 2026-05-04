@@ -30,14 +30,14 @@ function setSaveStatus(status) {
   if (!el) return;
   el.className = 'save-indicator';
   if (status === 'saving') {
-    el.textContent = 'Saving…';
+    el.textContent = window.t.saving;
   } else if (status === 'saved') {
     el.classList.add('saved');
-    el.textContent = 'Saved ✓';
+    el.textContent = window.t.saved;
     setTimeout(() => { el.textContent = ''; el.className = 'save-indicator'; }, 2000);
   } else if (status === 'error') {
     el.classList.add('error');
-    el.textContent = 'Save failed';
+    el.textContent = window.t.saveFailed;
   } else {
     el.textContent = '';
   }
@@ -72,7 +72,7 @@ async function performSave() {
     } else if (res.status === 403) {
       const data = await res.json();
       setSaveStatus('error');
-      showToast(data.message || 'Cần subscription để d\xF9ng t\xEDnh năng n\xE0y', 'error');
+      showToast(window.t.needPlanSave(data.message), 'error');
     } else {
       setSaveStatus('error');
     }
@@ -89,15 +89,7 @@ function applyLock(sectionId, planLabel) {
 
   const msg = document.createElement('div');
   msg.className = 'feature-lock-msg';
-  msg.appendChild(document.createTextNode('🔒 Cần g\xF3i '));
-  const strong = document.createElement('strong');
-  strong.textContent = planLabel;
-  msg.appendChild(strong);
-  msg.appendChild(document.createTextNode(' để d\xF9ng t\xEDnh năng n\xE0y  '));
-  const link = document.createElement('a');
-  link.href = '/portal/';
-  link.textContent = 'N\xE2ng cấp';
-  msg.appendChild(link);
+  msg.innerHTML = `${window.t.needPlan(planLabel)}&nbsp;&nbsp;<a href="/portal/">${window.t.upgrade}</a>`;
   section.appendChild(msg);
 }
 

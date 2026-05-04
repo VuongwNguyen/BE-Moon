@@ -358,6 +358,18 @@
   </div>
 
   <div id="toast"></div>
+  <script src="/shared/js/i18n.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btn-logout').textContent = t.adminLogout;
+      document.getElementById('btn-portal').textContent = t.adminPortal;
+      document.querySelector('#grant-modal h3').textContent = t.adminGrantTitle;
+      document.getElementById('grant-cancel').textContent = t.adminGrantCancel;
+      document.getElementById('grant-confirm').textContent = t.adminGrantConfirm;
+      document.getElementById('detail-title').textContent = t.adminDetailTitle;
+      document.getElementById('detail-close').textContent = t.adminDetailClose;
+    });
+  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script src="./js/main.js"></script>
 </body>

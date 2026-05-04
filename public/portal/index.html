@@ -592,6 +592,126 @@
       display: block;
     }
 
+    /* ── Account ─────────────────────────────────── */
+    .account-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+    }
+    .account-danger { border-color: rgba(248,113,113,0.25); }
+    .account-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .account-label-text {
+      font-size: 12px;
+      color: var(--text-sub);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .account-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-light);
+      letter-spacing: 0.04em;
+      margin-bottom: 14px;
+    }
+    .account-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: 'Jost', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .account-input:focus { border-color: var(--border-accent); }
+    .account-input::placeholder { color: var(--text-sub); }
+    .account-input-danger:focus { border-color: rgba(248,113,113,0.5); }
+    .account-hint {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }
+    .account-msg {
+      font-size: 13px;
+      min-height: 18px;
+      margin-top: 8px;
+    }
+    .btn-danger-full {
+      width: 100%;
+      padding: 10px;
+      background: rgba(248,113,113,0.08);
+      border: 1px solid rgba(248,113,113,0.3);
+      border-radius: 8px;
+      color: var(--red);
+      font-size: 13px;
+      font-family: 'Jost', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-danger-full:hover { background: rgba(248,113,113,0.16); }
+    .btn-danger-full:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Settings dropdown ───────────────────────── */
+    .settings-wrap { position: relative; }
+    .btn-settings {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.03em;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-settings:hover { border-color: var(--border-accent); color: var(--text); background: var(--surface-2); }
+    .settings-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      background: #0d0d1e;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      min-width: 160px;
+      z-index: 50;
+      overflow: hidden;
+    }
+    .settings-menu.open { display: block; }
+    .settings-item {
+      display: block;
+      width: 100%;
+      padding: 10px 16px;
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      font-family: 'Jost', sans-serif;
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .settings-item:hover { background: var(--surface-2); color: var(--text); }
+    .settings-item.danger { color: var(--red); }
+    .settings-item.danger:hover { background: rgba(248,113,113,0.08); }
+    .settings-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
     @media (max-width: 600px) {
       body { padding: 20px 14px 60px; }
 
@@ -628,9 +748,15 @@
         <h1><i class="brand-star">✦</i> Lumora - ánh sáng của ký ức Portal</h1>
         <div class="user-info" id="user-email"></div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="logout" id="btn-admin-panel" style="display:none;border-color:rgba(248,113,113,0.3);color:#f87171">🛡 Admin Panel</button>
-        <button class="logout" id="btn-logout">Đăng xuất</button>
+      <div class="settings-wrap">
+        <button class="btn-settings" id="btn-settings">⚙ <span id="settings-label">Cài đặt</span> ▾</button>
+        <div class="settings-menu" id="settings-menu">
+          <button class="settings-item" id="btn-admin-panel" style="display:none">🛡 Admin Panel</button>
+          <div class="settings-divider" id="settings-divider" style="display:none"></div>
+          <button class="settings-item" id="btn-goto-account" data-tab="account"></button>
+          <div class="settings-divider"></div>
+          <button class="settings-item danger" id="btn-logout"></button>
+        </div>
       </div>
     </header>
 
@@ -649,6 +775,39 @@
         <div class="empty" id="sub-loading">Dang tai...</div>
       </div>
     </div>
+
+    <div class="tab-panel" id="panel-account">
+      <div class="sub-section" style="margin:0 auto">
+
+        <!-- Email info -->
+        <div class="account-card" style="margin-bottom:16px">
+          <div class="account-row">
+            <span class="account-label-text">Email</span>
+            <span id="account-email-display" style="font-size:14px;color:var(--text)"></span>
+          </div>
+        </div>
+
+        <!-- Đổi mật khẩu -->
+        <div class="account-card" style="margin-bottom:16px">
+          <div class="account-section-title" id="account-change-pw-title"></div>
+          <input type="password" class="account-input" id="acc-current-pw" />
+          <input type="password" class="account-input" id="acc-new-pw" />
+          <input type="password" class="account-input" id="acc-confirm-pw" />
+          <button class="btn-subscribe" id="btn-change-pw" style="margin-top:4px"></button>
+          <div class="account-msg" id="msg-change-pw"></div>
+        </div>
+
+        <!-- Danger zone -->
+        <div class="account-card account-danger">
+          <div class="account-section-title" id="account-danger-title" style="color:var(--red)"></div>
+          <p id="account-delete-hint" class="account-hint"></p>
+          <input type="password" class="account-input account-input-danger" id="acc-delete-pw" />
+          <button class="btn-danger-full" id="btn-delete-account"></button>
+          <div class="account-msg" id="msg-delete-account"></div>
+        </div>
+
+      </div>
+    </div>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -665,6 +824,36 @@
     </div>
   </div>
 
+  <script src="/shared/js/i18n.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.title = t.portalTitle;
+      document.querySelector('[data-tab="galaxies"]').textContent = t.tabGalaxies;
+      document.querySelector('[data-tab="subscription"]').textContent = t.tabSubscription;
+      document.querySelector('[data-tab="account"]').textContent = t.tabAccount;
+      document.getElementById('btn-open-modal').textContent = t.btnNewGalaxy;
+      document.getElementById('settings-label').textContent = t.tabSettings || 'Cài đặt';
+      document.getElementById('btn-goto-account').textContent = '👤 ' + t.tabAccount;
+      document.getElementById('btn-logout').textContent = t.btnLogout;
+      document.querySelector('.modal h3').textContent = t.modalCreateTitle;
+      document.getElementById('galaxy-name').placeholder = t.placeholderGalaxyName;
+      document.getElementById('btn-cancel').textContent = t.btnCancel;
+      document.getElementById('btn-create').textContent = t.btnCreate;
+      document.getElementById('sub-loading').textContent = t.subLoading;
+      // Account tab
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      document.getElementById('account-email-display').textContent = user.email || '';
+      document.getElementById('account-change-pw-title').textContent = t.changePasswordTitle;
+      document.getElementById('acc-current-pw').placeholder = t.placeholderCurrentPassword;
+      document.getElementById('acc-new-pw').placeholder = t.placeholderNewPassword;
+      document.getElementById('acc-confirm-pw').placeholder = t.placeholderConfirmPassword;
+      document.getElementById('btn-change-pw').textContent = t.btnChangePassword;
+      document.getElementById('account-danger-title').textContent = t.dangerZoneTitle;
+      document.getElementById('account-delete-hint').textContent = t.deleteAccountConfirm;
+      document.getElementById('acc-delete-pw').placeholder = t.placeholderPassword;
+      document.getElementById('btn-delete-account').textContent = t.deleteAccountBtn;
+    });
+  </script>
   <script src="./js/main.js"></script>
   <script src="./js/subscription.js"></script>
 </body>

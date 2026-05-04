@@ -7,11 +7,30 @@ document.getElementById('user-email').textContent = user.email || '';
 // Admin: show admin panel button
 if (user.role === 'admin') {
   const btn = document.getElementById('btn-admin-panel');
+  const divider = document.getElementById('settings-divider');
   if (btn) {
     btn.style.display = '';
+    if (divider) divider.style.display = '';
     btn.addEventListener('click', () => { window.location.href = '/admin/'; });
   }
 }
+
+// Settings dropdown
+const settingsBtn = document.getElementById('btn-settings');
+const settingsMenu = document.getElementById('settings-menu');
+settingsBtn.addEventListener('click', function(e) {
+  e.stopPropagation();
+  settingsMenu.classList.toggle('open');
+});
+document.addEventListener('click', function() { settingsMenu.classList.remove('open'); });
+
+// Goto account tab from dropdown
+document.getElementById('btn-goto-account').addEventListener('click', function() {
+  settingsMenu.classList.remove('open');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-account').classList.add('active');
+});
 
 // Tab switching
 document.querySelectorAll('.tab-btn[data-tab]').forEach(function(btn) {
@@ -38,7 +57,7 @@ function openModal() {
   document.getElementById('galaxy-name').value = '';
   document.getElementById('modal-msg').textContent = '';
   document.getElementById('btn-create').disabled = false;
-  document.getElementById('btn-create').textContent = 'Tạo';
+  document.getElementById('btn-create').textContent = window.t.btnCreate;
 }
 
 function closeModal() {
@@ -58,7 +77,7 @@ async function loadGalaxies() {
   } catch {
     const p = document.createElement('p');
     p.className = 'empty';
-    p.textContent = 'Lỗi tải dữ liệu';
+    p.textContent = window.t.errLoadData;
     grid.appendChild(p);
   }
 }
@@ -68,7 +87,7 @@ function renderGalaxies(grid, galaxies) {
   if (!galaxies.length) {
     const p = document.createElement('p');
     p.className = 'empty';
-    p.textContent = 'Chưa có galaxy nào. Tạo ngay!';
+    p.textContent = window.t.emptyGalaxies;
     grid.appendChild(p);
     return;
   }
@@ -98,7 +117,7 @@ function renderGalaxies(grid, galaxies) {
     copyIdBtn.textContent = '⎘';
     copyIdBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const link = `${window.location.origin}/galaxy-moon/?galaxyId=${g._id}`;
+      const link = `${window.location.origin}/view/?galaxyId=${g._id}`;
       navigator.clipboard.writeText(link).then(() => {
         copyIdBtn.textContent = '✓';
         setTimeout(() => { copyIdBtn.textContent = '⎘'; }, 1500);
@@ -113,7 +132,7 @@ function renderGalaxies(grid, galaxies) {
 
     const manageBtn = document.createElement('button');
     manageBtn.className = 'btn-manage';
-    manageBtn.textContent = 'Manage';
+    manageBtn.textContent = window.t.btnManage;
     manageBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       window.location.href = `/portal/galaxy.html?galaxyId=${g._id}`;
@@ -121,10 +140,10 @@ function renderGalaxies(grid, galaxies) {
 
     const viewBtn = document.createElement('button');
     viewBtn.className = 'btn-view';
-    viewBtn.textContent = 'View ↗';
+    viewBtn.textContent = window.t.btnView;
     viewBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      window.open(`/galaxy-moon/?galaxyId=${g._id}`, '_blank');
+      window.open(`/view/?galaxyId=${g._id}`, '_blank');
     });
 
     actions.appendChild(manageBtn);
@@ -150,9 +169,9 @@ document.getElementById('btn-create').addEventListener('click', async function()
   const name = document.getElementById('galaxy-name').value.trim();
   const msg = document.getElementById('modal-msg');
   const btn = document.getElementById('btn-create');
-  if (!name) { msg.textContent = 'Nhập tên galaxy'; return; }
+  if (!name) { msg.textContent = window.t.errGalaxyName; return; }
   btn.disabled = true;
-  btn.textContent = 'Đang tạo...';
+  btn.textContent = window.t.creating;
   try {
     const res = await fetch('/galaxies', {
       method: 'POST',
@@ -161,18 +180,75 @@ document.getElementById('btn-create').addEventListener('click', async function()
     });
     const data = await res.json();
     if (!res.ok) {
-      msg.textContent = data.message || 'Lỗi';
+      msg.textContent = data.message || window.t.errGeneric;
       btn.disabled = false;
-      btn.textContent = 'Tạo';
+      btn.textContent = window.t.btnCreate;
       return;
     }
     closeModal();
     loadGalaxies();
   } catch {
-    msg.textContent = 'Lỗi kết nối';
+    msg.textContent = window.t.errConnect;
     btn.disabled = false;
-    btn.textContent = 'Tạo';
+    btn.textContent = window.t.btnCreate;
   }
 });
 
 loadGalaxies();
+
+// ── Account tab ───────────────────────────────────────────────────────────────
+
+function setAccMsg(id, text, isError) {
+  var el = document.getElementById(id);
+  el.textContent = text;
+  el.style.color = isError ? 'var(--red)' : 'var(--green)';
+}
+
+document.getElementById('btn-change-pw').addEventListener('click', async function() {
+  var currentPw = document.getElementById('acc-current-pw').value;
+  var newPw = document.getElementById('acc-new-pw').value;
+  var confirmPw = document.getElementById('acc-confirm-pw').value;
+  setAccMsg('msg-change-pw', '', false);
+
+  if (newPw !== confirmPw) { setAccMsg('msg-change-pw', window.t.errPasswordMismatch, true); return; }
+
+  var btn = this;
+  btn.disabled = true;
+  btn.textContent = window.t.processing;
+  try {
+    var res = await fetch('/auth/change-password', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ currentPassword: currentPw, newPassword: newPw }),
+    });
+    var data = await res.json();
+    if (!res.ok) { setAccMsg('msg-change-pw', data.message || window.t.errGeneric, true); return; }
+    setAccMsg('msg-change-pw', window.t.changePasswordSuccess, false);
+    document.getElementById('acc-current-pw').value = '';
+    document.getElementById('acc-new-pw').value = '';
+    document.getElementById('acc-confirm-pw').value = '';
+    setTimeout(logout, 2000);
+  } catch { setAccMsg('msg-change-pw', window.t.errConnect, true); }
+  finally { btn.disabled = false; btn.textContent = window.t.btnChangePassword; }
+});
+
+document.getElementById('btn-delete-account').addEventListener('click', async function() {
+  var pw = document.getElementById('acc-delete-pw').value;
+  setAccMsg('msg-delete-account', '', false);
+  if (!pw) { setAccMsg('msg-delete-account', window.t.placeholderPassword, true); return; }
+
+  var btn = this;
+  btn.disabled = true;
+  try {
+    var res = await fetch('/auth/account', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ password: pw }),
+    });
+    var data = await res.json();
+    if (!res.ok) { setAccMsg('msg-delete-account', data.message || window.t.errGeneric, true); return; }
+    setAccMsg('msg-delete-account', window.t.deleteAccountSuccess, false);
+    setTimeout(logout, 1500);
+  } catch { setAccMsg('msg-delete-account', window.t.errConnect, true); }
+  finally { btn.disabled = false; }
+});

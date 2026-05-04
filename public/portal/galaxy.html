@@ -134,15 +134,27 @@
       letter-spacing: 0.05em;
     }
 
+    /* ── Two-col selects ─────────────────────────── */
+    .select-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .select-row > div { margin-bottom: 0 !important; }
+
     /* ── Upload zone ─────────────────────────────── */
     .upload-zone {
       border: 1.5px dashed var(--border);
       border-radius: 10px;
-      padding: 32px 24px;
+      padding: 16px 24px;
       text-align: center;
       cursor: pointer;
       transition: all 0.25s;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     .upload-zone:hover,
     .upload-zone.drag-over {
@@ -150,20 +162,19 @@
       background: rgba(139,92,246,0.05);
     }
     .upload-icon {
-      font-size: 30px;
-      margin-bottom: 12px;
+      font-size: 24px;
       opacity: 0.5;
       transition: opacity 0.2s;
+      flex-shrink: 0;
     }
     .upload-zone:hover .upload-icon { opacity: 0.8; }
     .upload-text {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-sub);
-      margin-bottom: 5px;
       font-weight: 400;
     }
     .upload-hint {
-      font-size: 12px;
+      font-size: 11px;
       color: rgba(255,255,255,0.22);
     }
     .file-input { display: none; }
@@ -501,6 +512,8 @@
 
       .masonry-grid { columns: 2 140px; }
 
+      .select-row { grid-template-columns: 1fr; }
+
       .action-row { flex-direction: column; }
       .action-row .btn { width: 100%; justify-content: center; }
 
@@ -532,30 +545,32 @@
     <!-- Customization -->
     <div class="card">
       <div class="card-label" style="justify-content: space-between;">
-        <span>Customization</span>
+        <span data-i18n="customization">Customization</span>
         <span id="saveIndicator" class="save-indicator"></span>
       </div>
       <div id="templateSection" style="margin-bottom: 16px; display: none;">
-        <label style="display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px;">Template</label>
+        <label style="display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px;" data-i18n="template-label">Template</label>
         <select id="templateSelect" style="width: 100%; padding: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Jost', sans-serif; font-size: 13px;">
           <option value="galaxy">🌌 Galaxy (classic)</option>
           <option value="fall">🎞 Fall Through Memories</option>
         </select>
       </div>
-      <div id="themeSection" style="margin-bottom: 16px;">
-        <label style="display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px;">Theme</label>
-        <select id="themeSelect" style="width: 100%; padding: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Jost', sans-serif; font-size: 13px;">
-          <option value="">No theme</option>
-        </select>
-      </div>
-      <div id="musicSection" style="margin-bottom: 16px;">
-        <label style="display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px;">Background Music</label>
-        <select id="musicSelect" style="width: 100%; padding: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Jost', sans-serif; font-size: 13px;">
-          <option value="">No music</option>
-        </select>
+      <div class="select-row">
+        <div id="themeSection">
+          <label style="display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px;" data-i18n="theme-label">Theme</label>
+          <select id="themeSelect" style="width: 100%; padding: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Jost', sans-serif; font-size: 13px;">
+            <option value="">No theme</option>
+          </select>
+        </div>
+        <div id="musicSection">
+          <label style="display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px;" data-i18n="music-label">Background Music</label>
+          <select id="musicSelect" style="width: 100%; padding: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Jost', sans-serif; font-size: 13px;">
+            <option value="">No music</option>
+          </select>
+        </div>
       </div>
       <div id="captionSection" style="margin-bottom: 16px;">
-        <label style="display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px;">Captions</label>
+        <label style="display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px;" data-i18n="captions-label">Captions</label>
         <div id="captionList" style="margin-bottom: 8px;"></div>
         <div style="display: flex; gap: 8px;">
           <input type="text" id="captionInput" placeholder="Add caption..." style="flex: 1; padding: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Jost', sans-serif; font-size: 13px;">
@@ -564,13 +579,21 @@
       </div>
     </div>
 
-    <!-- Upload -->
+    <!-- Upload & Actions -->
     <div class="card">
-      <div class="card-label">Upload Images</div>
+      <div class="card-label" style="justify-content: space-between;">
+        <span data-i18n="upload-title">Upload Images</span>
+        <div class="action-row" style="margin: 0;">
+          <button class="btn btn-secondary" id="copyLinkBtn">🔗 Copy Link</button>
+          <button class="btn btn-danger" id="deleteGalaxyBtn">🗑 Delete</button>
+        </div>
+      </div>
       <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
         <div class="upload-icon">🖼️</div>
-        <div class="upload-text">Drop images here or click to browse</div>
-        <div class="upload-hint" id="uploadHint">Supports JPG, PNG, GIF, WebP</div>
+        <div>
+          <div class="upload-text">Drop images here or click to browse</div>
+          <div class="upload-hint" id="uploadHint">Supports JPG, PNG, GIF, WebP</div>
+        </div>
         <input type="file" id="fileInput" class="file-input" multiple accept="image/*">
       </div>
       <button class="btn btn-primary" id="uploadBtn">Upload Images</button>
@@ -579,15 +602,6 @@
           <div class="progress-fill" id="progressBar"></div>
         </div>
         <div class="progress-label" id="progressLabel">Uploading…</div>
-      </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="card">
-      <div class="card-label">Actions</div>
-      <div class="action-row">
-        <button class="btn btn-secondary" id="copyLinkBtn">🔗 Copy Link</button>
-        <button class="btn btn-danger" id="deleteGalaxyBtn">🗑 Delete</button>
       </div>
     </div>
 
@@ -603,6 +617,30 @@
     </div>
   </div>
 
+  <script src="/shared/js/i18n.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelector('.back-btn').textContent = t.back;
+      document.querySelector('[data-i18n="customization"]').textContent = t.customization;
+      document.querySelector('[data-i18n="template-label"]').textContent = t.template;
+      document.querySelector('[data-i18n="theme-label"]').textContent = t.theme;
+      document.querySelector('#themeSelect option[value=""]').textContent = t.noTheme;
+      document.querySelector('[data-i18n="music-label"]').textContent = t.music;
+      document.querySelector('#musicSelect option[value=""]').textContent = t.noMusic;
+      document.querySelector('[data-i18n="captions-label"]').textContent = t.captions;
+      document.getElementById('captionInput').placeholder = t.captionPlaceholder;
+      document.getElementById('addCaptionBtn').textContent = t.addCaption;
+      document.querySelector('[data-i18n="upload-title"]').textContent = t.uploadImages;
+      document.querySelector('.upload-text').textContent = t.dropHint;
+      document.getElementById('uploadHint').textContent = t.uploadHint;
+      document.getElementById('uploadBtn').textContent = t.uploadBtn;
+      document.getElementById('copyLinkBtn').textContent = t.copyLink;
+      document.getElementById('deleteGalaxyBtn').textContent = t.deleteGalaxy;
+      document.getElementById('imagesLabel').textContent = t.images;
+      document.getElementById('galaxyName').textContent = t.loading;
+      document.querySelector('.grid-empty div:last-child').textContent = t.loading;
+    });
+  </script>
   <script src="js/galaxy.js"></script>
   <script src="js/galaxy-custom.js"></script>
 </body>

@@ -3,8 +3,8 @@
   const token = localStorage.getItem('token');
 
   const PLANS = {
-    plus: { label: 'Plus',  monthly: 10000, yearly: 109000, features: ['Themes'] },
-    pro:  { label: 'Pro',   monthly: 19000, yearly: 159000, features: ['Themes', 'Nhạc nền', 'Text / Caption'] },
+    plus: { label: 'Plus',  monthly: 10000, yearly: 109000, features: () => [window.t.subFeatureThemes] },
+    pro:  { label: 'Pro',   monthly: 19000, yearly: 159000, features: () => [window.t.subFeatureThemes, window.t.subFeatureMusic, window.t.subFeatureCaption] },
   };
   const PLAN_RANK = { plus: 1, pro: 2 };
 
@@ -25,10 +25,10 @@
   // Handle ?payment= query param
   const params = new URLSearchParams(window.location.search);
   if (params.get('payment') === 'success') {
-    showToast('Thanh toán thành công! Subscription đã được kích hoạt.', 'success');
+    showToast(window.t.subPaySuccess, 'success');
     history.replaceState({}, '', '/portal/');
   } else if (params.get('payment') === 'cancel') {
-    showToast('Thanh toán bị huỷ.', 'error');
+    showToast(window.t.subPayCancel, 'error');
     history.replaceState({}, '', '/portal/');
   }
 
@@ -44,7 +44,7 @@
     const planInfo = PLANS[sub.plan];
     label.textContent = (planInfo ? planInfo.label : sub.plan) + ' Plan';
     const expiry = el('div', 'plan-expiry');
-    expiry.textContent = 'Hết hạn: ' + new Date(sub.expiredAt).toLocaleDateString('vi-VN');
+    expiry.textContent = window.t.subExpiry(new Date(sub.expiredAt).toLocaleDateString('vi-VN'));
     div.appendChild(label);
     div.appendChild(expiry);
     return div;
@@ -54,7 +54,7 @@
     const toggle = el('div', 'period-toggle');
     ['monthly', 'yearly'].forEach(function (p) {
       const btn = el('button', 'period-btn' + (p === selectedPeriod ? ' active' : ''));
-      btn.textContent = p === 'monthly' ? 'Theo tháng' : 'Theo năm';
+      btn.textContent = p === 'monthly' ? window.t.subPeriodMonthly : window.t.subPeriodYearly;
       btn.addEventListener('click', function () {
         selectedPeriod = p;
         render(sub);
@@ -72,10 +72,10 @@
 
     const featuresEl = el('div', 'plan-features');
     const maxLine = document.createElement('div');
-    maxLine.textContent = '🌌 Tối đa ' + (planKey === 'plus' ? '3' : '10') + ' galaxies';
+    maxLine.textContent = window.t.subMaxGalaxies(planKey === 'plus' ? '3' : '10');
     maxLine.style.fontWeight = '500';
     featuresEl.appendChild(maxLine);
-    plan.features.forEach(function (f) {
+    plan.features().forEach(function (f) {
       const line = document.createElement('div');
       line.textContent = f;
       featuresEl.appendChild(line);
@@ -85,7 +85,7 @@
     const strong = document.createElement('strong');
     strong.textContent = fmtVND(plan[selectedPeriod]);
     priceEl.appendChild(strong);
-    const periodText = document.createTextNode(' / ' + (selectedPeriod === 'monthly' ? 'tháng' : 'năm'));
+    const periodText = document.createTextNode(' ' + window.t.subPeriodSuffix(selectedPeriod));
     priceEl.appendChild(periodText);
 
     const isCurrent = sub && sub.plan === planKey;
@@ -95,10 +95,10 @@
 
     const btn = el('button', 'btn-subscribe');
     if (isIncluded) {
-      btn.textContent = 'Đã bao gồm';
+      btn.textContent = window.t.subIncluded;
       btn.disabled = true;
     } else {
-      btn.textContent = isCurrent ? 'Gia hạn' : ('Nâng lên ' + plan.label);
+      btn.textContent = isCurrent ? window.t.subRenew : window.t.subUpgrade(plan.label);
       btn.addEventListener('click', function () {
         handleSubscribe(btn, planKey, selectedPeriod, plan.label);
       });
@@ -177,7 +177,7 @@
     const section = document.getElementById('sub-section');
     while (section.firstChild) section.removeChild(section.firstChild);
     const loading = el('div', 'empty');
-    loading.textContent = 'Đang tải...';
+    loading.textContent = window.t.subLoading;
     section.appendChild(loading);
 
     try {
@@ -192,7 +192,7 @@
     } catch {
       while (section.firstChild) section.removeChild(section.firstChild);
       const errEl = el('div', 'empty');
-      errEl.textContent = 'Lỗi tải subscription';
+      errEl.textContent = window.t.subLoadError;
       section.appendChild(errEl);
     }
   }
@@ -219,7 +219,7 @@
   async function handleSubscribe(btn, plan, period, planLabel) {
     const originalText = btn.textContent;
     btn.disabled = true;
-    btn.textContent = 'Đang xử lý...';
+    btn.textContent = window.t.subProcessing;
     try {
       const res = await fetch('/payment/create', {
         method: 'POST',
@@ -231,14 +231,14 @@
       });
       const data = await res.json();
       if (!res.ok) {
-        showToast(data.message || 'Lỗi tạo link thanh toán', 'error');
+        showToast(data.message || window.t.subErrCreate, 'error');
         btn.disabled = false;
         btn.textContent = originalText;
         return;
       }
       window.location.href = data.meta.checkoutUrl;
     } catch {
-      showToast('Lỗi kết nối', 'error');
+      showToast(window.t.subErrConnect, 'error');
       btn.disabled = false;
       btn.textContent = originalText;
     }

@@ -46,8 +46,8 @@ class GalaxyManager {
       const count = e.target.files.length;
       const hint = document.getElementById('uploadHint');
       hint.textContent = count > 0
-        ? `${count} file${count > 1 ? 's' : ''} selected — ready to upload`
-        : 'Supports JPG, PNG, GIF, WebP';
+        ? window.t.filesSelected(count)
+        : window.t.uploadHint;
     };
 
     const zone = document.getElementById('uploadZone');
@@ -65,8 +65,7 @@ class GalaxyManager {
         const dt = new DataTransfer();
         for (const f of files) dt.items.add(f);
         input.files = dt.files;
-        document.getElementById('uploadHint').textContent =
-          `${files.length} file${files.length > 1 ? 's' : ''} selected — ready to upload`;
+        document.getElementById('uploadHint').textContent = window.t.filesSelected(files.length);
       }
     });
   }
@@ -105,7 +104,7 @@ class GalaxyManager {
       icon.className = 'empty-icon';
       icon.textContent = '⚠️';
       const msg = document.createElement('div');
-      msg.textContent = 'Error loading images';
+      msg.textContent = window.t.loadError;
       empty.appendChild(icon);
       empty.appendChild(msg);
       grid.replaceChildren(empty);
@@ -116,7 +115,7 @@ class GalaxyManager {
     const grid = document.getElementById('imageGrid');
     const label = document.getElementById('imagesLabel');
 
-    label.textContent = 'Images';
+    label.textContent = window.t.images;
 
     if (images.length === 0) {
       const empty = document.createElement('div');
@@ -125,7 +124,7 @@ class GalaxyManager {
       icon.className = 'empty-icon';
       icon.textContent = '🌌';
       const msg = document.createElement('div');
-      msg.textContent = 'No images yet — upload some above';
+      msg.textContent = window.t.noImages;
       empty.appendChild(icon);
       empty.appendChild(msg);
       grid.replaceChildren(empty);
@@ -170,7 +169,7 @@ class GalaxyManager {
     const fileInput = document.getElementById('fileInput');
     const files = fileInput.files;
     if (files.length === 0) {
-      this.showToast('Please select images to upload', 'error');
+      this.showToast(window.t.selectImages, 'error');
       return;
     }
 
@@ -193,7 +192,7 @@ class GalaxyManager {
         if (e.lengthComputable) {
           const pct = Math.round((e.loaded / e.total) * 100);
           progressBar.style.width = `${pct}%`;
-          progressLabel.textContent = `Uploading… ${pct}%`;
+          progressLabel.textContent = `${window.t.uploading} ${pct}%`;
         }
       };
 
@@ -201,17 +200,17 @@ class GalaxyManager {
         progressWrap.classList.add('hidden');
         if (xhr.status === 200) {
           fileInput.value = '';
-          document.getElementById('uploadHint').textContent = 'Supports JPG, PNG, GIF, WebP';
+          document.getElementById('uploadHint').textContent = window.t.uploadHint;
           this.loadImages();
-          this.showToast('Images uploaded successfully', 'success');
+          this.showToast(window.t.uploadSuccess, 'success');
         } else {
-          this.showToast('Upload failed — please try again', 'error');
+          this.showToast(window.t.uploadFailed, 'error');
         }
       };
 
       xhr.onerror = () => {
         progressWrap.classList.add('hidden');
-        this.showToast('Upload failed — please try again', 'error');
+        this.showToast(window.t.uploadFailed, 'error');
       };
 
       xhr.open('POST', '/gallary/upload');
@@ -220,12 +219,12 @@ class GalaxyManager {
     } catch (e) {
       console.error('Upload error:', e);
       progressWrap.classList.add('hidden');
-      this.showToast('Upload failed — please try again', 'error');
+      this.showToast(window.t.uploadFailed, 'error');
     }
   }
 
   async deleteImage(imageId) {
-    if (!confirm('Delete this image?')) return;
+    if (!confirm(window.t.confirmDeleteImage)) return;
     try {
       const res = await fetch(`/gallary/items/${imageId}`, {
         method: 'DELETE',
@@ -233,22 +232,20 @@ class GalaxyManager {
       });
       if (res.ok) {
         this.loadImages();
-        this.showToast('Image deleted', 'success');
+        this.showToast(window.t.imageDeleted, 'success');
       } else {
-        this.showToast('Failed to delete image', 'error');
+        this.showToast(window.t.deleteImageFailed, 'error');
       }
     } catch (e) {
       console.error('Delete error:', e);
-      this.showToast('Failed to delete image', 'error');
+      this.showToast(window.t.deleteImageFailed, 'error');
     }
   }
 
   copyGalaxyLink() {
-    const template = this._galaxyTemplate || 'galaxy';
-    const base = template === 'fall' ? '/fall/' : '/galaxy-moon/';
-    const link = `${window.location.origin}${base}?galaxyId=${this.galaxyId}`;
+    const link = `${window.location.origin}/view/?galaxyId=${this.galaxyId}`;
     navigator.clipboard.writeText(link)
-      .then(() => this.showToast('Galaxy link copied!', 'success'))
+      .then(() => this.showToast(window.t.linkCopied, 'success'))
       .catch(() => {
         const ta = document.createElement('textarea');
         ta.value = link;
@@ -256,27 +253,27 @@ class GalaxyManager {
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
-        this.showToast('Galaxy link copied!', 'success');
+        this.showToast(window.t.linkCopied, 'success');
       });
   }
 
   async deleteGalaxy() {
-    if (!confirm('Delete this entire galaxy? All images will be permanently removed.')) return;
-    if (!confirm('This cannot be undone. Are you absolutely sure?')) return;
+    if (!confirm(window.t.confirmDeleteGalaxy)) return;
+    if (!confirm(window.t.confirmDeleteGalaxy2)) return;
     try {
       const res = await fetch(`/galaxies/${this.galaxyId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${this.token}` }
       });
       if (res.ok) {
-        this.showToast('Galaxy deleted', 'success');
+        this.showToast(window.t.galaxyDeleted, 'success');
         setTimeout(() => { window.location.href = '/portal/'; }, 1400);
       } else {
-        this.showToast('Failed to delete galaxy', 'error');
+        this.showToast(window.t.deleteGalaxyFailed, 'error');
       }
     } catch (e) {
       console.error('Delete galaxy error:', e);
-      this.showToast('Failed to delete galaxy', 'error');
+      this.showToast(window.t.deleteGalaxyFailed, 'error');
     }
   }
 }

@@ -58,12 +58,12 @@ scene.add(stars);
 
 // ── Particle dust ──────────────────────────────────────────────────────────
 function buildParticles() {
-  const count = 3000;
+  const count = 6000;
   const pos = new Float32Array(count * 3);
   const col = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
-    pos[i*3]   = (Math.random() - 0.5) * 40;
-    pos[i*3+1] = (Math.random() - 0.5) * 30;
+    pos[i*3]   = (Math.random() - 0.5) * 80;
+    pos[i*3+1] = (Math.random() - 0.5) * 70;
     pos[i*3+2] = -Math.random() * 600;
     // Soft purple/white tones
     const r = 0.7 + Math.random() * 0.3;
@@ -86,7 +86,7 @@ scene.add(dust);
 
 // ── Sparkles ───────────────────────────────────────────────────────────────
 function buildSparkles() {
-  const count = 3000;
+  const count = 8000;
   const pos   = new Float32Array(count * 3);
   const col   = new Float32Array(count * 3);
   const phase = new Float32Array(count);
@@ -101,8 +101,8 @@ function buildSparkles() {
   ];
 
   for (let i = 0; i < count; i++) {
-    pos[i*3]   = (Math.random() - 0.5) * 90;
-    pos[i*3+1] = (Math.random() - 0.5) * 55;
+    pos[i*3]   = (Math.random() - 0.5) * 120;
+    pos[i*3+1] = (Math.random() - 0.5) * 80;
     pos[i*3+2] = (Math.random() - 0.5) * 700;
     const c = palette[Math.floor(Math.random() * palette.length)];
     col[i*3] = c[0]; col[i*3+1] = c[1]; col[i*3+2] = c[2];
@@ -217,7 +217,11 @@ function buildAurora() {
   // Wide ribbon plane in the background
   const geo = new THREE.PlaneGeometry(200, 40, 60, 1);
   const mat = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 } },
+    uniforms: {
+      uTime:   { value: 0 },
+      uColor1: { value: new THREE.Color(0x00e699) },
+      uColor2: { value: new THREE.Color(0x8019e5) },
+    },
     vertexShader: `
       uniform float uTime;
       varying vec2 vUv;
@@ -231,14 +235,13 @@ function buildAurora() {
     `,
     fragmentShader: `
       uniform float uTime;
+      uniform vec3 uColor1;
+      uniform vec3 uColor2;
       varying vec2 vUv;
       void main() {
         float alpha = sin(vUv.x * 3.14159) * (1.0 - vUv.y) * 0.35;
         alpha *= 0.6 + 0.4 * sin(vUv.x * 8.0 + uTime * 0.7);
-        // Green-teal-purple gradient
-        vec3 c1 = vec3(0.0, 0.9, 0.6);
-        vec3 c2 = vec3(0.5, 0.1, 0.9);
-        vec3 col = mix(c1, c2, vUv.x + 0.3 * sin(uTime * 0.3));
+        vec3 col = mix(uColor1, uColor2, vUv.x + 0.3 * sin(uTime * 0.3));
         gl_FragColor = vec4(col, alpha);
       }
     `,
@@ -363,28 +366,215 @@ function buildMysteryPlanet() {
 }
 const mysteryPlanet = buildMysteryPlanet();
 
+// ── Galaxy band (visible khi nhìn xuống) ───────────────────────────────────
+function buildGalaxyBand() {
+  const group = new THREE.Group();
+
+  // Soft radial gradient texture dùng cho particles
+  function makeBlob(size) {
+    const c = document.createElement('canvas'); c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.4, 'rgba(255,255,255,0.6)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g; ctx.fillRect(0,0,size,size);
+    return new THREE.CanvasTexture(c);
+  }
+  const blobSm = makeBlob(32);
+  const blobLg = makeBlob(128);
+
+  // ── Layer 1: Core sáng trắng/cyan ────────────────────────────────────
+  {
+    const count = 7000;
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const r = Math.pow(Math.random(), 1.8) * 28;
+      const a = Math.random() * Math.PI * 2;
+      pos[i*3] = Math.cos(a) * r; pos[i*3+1] = (Math.random()-0.5) * 1.5; pos[i*3+2] = Math.sin(a) * r;
+      const b = 0.8 + Math.random() * 0.2;
+      col[i*3] = b; col[i*3+1] = b + 0.05; col[i*3+2] = b + 0.1;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+    group.add(new THREE.Points(geo, new THREE.PointsMaterial({
+      map: blobSm, size: 1.5, vertexColors: true,
+      transparent: true, opacity: 0.7,
+      depthWrite: false, blending: THREE.AdditiveBlending, alphaTest: 0.01,
+    })));
+  }
+
+  // ── Layer 2: Spiral arms — xanh dương → tím → hồng ───────────────────
+  {
+    const count = 18000;
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const r = 12 + Math.pow(Math.random(), 0.5) * 150;
+      const arm = Math.floor(Math.random() * 3);
+      const a = Math.random() * Math.PI * 2 + arm * (Math.PI*2/3) + r * 0.016;
+      const sc = (Math.random()-0.5) * r * 0.2;
+      pos[i*3] = Math.cos(a)*r+sc; pos[i*3+1] = (Math.random()-0.5)*2*(1-r/165); pos[i*3+2] = Math.sin(a)*r+sc;
+      const t = Math.min(1, r / 150);
+      const b = 0.5 + Math.random() * 0.5;
+      col[i*3]   = b * (0.3 + t * 0.7);
+      col[i*3+1] = b * (0.2 + t * 0.15);
+      col[i*3+2] = b * (1.0 - t * 0.5);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+    group.add(new THREE.Points(geo, new THREE.PointsMaterial({
+      map: blobSm, size: 1.2, vertexColors: true,
+      transparent: true, opacity: 0.55,
+      depthWrite: false, blending: THREE.AdditiveBlending, alphaTest: 0.01,
+    })));
+  }
+
+  // ── Layer 3: Nebula clouds — tím/magenta/hồng tỏa ra ─────────────────
+  {
+    const count = 1200;
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const r = 20 + Math.random() * 170;
+      const a = Math.random() * Math.PI * 2;
+      pos[i*3] = Math.cos(a)*r + (Math.random()-0.5)*40;
+      pos[i*3+1] = (Math.random()-0.5) * 10;
+      pos[i*3+2] = Math.sin(a)*r + (Math.random()-0.5)*40;
+      const hue = Math.random();
+      col[i*3]   = 0.65 + hue * 0.35;
+      col[i*3+1] = 0.05 + hue * 0.15;
+      col[i*3+2] = 0.85 - hue * 0.3;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+    group.add(new THREE.Points(geo, new THREE.PointsMaterial({
+      map: blobLg, size: 9, vertexColors: true,
+      transparent: true, opacity: 0.07,
+      depthWrite: false, blending: THREE.AdditiveBlending, alphaTest: 0.001,
+    })));
+  }
+
+  // ── Central glow sprite ───────────────────────────────────────────────
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeBlob(256), transparent: true, opacity: 0.5,
+    depthWrite: false, blending: THREE.AdditiveBlending,
+    color: new THREE.Color(0.85, 0.95, 1.0),
+  }));
+  glow.scale.set(22, 22, 1);
+  group.add(glow);
+
+  group.position.y = -28;
+  group.rotation.x = 0.18;
+  scene.add(group);
+  return group;
+}
+const galaxyBand = buildGalaxyBand();
+
+// ── Upper nebula clouds (lấp vùng trên) ────────────────────────────────────
+function buildUpperNebula() {
+  const makeBlob = (size) => {
+    const c = document.createElement('canvas'); c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.4, 'rgba(255,255,255,0.4)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g; ctx.fillRect(0,0,size,size);
+    return new THREE.CanvasTexture(c);
+  };
+  const texMed = makeBlob(128);
+  const texLg  = makeBlob(256);
+
+  // Phân tán theo cả Y lẫn Z để phủ khi nhìn 45° lên
+  // z âm = phía trước camera, y dương = phía trên
+  const cfgs = [
+    // Gần + thấp (z -10 đến -25) — thấy khi nhìn lên ~30°
+    { x: -50, y: 18, z: -15, s: 75,  col: new THREE.Color(0.25, 0.08, 0.85), op: 0.28, tex: texMed },
+    { x:  45, y: 20, z: -20, s: 85,  col: new THREE.Color(0.08, 0.25, 0.95), op: 0.25, tex: texMed },
+    { x: -20, y: 15, z: -12, s: 65,  col: new THREE.Color(0.55, 0.08, 0.90), op: 0.22, tex: texMed },
+    // Mid range (z -35 đến -55) — thấy khi nhìn ~45°
+    { x: -70, y: 35, z: -40, s: 100, col: new THREE.Color(0.15, 0.15, 0.85), op: 0.24, tex: texMed },
+    { x:  60, y: 38, z: -45, s: 110, col: new THREE.Color(0.35, 0.05, 0.75), op: 0.21, tex: texMed },
+    { x:  -5, y: 30, z: -38, s: 90,  col: new THREE.Color(0.70, 0.10, 0.80), op: 0.20, tex: texMed },
+    { x:  80, y: 32, z: -50, s: 95,  col: new THREE.Color(0.20, 0.10, 0.90), op: 0.19, tex: texMed },
+    // Far + cao (z -65 đến -90) — thấy khi nhìn ~60-70°
+    { x:   0, y: 55, z: -70, s: 130, col: new THREE.Color(0.20, 0.05, 0.80), op: 0.17, tex: texLg },
+    { x: -80, y: 60, z: -75, s: 115, col: new THREE.Color(0.50, 0.05, 0.85), op: 0.14, tex: texLg },
+    { x:  65, y: 50, z: -65, s: 125, col: new THREE.Color(0.10, 0.20, 0.90), op: 0.16, tex: texLg },
+    { x: -35, y: 70, z: -85, s: 105, col: new THREE.Color(0.60, 0.08, 0.75), op: 0.12, tex: texLg },
+    { x:  45, y: 65, z: -80, s: 140, col: new THREE.Color(0.30, 0.05, 0.90), op: 0.13, tex: texLg },
+  ];
+
+  const group = new THREE.Group();
+  cfgs.forEach(({ x, y, z, s, col, op, tex }) => {
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: tex, transparent: true, opacity: op,
+      depthWrite: false, blending: THREE.AdditiveBlending, color: col,
+    }));
+    sprite.scale.set(s, s, 1);
+    sprite.position.set(x, y, z);
+    group.add(sprite);
+  });
+
+  // Điểm sáng "bắc cực tinh"
+  const star = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeBlob(64), transparent: true, opacity: 0.7,
+    depthWrite: false, blending: THREE.AdditiveBlending,
+    color: new THREE.Color(0.85, 0.90, 1.0),
+  }));
+  star.scale.set(10, 10, 1);
+  star.position.set(5, 90, -60);
+  group.add(star);
+
+  scene.add(group);
+  return group;
+}
+const upperNebula = buildUpperNebula();
+
 // ── Polaroid factory ───────────────────────────────────────────────────────
 const loader = new THREE.TextureLoader();
 const polaroids = [];
 
 function makePolaroidFromTex(tex, col, colOffsets, zPos) {
   const group = new THREE.Group();
-  const frame = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.8), new THREE.MeshBasicMaterial({ color: 0xf5f0e8, side: THREE.DoubleSide, depthWrite: false }));
+
+  // Fixed width, height adapts to image aspect ratio
+  const imgAspect = (tex.image?.height || 1) / (tex.image?.width || 1);
+  const photoW = 1.4;
+  const photoH = photoW * imgAspect;
+  const frameW = photoW + 0.28;        // 0.14 border each side
+  const frameH = photoH + 0.14 + 0.5; // 0.14 top, 0.5 bottom (writing space)
+  // Photo center y = frameH/2 - 0.14 - photoH/2 = 0.18
+
+  const frame = new THREE.Mesh(
+    new THREE.PlaneGeometry(frameW, frameH),
+    new THREE.MeshBasicMaterial({ color: 0xf5f0e8, side: THREE.DoubleSide, depthWrite: false })
+  );
   frame.renderOrder = 0;
   group.add(frame);
-  const photo = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 2.8), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
-  photo.position.set(0, 0.3, 0);
+
+  const photo = new THREE.Mesh(
+    new THREE.PlaneGeometry(photoW, photoH),
+    new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide })
+  );
+  photo.position.set(0, 0.18, 0.001);
   photo.renderOrder = 1;
   group.add(photo);
+
   const gc = document.createElement('canvas'); gc.width = gc.height = 128;
   const gctx = gc.getContext('2d');
   const gr = gctx.createRadialGradient(64,64,0,64,64,64);
   gr.addColorStop(0,'rgba(200,160,255,0.35)'); gr.addColorStop(1,'rgba(0,0,0,0)');
   gctx.fillStyle = gr; gctx.fillRect(0,0,128,128);
   const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(gc), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
-  glow.scale.set(7,7,1); glow.position.z = -0.1;
+  glow.scale.set(frameW * 2.2, frameH * 2.0, 1); glow.position.z = -0.1;
   group.add(glow);
-  group.position.set(colOffsets[col] + (Math.random()-0.5)*1.2, (Math.random()-0.5)*1.5, zPos);
+  group.position.set(colOffsets[col] + (Math.random()-0.5)*2.5, (Math.random()-0.5)*10.0, zPos);
   group.rotation.set((Math.random()-0.5)*0.25, (Math.random()-0.5)*0.2, (Math.random()-0.5)*0.35);
   group.userData = { driftX:(Math.random()-0.5)*0.002, driftY:(Math.random()-0.5)*0.002, rotSpeed:(Math.random()-0.5)*0.0006, phase:Math.random()*Math.PI*2 };
   scene.add(group);
@@ -401,21 +591,24 @@ let cameraZ = 0;
 let totalDepth = 0;
 
 // Subtle camera sway
-let swayX = 0, swayY = 0;
-let targetSwayX = 0, targetSwayY = 0;
 
 // Touch/mouse look-around
 let lookX = 0, lookY = 0;
+let _lastPX = 0, _lastPY = 0, _dragging = false;
+const LOOK_SENS_X = 0.004, LOOK_SENS_Y = 0.003;
+
 renderer.domElement.addEventListener('mousemove', e => {
-  if (!started) return;
-  lookX = (e.clientX / innerWidth  - 0.5) * 0.3;
-  lookY = (e.clientY / innerHeight - 0.5) * 0.15;
+  if (!started || !_dragging) return;
+  lookX += (e.clientX - _lastPX) * LOOK_SENS_X;
+  lookY += (e.clientY - _lastPY) * LOOK_SENS_Y;
+  _lastPX = e.clientX; _lastPY = e.clientY;
 });
 renderer.domElement.addEventListener('touchmove', e => {
   if (!started) return;
   const t = e.touches[0];
-  lookX = (t.clientX / innerWidth  - 0.5) * 0.3;
-  lookY = (t.clientY / innerHeight - 0.5) * 0.15;
+  lookX += (t.clientX - _lastPX) * LOOK_SENS_X;
+  lookY += (t.clientY - _lastPY) * LOOK_SENS_Y;
+  _lastPX = t.clientX; _lastPY = t.clientY;
 }, { passive: true });
 
 // ── Intro click ────────────────────────────────────────────────────────────
@@ -424,6 +617,8 @@ intro.addEventListener('click', () => {
   started = true;
   intro.classList.add('hidden');
   window.musicManager?.play();
+  const el = document.documentElement;
+  (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen)?.call(el);
 });
 
 // ── Main init ──────────────────────────────────────────────────────────────
@@ -436,17 +631,53 @@ async function init() {
   // Background color from theme
   const bgColor = data.theme?.background ? new THREE.Color(data.theme.background) : new THREE.Color(0x000005);
   scene.background = bgColor;
-  scene.fog = new THREE.FogExp2(bgColor.getHex(), 0.012);
+  scene.fog = new THREE.FogExp2(bgColor.getHex(), 0.006);
 
   // Music
   window.musicManager?.init(data.music);
+
+  // document.title
+  if (data.name) document.title = `${data.name} — Lumora`;
+
+  // Apply theme colors to visual elements
+  if (data.theme) {
+    const primary   = new THREE.Color(data.theme?.colors?.primary   || '#00e699');
+    const secondary = new THREE.Color(data.theme?.colors?.secondary || '#8019e5');
+
+    auroraMesh.material.uniforms.uColor1.value.copy(primary);
+    auroraMesh.material.uniforms.uColor2.value.copy(secondary);
+
+    const pal = [
+      [primary.r, primary.g, primary.b],
+      [secondary.r, secondary.g, secondary.b],
+      [1, 1, 1],
+      [Math.min(1, primary.r*1.4),   Math.min(1, primary.g*1.4),   Math.min(1, primary.b*1.4)],
+      [Math.min(1, secondary.r*1.4), Math.min(1, secondary.g*1.4), Math.min(1, secondary.b*1.4)],
+    ];
+    const sparkleCol = sparkles.geometry.getAttribute('color');
+    for (let i = 0; i < sparkleCol.count; i++) {
+      const c = pal[i % pal.length];
+      sparkleCol.setXYZ(i, c[0], c[1], c[2]);
+    }
+    sparkleCol.needsUpdate = true;
+
+    const dustCol = dust.geometry.getAttribute('color');
+    for (let i = 0; i < dustCol.count; i++) {
+      dustCol.setXYZ(i,
+        0.4 + primary.r * 0.6,
+        0.4 + primary.g * 0.4,
+        0.6 + primary.b * 0.4
+      );
+    }
+    dustCol.needsUpdate = true;
+  }
 
   // Build polaroids — infinite pool, pre-spawn ahead of camera
   const images = data.images.length ? data.images : [];
   if (!images.length) { animate(); return; }
 
   const COLS = images.length <= 12 ? 3 : 4;
-  const COL_SPACING = 5.5;
+  const COL_SPACING = 8.5;
   const colOffsets = Array.from({ length: COLS }, (_, c) => (c - (COLS - 1) / 2) * COL_SPACING);
 
   // Pre-load all textures once
@@ -456,7 +687,7 @@ async function init() {
 
   // Pool: COLS * VISIBLE_ROWS polaroids
   const VISIBLE_ROWS = 6;
-  const ROW_DEPTH = 7;
+  const ROW_DEPTH = 12;
   let nextRowZ = -5;
 
   // Caption queue
@@ -469,17 +700,23 @@ async function init() {
     const text = captions[captionIdx % captions.length];
     captionIdx++;
     const canvas = document.createElement('canvas');
-    canvas.width = 512; canvas.height = 80;
+    canvas.width = 768; canvas.height = 120;
     const ctx = canvas.getContext('2d');
-    ctx.font = '300 32px Georgia, serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(180,120,255,0.9)'; ctx.shadowBlur = 20;
-    ctx.fillText(text, 256, 40);
+    // Outer glow pass
+    ctx.font = '300 52px Georgia, serif';
+    ctx.shadowColor = 'rgba(200,140,255,1.0)'; ctx.shadowBlur = 48;
+    ctx.fillStyle = 'rgba(200,140,255,0.25)';
+    ctx.fillText(text, 384, 60);
+    // Main text
+    ctx.shadowColor = 'rgba(255,200,255,0.9)'; ctx.shadowBlur = 20;
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.fillText(text, 384, 60);
     const mat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthWrite: false });
     const sprite = new THREE.Sprite(mat);
-    sprite.scale.set(14, 2.2, 1);
+    sprite.scale.set(20, 3.8, 1);
     sprite.position.set((Math.random()-0.5)*6, (Math.random()-0.5)*3, zPos);
+    sprite.userData.pulsePhase = Math.random() * Math.PI * 2;
     scene.add(sprite);
     captionSprites.push(sprite);
   }
@@ -497,24 +734,46 @@ async function init() {
       const texIdx = Math.floor(Math.random() * textures.length);
       const tex = textures[texIdx];
       if (!tex) continue;
-      // Each photo fully independent Z — spread across 3x row depth
-      const zOffset = (Math.random() - 0.5) * ROW_DEPTH * 3;
+      // Small Z jitter within the row — stay within own row zone
+      const zOffset = (Math.random() - 0.5) * ROW_DEPTH * 0.8;
       const p = makePolaroidFromTex(tex, c, colOffsets, zPos + zOffset);
       polaroids.push(p);
     }
     // Spawn 1-2 mini floating photos in the gaps
-    const miniCount = 1 + Math.floor(Math.random() * 2);
+    const miniCount = 3 + Math.floor(Math.random() * 3);
     for (let m = 0; m < miniCount; m++) {
       const tex = textures[Math.floor(Math.random() * textures.length)];
       if (!tex) continue;
-      const mini = makePolaroidFromTex(tex, Math.floor(Math.random() * COLS), colOffsets, zPos + (Math.random() - 0.5) * ROW_DEPTH * 2);
-      // Scale down to mini size
-      mini.scale.set(0.45, 0.45, 0.45);
-      // Push further to the sides
-      mini.position.x += (Math.random() > 0.5 ? 1 : -1) * (6 + Math.random() * 4);
-      mini.position.y += (Math.random() - 0.5) * 6;
+      const mini = makePolaroidFromTex(tex, Math.floor(Math.random() * COLS), colOffsets, zPos + (Math.random() - 0.5) * ROW_DEPTH * 0.6);
+      if (m < 2) {
+        // High-altitude minis — nhỏ hơn, trông như ảnh xa ở phía trên
+        const s = 0.18 + Math.random() * 0.14;
+        mini.scale.set(s, s, s);
+        mini.position.x += (Math.random() - 0.5) * 28;
+        mini.position.y += 9 + Math.random() * 10;
+      } else {
+        const s = 0.35 + Math.random() * 0.3;
+        mini.scale.set(s, s, s);
+        mini.position.x += (Math.random() > 0.5 ? 1 : -1) * (4 + Math.random() * 10);
+        mini.position.y += (Math.random() - 0.5) * 14;
+      }
       polaroids.push(mini);
     }
+
+    // Ambient photos — phân tán Y cao + Z phía trước (giới hạn để không nặng)
+    const ambCount = 2 + Math.floor(Math.random() * 2); // 2–3 mỗi row
+    for (let a = 0; a < ambCount; a++) {
+      const tex = textures[Math.floor(Math.random() * textures.length)];
+      if (!tex) continue;
+      const zOffset = -(8 + Math.random() * ROW_DEPTH * 2.5); // tối đa ~38 units phía trước
+      const amb = makePolaroidFromTex(tex, Math.floor(Math.random() * COLS), colOffsets, zPos + zOffset);
+      const s = 0.10 + Math.random() * 0.18;
+      amb.scale.set(s, s, s);
+      amb.position.x = (Math.random() - 0.5) * 40;
+      amb.position.y = 12 + Math.random() * 22;
+      polaroids.push(amb);
+    }
+
     window._nextRowZ = zPos - ROW_DEPTH;
   }
 
@@ -538,12 +797,42 @@ let boostSpeed = 0;
 const BOOST = 1.0;
 const BOOST_DECAY = 0.02;
 
-let facingBack = false;
-let baseYaw = 0;
-let flipCooldown = 0;
-const FLIP_CHANCE = 0.0007;
-let introTimer = 0;
-let introFlipDone = false;
+
+// ── Raycaster (polaroid interaction) ───────────────────────────────────────
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let clickedPolaroid = null;
+
+// ── Burst particles ────────────────────────────────────────────────────────
+const bursts = [];
+
+function spawnBurst(pos) {
+  const count = 24;
+  const geo = new THREE.BufferGeometry();
+  const positions = new Float32Array(count * 3);
+  const colors    = new Float32Array(count * 3);
+  const vel = [];
+  for (let i = 0; i < count; i++) {
+    positions[i*3]   = pos.x + (Math.random()-0.5)*2;
+    positions[i*3+1] = pos.y + (Math.random()-0.5)*2;
+    positions[i*3+2] = pos.z + (Math.random()-0.5)*2;
+    colors[i*3]   = 0.8 + Math.random()*0.2;
+    colors[i*3+1] = 0.5 + Math.random()*0.4;
+    colors[i*3+2] = 1.0;
+    vel.push({ x: (Math.random()-0.5)*0.06, y: 0.04+Math.random()*0.04, z: (Math.random()-0.5)*0.04 });
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(colors, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 0.25, vertexColors: true, transparent: true, opacity: 1.0,
+    depthWrite: false, blending: THREE.AdditiveBlending,
+    map: (() => { const c=document.createElement('canvas'); c.width=c.height=16; const x=c.getContext('2d'),g=x.createRadialGradient(8,8,0,8,8,8); g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(1,'rgba(255,255,255,0)'); x.fillStyle=g; x.fillRect(0,0,16,16); return new THREE.CanvasTexture(c); })(),
+    alphaTest: 0.01,
+  });
+  const pts = new THREE.Points(geo, mat);
+  scene.add(pts);
+  bursts.push({ pts, life: 0, maxLife: 60, vel });
+}
 
 // Scroll → boost
 renderer.domElement.addEventListener('wheel', e => {
@@ -551,11 +840,47 @@ renderer.domElement.addEventListener('wheel', e => {
   if (e.deltaY > 0) boostSpeed = BOOST; // scroll down = speed up
 }, { passive: true });
 
-// Hold (mousedown/touchstart) → freeze
-renderer.domElement.addEventListener('mousedown', () => { if (started) frozen = true; });
-renderer.domElement.addEventListener('mouseup',   () => { frozen = false; });
-renderer.domElement.addEventListener('touchstart', () => { if (started) frozen = true; }, { passive: true });
-renderer.domElement.addEventListener('touchend',   () => { frozen = false; });
+// Hold → freeze + polaroid click detection
+function handlePointerDown(clientX, clientY) {
+  if (!started) return;
+  frozen = true;
+  _dragging = true;
+  _lastPX = clientX; _lastPY = clientY;
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((clientX - rect.left) / rect.width)  * 2 - 1;
+  mouse.y = -((clientY - rect.top)  / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const meshes = polaroids.flatMap(p => p.children.filter(c => c.isMesh));
+  const hits = raycaster.intersectObjects(meshes, false);
+  if (hits.length) {
+    const parent = polaroids.find(p => p.children.includes(hits[0].object));
+    if (parent) {
+      clickedPolaroid = parent;
+      parent.userData.targetScale = 3.0;
+      // 4 units ahead of camera along its look direction
+      const fwd = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation);
+      parent.userData.targetPosition = camera.position.clone().addScaledVector(fwd, 4);
+    }
+  }
+}
+function handlePointerUp() {
+  frozen = false;
+  _dragging = false;
+  if (clickedPolaroid) {
+    clickedPolaroid.userData.targetScale = 1.0;
+    delete clickedPolaroid.userData.targetPosition;
+    // Đẩy ảnh ra khỏi camera sau khi nhả
+    const side = Math.random() > 0.5 ? 1 : -1;
+    clickedPolaroid.userData.driftX = side * (0.06 + Math.random() * 0.04);
+    clickedPolaroid.userData.driftY = (Math.random() - 0.5) * 0.05;
+    clickedPolaroid = null;
+  }
+}
+
+renderer.domElement.addEventListener('mousedown', e => handlePointerDown(e.clientX, e.clientY));
+renderer.domElement.addEventListener('mouseup',   handlePointerUp);
+renderer.domElement.addEventListener('touchstart', e => handlePointerDown(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+renderer.domElement.addEventListener('touchend',   handlePointerUp);
 
 // ── "Ngưng Đọng Thời Gian" overlay ────────────────────────────────────────
 const freezeEl = document.createElement('div');
@@ -580,50 +905,16 @@ function animate() {
       cameraZ -= (fallSpeed + boostSpeed);
     }
 
-    // Subtle random sway (always)
-    if (Math.random() < 0.01) {
-      targetSwayX = (Math.random() - 0.5) * 0.04;
-      targetSwayY = (Math.random() - 0.5) * 0.02;
-    }
-    // Occasional sharp drift — "bẻ lái"
-    if (Math.random() < 0.002) {
-      targetSwayX = (Math.random() - 0.5) * 10;
-      targetSwayY = (Math.random() - 0.5) * 4;
-    }
-    swayX += (targetSwayX - swayX) * 0.012;
-    swayY += (targetSwayY - swayY) * 0.012;
-
-    // Auto camera rotation drift (slow sine)
-    const autoDriftY = Math.sin(t * 0.07) * 0.18 + Math.sin(t * 0.13) * 0.08;
-    const autoDriftX = Math.sin(t * 0.05) * 0.06;
-
-    // Loop: when camera passes all polaroids, reset
-
     camera.position.z = cameraZ;
-    camera.position.x += (swayX - camera.position.x) * 0.05;
-    camera.position.y += (swayY - camera.position.y) * 0.05;
 
-    // Intro flip: nhìn hành tinh 1 lần khi vừa vào
-    if (!introFlipDone) {
-      introTimer++;
-      if (introTimer === 30)  { facingBack = true;  baseYaw = Math.PI; flipCooldown = 99999; }
-      if (introTimer === 300) { facingBack = false; baseYaw = 0; }
-      if (introTimer === 480) { introFlipDone = true; flipCooldown = 120; }
+    if (!frozen) {
+      camera.position.x += (0 - camera.position.x) * 0.02;
+      camera.position.y += (0 - camera.position.y) * 0.02;
     }
 
-    // Random 180° flip (chỉ sau khi intro xong)
-    if (introFlipDone && !frozen && flipCooldown <= 0 && Math.random() < FLIP_CHANCE) {
-      facingBack = !facingBack;
-      baseYaw = facingBack ? Math.PI : 0;
-      flipCooldown = 500;
-    }
-    if (flipCooldown > 0) flipCooldown--;
-
-    // Look-around + base yaw (slow lerp mid-flip, fast lerp steady)
-    const yawTarget = baseYaw - lookX;
-    const yawDist = Math.abs(camera.rotation.y - yawTarget);
-    camera.rotation.y += (yawTarget - camera.rotation.y) * (yawDist > 0.3 ? 0.018 : 0.08);
-    camera.rotation.x += (-lookY - camera.rotation.x) * 0.08;
+    // Look-around theo drag — luôn hoạt động kể cả khi frozen
+    camera.rotation.y += (-lookX - camera.rotation.y) * 0.18;
+    camera.rotation.x += (-lookY - camera.rotation.x) * 0.18;
   } else {
     // Idle: gentle float
     camera.position.y = Math.sin(t * 0.3) * 0.3;
@@ -643,35 +934,103 @@ function animate() {
         polaroids.splice(i, 1);
       }
     }
-    // Remove caption sprites too far behind
+    // Remove + pulse caption sprites
     if (window._captionSprites) {
       for (let i = window._captionSprites.length - 1; i >= 0; i--) {
-        if (window._captionSprites[i].position.z > cameraZ + 80) {
-          scene.remove(window._captionSprites[i]);
+        const s = window._captionSprites[i];
+        if (s.position.z > cameraZ + 80) {
+          scene.remove(s);
           window._captionSprites.splice(i, 1);
+        } else if (s.userData.pulsePhase !== undefined) {
+          const distS = Math.abs(s.position.z - camera.position.z);
+          const baseA = Math.max(0, Math.min(1, (70 - distS) / 20));
+          s.material.opacity = baseA * (0.75 + 0.25 * Math.sin(t * 1.8 + s.userData.pulsePhase));
         }
       }
     }
   }
   polaroids.forEach(p => {
-    p.position.x += p.userData.driftX;
-    p.position.y += p.userData.driftY;
-    p.rotation.z += p.userData.rotSpeed;
+    const isSelected = clickedPolaroid === p;
 
-    // Gentle bob
-    p.position.y += Math.sin(t * 0.5 + p.userData.phase) * 0.0008;
+    if (isSelected && p.userData.targetPosition) {
+      // Zoom in: lerp toward point in front of camera, straighten tilt
+      p.position.lerp(p.userData.targetPosition, 0.06);
+      p.rotation.x += (0 - p.rotation.x) * 0.08;
+      p.rotation.y += (0 - p.rotation.y) * 0.08;
+      p.rotation.z += (0 - p.rotation.z) * 0.08;
+    } else {
+      // Camera proximity avoidance — né camera khi quá gần
+      const zDist = Math.abs(p.position.z - camera.position.z);
+      const dx = p.position.x - camera.position.x;
+      const dy = p.position.y - camera.position.y;
+      const lateralDist = Math.sqrt(dx * dx + dy * dy);
+      if (zDist < 10 && lateralDist < 4) {
+        const strength = (4 - lateralDist) / 4 * 0.12;
+        const nx = lateralDist > 0.05 ? dx / lateralDist : (Math.random() > 0.5 ? 1 : -1);
+        const ny = lateralDist > 0.05 ? dy / lateralDist : (Math.random() - 0.5);
+        p.userData.driftX += nx * strength;
+        p.userData.driftY += ny * strength * 0.5;
+        // Giới hạn tốc độ né tối đa
+        const mag = Math.sqrt(p.userData.driftX ** 2 + p.userData.driftY ** 2);
+        if (mag > 0.12) {
+          p.userData.driftX = p.userData.driftX / mag * 0.12;
+          p.userData.driftY = p.userData.driftY / mag * 0.12;
+        }
+      } else {
+        // Giảm tốc dần về drift bình thường khi đã né xong
+        p.userData.driftX *= 0.97;
+        p.userData.driftY *= 0.97;
+      }
 
-    // Reverse drift at bounds
-    if (Math.abs(p.position.x) > 18) p.userData.driftX *= -1;
-    if (Math.abs(p.position.y) > 12) p.userData.driftY *= -1;
+      // Normal drift + bob
+      p.position.x += p.userData.driftX;
+      p.position.y += p.userData.driftY;
+      p.rotation.z += p.userData.rotSpeed;
+      p.position.y += Math.sin(t * 0.5 + p.userData.phase) * 0.0008;
+      if (Math.abs(p.position.x) > 18) p.userData.driftX *= -1;
+      if (Math.abs(p.position.y) > 12) p.userData.driftY *= -1;
+    }
 
-    // Fade by distance — works both when camera faces forward and backward
+    // Fade by distance
     const dist = Math.abs(p.position.z - camera.position.z);
     const alpha = Math.max(0, Math.min(1, (70 - dist) / 20));
+
+    // Scale animation — slow lerp gives the "gradually zooming in" feel
+    const targetScale = p.userData.targetScale ?? 1.0;
+    p.scale.setScalar(p.scale.x + (targetScale - p.scale.x) * 0.06);
+
+    // Ẩn glow khi zoom để ảnh hiện sạch, không bị chá sáng
     p.children.forEach(child => {
-      if (child.material?.opacity !== undefined) child.material.opacity = alpha;
+      if (!child.material) return;
+      if (child.isSprite) {
+        child.material.opacity = isSelected ? 0 : alpha * 0.85;
+      } else if (child.material.opacity !== undefined) {
+        child.material.opacity = isSelected ? 1 : alpha;
+      }
     });
+
+    // Burst on first close pass
+    if (dist < 4 && !p.userData.burst) {
+      p.userData.burst = true;
+      spawnBurst(p.position.clone());
+    }
+    if (dist > 20) p.userData.burst = false;
   });
+
+  // Update burst particles
+  for (let i = bursts.length - 1; i >= 0; i--) {
+    const b = bursts[i];
+    b.life++;
+    b.pts.material.opacity = 1 - b.life / b.maxLife;
+    const pos = b.pts.geometry.getAttribute('position');
+    for (let j = 0; j < pos.count; j++) {
+      pos.setX(j, pos.getX(j) + b.vel[j].x);
+      pos.setY(j, pos.getY(j) + b.vel[j].y);
+      pos.setZ(j, pos.getZ(j) + b.vel[j].z);
+    }
+    pos.needsUpdate = true;
+    if (b.life >= b.maxLife) { scene.remove(b.pts); bursts.splice(i, 1); }
+  }
 
   // Stars + dust + sparkles scroll with camera
   stars.position.z = cameraZ * 0.3;
@@ -684,6 +1043,13 @@ function animate() {
   // Aurora follows camera
   auroraMesh.material.uniforms.uTime.value = t;
   auroraMesh.position.z = cameraZ - 80;
+
+  // Galaxy band follows camera in Z, slow rotation
+  galaxyBand.position.z = cameraZ;
+  galaxyBand.rotation.y += 0.0008;
+
+  // Upper nebula follows camera
+  upperNebula.position.z = cameraZ + 10;
 
   // Shooting stars
   updateShootingStars(t);

@@ -375,7 +375,7 @@ async function loadAdminUsers() {
   const loadingTd = document.createElement('td');
   loadingTd.colSpan = 6;
   loadingTd.style.cssText = 'padding:28px;text-align:center;color:rgba(255,255,255,0.3);font-size:13px';
-  loadingTd.textContent = 'Đang tải…';
+  loadingTd.textContent = window.t.adminLoading;
   loadingTr.appendChild(loadingTd);
   tbody.textContent = '';
   tbody.appendChild(loadingTr);
@@ -391,7 +391,7 @@ async function loadAdminUsers() {
       const td = document.createElement('td');
       td.colSpan = 6;
       td.style.cssText = 'padding:28px;text-align:center;color:rgba(255,255,255,0.3);font-size:13px';
-      td.textContent = 'Không có user';
+      td.textContent = window.t.adminEmpty;
       tr.appendChild(td);
       tbody.appendChild(tr);
     } else {
@@ -550,7 +550,7 @@ function openAuGrant(userId, email) {
       try {
         await adminApi(`/admin/users/${auGrantId}/subscription`, { method: 'PATCH', body: JSON.stringify({ plan, days }) });
         modal.classList.remove('open');
-        showAdminToast('Đã cấp subscription!', 'success');
+        showAdminToast(window.t.adminGranted, 'success');
         loadAdminUsers();
       } catch (e) { showAdminToast(e.message, 'error'); }
     });
@@ -592,7 +592,7 @@ function openAuDetail(userId, email) {
   document.getElementById('au-detail-title').textContent = email;
   const body = document.getElementById('au-detail-body');
   body.textContent = '';
-  const loadingMsg = makeEl('div', 'text-align:center;padding:32px;color:rgba(255,255,255,0.3);font-size:13px', 'Đang tải…');
+  const loadingMsg = makeEl('div', 'text-align:center;padding:32px;color:rgba(255,255,255,0.3);font-size:13px', window.t.adminLoading);
   body.appendChild(loadingMsg);
   overlay.classList.add('open');
 
@@ -621,7 +621,7 @@ function openAuDetail(userId, email) {
     roleSaveBtn.addEventListener('click', async () => {
       try {
         await adminApi(`/admin/users/${userId}/role`, { method: 'PATCH', body: JSON.stringify({ role: roleSelect.value }) });
-        showAdminToast('Đã cập nhật role', 'success');
+        showAdminToast(window.t.adminRoleUpdated, 'success');
         loadAdminUsers();
       } catch (e) { showAdminToast(e.message, 'error'); }
     });
@@ -639,7 +639,7 @@ function openAuDetail(userId, email) {
     verifiedBtn.addEventListener('click', async () => {
       try {
         await adminApi(`/admin/users/${userId}/status`, { method: 'PATCH', body: JSON.stringify({ isVerified: !user.isVerified }) });
-        showAdminToast(user.isVerified ? 'Đã khoá user' : 'Đã mở khoá', 'success');
+        showAdminToast(user.isVerified ? window.t.adminLocked : window.t.adminUnlocked, 'success');
         openAuDetail(userId, email);
         loadAdminUsers();
       } catch (e) { showAdminToast(e.message, 'error'); }
@@ -678,23 +678,23 @@ function openAuDetail(userId, email) {
     const subSec = makeSection('Subscription hiện tại');
     if (subscription) {
       subSec.appendChild(makeDetailRow('Plan', makeSpanBadge(subscription.plan.toUpperCase(), 'rgba(139,92,246,0.2)', '#a78bfa')));
-      subSec.appendChild(makeDetailRow('Hết hạn', makeEl('span', null, fmtDate(subscription.expiredAt))));
+      subSec.appendChild(makeDetailRow(window.t.adminExpiry, makeEl('span', null, fmtDate(subscription.expiredAt))));
       const revokeBtn = document.createElement('button');
       revokeBtn.className = 'btn-delete-row';
       revokeBtn.style.marginTop = '10px';
-      revokeBtn.textContent = 'Thu hồi subscription';
+      revokeBtn.textContent = window.t.adminRevokeBtn;
       revokeBtn.addEventListener('click', async () => {
-        if (!confirm('Thu hồi subscription của user này?')) return;
+        if (!confirm(window.t.adminConfirmRevoke)) return;
         try {
           await adminApi(`/admin/users/${userId}/subscription`, { method: 'DELETE' });
-          showAdminToast('Đã thu hồi subscription', 'success');
+          showAdminToast(window.t.adminRevoked, 'success');
           openAuDetail(userId, email);
           loadAdminUsers();
         } catch (e) { showAdminToast(e.message, 'error'); }
       });
       subSec.appendChild(revokeBtn);
     } else {
-      subSec.appendChild(makeEl('div', 'font-size:13px;color:rgba(255,255,255,0.3)', 'Không có subscription'));
+      subSec.appendChild(makeEl('div', 'font-size:13px;color:rgba(255,255,255,0.3)', window.t.adminNoSub));
     }
     body.appendChild(subSec);
 
@@ -706,7 +706,7 @@ function openAuDetail(userId, email) {
         galSec.appendChild(makeDetailRow(g.name, badge));
       });
     } else {
-      galSec.appendChild(makeEl('div', 'font-size:13px;color:rgba(255,255,255,0.3)', 'Chưa có galaxy'));
+      galSec.appendChild(makeEl('div', 'font-size:13px;color:rgba(255,255,255,0.3)', window.t.adminNoGalaxy));
     }
     body.appendChild(galSec);
 
@@ -721,7 +721,7 @@ function openAuDetail(userId, email) {
         paySec.appendChild(makeDetailRow(fmtDate(p.paidAt || p.createdAt), valWrap));
       });
     } else {
-      paySec.appendChild(makeEl('div', 'font-size:13px;color:rgba(255,255,255,0.3)', 'Chưa có payment'));
+      paySec.appendChild(makeEl('div', 'font-size:13px;color:rgba(255,255,255,0.3)', window.t.adminNoPayment));
     }
     body.appendChild(paySec);
 
@@ -779,7 +779,7 @@ async function loadAnalytics() {
     tbody.textContent = '';
     if (!payments.length) {
       const tr = document.createElement('tr');
-      const td = makeEl('td', 'padding:28px;text-align:center;color:rgba(255,255,255,0.3);font-size:13px', 'Chưa có payment');
+      const td = makeEl('td', 'padding:28px;text-align:center;color:rgba(255,255,255,0.3);font-size:13px', window.t.adminNoPayment);
       td.colSpan = 5;
       tr.appendChild(td);
       tbody.appendChild(tr);

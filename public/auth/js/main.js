@@ -39,15 +39,15 @@ function startResendCountdown(seconds) {
   var btn = document.getElementById('btn-resend');
   btn.disabled = true;
   var remaining = seconds;
-  btn.textContent = 'Gửi lại sau ' + remaining + 's';
+  btn.textContent = window.t.btnResendCountdown(remaining);
   resendTimer = setInterval(function() {
     remaining--;
     if (remaining <= 0) {
       clearInterval(resendTimer);
       btn.disabled = false;
-      btn.textContent = 'Gửi lại OTP';
+      btn.textContent = window.t.btnResend;
     } else {
-      btn.textContent = 'Gửi lại sau ' + remaining + 's';
+      btn.textContent = window.t.btnResendCountdown(remaining);
     }
   }, 1000);
 }
@@ -57,7 +57,7 @@ function showOtpScreen(email, countdown) {
   document.getElementById('otp-email-display').textContent = email;
   document.getElementById('otp').value = '';
   setMsg('msg-otp', '', '');
-  setLoading('verify-btn', false, 'Xác thực');
+  setLoading('verify-btn', false, window.t.btnVerify);
   showScreen('otp');
   if (resendTimer) clearInterval(resendTimer);
   startResendCountdown(countdown || 60);
@@ -67,7 +67,7 @@ document.getElementById('tab-login').addEventListener('click', function() {
   mode = 'login';
   document.getElementById('tab-login').classList.add('active');
   document.getElementById('tab-register').classList.remove('active');
-  setLoading('submit-btn', false, 'Đăng nhập');
+  setLoading('submit-btn', false, window.t.btnLogin);
   setMsg('msg-auth', '', '');
 });
 
@@ -75,7 +75,7 @@ document.getElementById('tab-register').addEventListener('click', function() {
   mode = 'register';
   document.getElementById('tab-register').classList.add('active');
   document.getElementById('tab-login').classList.remove('active');
-  setLoading('submit-btn', false, 'Đăng ký');
+  setLoading('submit-btn', false, window.t.btnRegister);
   setMsg('msg-auth', '', '');
 });
 
@@ -87,9 +87,9 @@ document.getElementById('form-auth').addEventListener('submit', async function(e
   e.preventDefault();
   var email = document.getElementById('email').value;
   var password = document.getElementById('password').value;
-  var label = mode === 'login' ? 'Đăng nhập' : 'Đăng ký';
+  var label = mode === 'login' ? window.t.btnLogin : window.t.btnRegister;
   setMsg('msg-auth', '', '');
-  setLoading('submit-btn', true, 'Đang xử lý...');
+  setLoading('submit-btn', true, window.t.processing);
 
   try {
     var res = await fetch('/auth/' + mode, {
@@ -104,7 +104,7 @@ document.getElementById('form-auth').addEventListener('submit', async function(e
       return;
     }
     if (!res.ok) {
-      setMsg('msg-auth', data.message || 'Có lỗi xảy ra', 'error');
+      setMsg('msg-auth', data.message || window.t.errGeneric, 'error');
       setLoading('submit-btn', false, label);
       return;
     }
@@ -114,14 +114,14 @@ document.getElementById('form-auth').addEventListener('submit', async function(e
     }
     localStorage.setItem('token', data.meta.token);
     localStorage.setItem('user', JSON.stringify(data.meta.user));
-    setMsg('msg-auth', 'Thành công!', 'success');
+    setMsg('msg-auth', window.t.loginSuccess, 'success');
     if (data.meta.user.role === 'admin') {
       playTransition('/portal/');
     } else {
       setTimeout(function() { window.location.href = '/portal/'; }, 600);
     }
   } catch(err) {
-    setMsg('msg-auth', 'Lỗi kết nối server', 'error');
+    setMsg('msg-auth', window.t.errConnection, 'error');
     setLoading('submit-btn', false, label);
   }
 });
@@ -130,7 +130,7 @@ document.getElementById('form-otp').addEventListener('submit', async function(e)
   e.preventDefault();
   var otp = document.getElementById('otp').value;
   setMsg('msg-otp', '', '');
-  setLoading('verify-btn', true, 'Đang xác thực...');
+  setLoading('verify-btn', true, window.t.verifying);
 
   try {
     var res = await fetch('/auth/verify-otp', {
@@ -140,21 +140,21 @@ document.getElementById('form-otp').addEventListener('submit', async function(e)
     });
     var data = await res.json();
     if (!res.ok) {
-      setMsg('msg-otp', data.message || 'OTP không hợp lệ', 'error');
-      setLoading('verify-btn', false, 'Xác thực');
+      setMsg('msg-otp', data.message || window.t.errOtp, 'error');
+      setLoading('verify-btn', false, window.t.btnVerify);
       return;
     }
     localStorage.setItem('token', data.meta.token);
     localStorage.setItem('user', JSON.stringify(data.meta.user));
-    setMsg('msg-otp', 'Xác thực thành công!', 'success');
+    setMsg('msg-otp', window.t.verifySuccess, 'success');
     if (data.meta.user.role === 'admin') {
       playTransition('/portal/');
     } else {
       setTimeout(function() { window.location.href = '/portal/'; }, 600);
     }
   } catch(err) {
-    setMsg('msg-otp', 'Lỗi kết nối server', 'error');
-    setLoading('verify-btn', false, 'Xác thực');
+    setMsg('msg-otp', window.t.errConnection, 'error');
+    setLoading('verify-btn', false, window.t.btnVerify);
   }
 });
 
@@ -168,12 +168,146 @@ document.getElementById('btn-resend').addEventListener('click', async function()
     });
     var data = await res.json();
     if (!res.ok) {
-      setMsg('msg-otp', data.message || 'Lỗi gửi OTP', 'error');
+      setMsg('msg-otp', data.message || window.t.errOtpSend, 'error');
       return;
     }
-    setMsg('msg-otp', 'OTP đã được gửi lại!', 'success');
+    setMsg('msg-otp', window.t.otpResent, 'success');
     startResendCountdown(60);
   } catch(err) {
-    setMsg('msg-otp', 'Lỗi kết nối server', 'error');
+    setMsg('msg-otp', window.t.errConnection, 'error');
+  }
+});
+
+// ── Forgot Password ───────────────────────────────────────────────────────────
+
+var forgotEmail = '';
+var resetResendTimer = null;
+
+function startResetResendCountdown(seconds) {
+  var btn = document.getElementById('btn-resend-reset');
+  btn.disabled = true;
+  var remaining = seconds;
+  btn.textContent = window.t.btnResendCountdown(remaining);
+  resetResendTimer = setInterval(function() {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(resetResendTimer);
+      btn.disabled = false;
+      btn.textContent = window.t.btnResend;
+    } else {
+      btn.textContent = window.t.btnResendCountdown(remaining);
+    }
+  }, 1000);
+}
+
+document.getElementById('btn-forgot').addEventListener('click', function() {
+  setMsg('msg-auth', '', '');
+  document.getElementById('forgot-email').value = document.getElementById('email').value;
+  showScreen('forgot');
+});
+
+document.getElementById('back-from-forgot').addEventListener('click', function() {
+  showScreen('auth');
+});
+
+document.getElementById('back-from-reset').addEventListener('click', function() {
+  showScreen('forgot');
+});
+
+document.getElementById('form-forgot').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  var email = document.getElementById('forgot-email').value;
+  setMsg('msg-forgot', '', '');
+  setLoading('forgot-send-btn', true, window.t.processing);
+
+  try {
+    var res = await fetch('/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    setLoading('forgot-send-btn', false, window.t.btnSendOtp);
+    // Luôn chuyển sang màn nhập OTP (không tiết lộ email có tồn tại hay không)
+    forgotEmail = email;
+    document.getElementById('reset-email-display').textContent = email;
+    document.getElementById('reset-otp').value = '';
+    document.getElementById('new-password').value = '';
+    document.getElementById('confirm-password').value = '';
+    setMsg('msg-reset', window.t.forgotOtpSent, 'success');
+    setLoading('reset-btn', false, window.t.btnResetPassword);
+    if (resetResendTimer) clearInterval(resetResendTimer);
+    startResetResendCountdown(60);
+    showScreen('reset');
+  } catch(err) {
+    setMsg('msg-forgot', window.t.errConnection, 'error');
+    setLoading('forgot-send-btn', false, window.t.btnSendOtp);
+  }
+});
+
+document.getElementById('form-reset').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  var otp = document.getElementById('reset-otp').value;
+  var newPassword = document.getElementById('new-password').value;
+  var confirmPassword = document.getElementById('confirm-password').value;
+
+  if (newPassword !== confirmPassword) {
+    setMsg('msg-reset', window.t.errPasswordMismatch, 'error');
+    return;
+  }
+
+  setMsg('msg-reset', '', '');
+  setLoading('reset-btn', true, window.t.processing);
+
+  try {
+    // Bước 1: xác thực OTP
+    var res1 = await fetch('/auth/verify-reset-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: forgotEmail, otp }),
+    });
+    var data1 = await res1.json();
+    if (!res1.ok) {
+      setMsg('msg-reset', data1.message || window.t.errOtp, 'error');
+      setLoading('reset-btn', false, window.t.btnResetPassword);
+      return;
+    }
+
+    // Bước 2: đặt mật khẩu mới
+    var res2 = await fetch('/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: forgotEmail, newPassword }),
+    });
+    var data2 = await res2.json();
+    if (!res2.ok) {
+      setMsg('msg-reset', data2.message || window.t.errGeneric, 'error');
+      setLoading('reset-btn', false, window.t.btnResetPassword);
+      return;
+    }
+
+    setMsg('msg-reset', window.t.resetSuccess, 'success');
+    if (resetResendTimer) clearInterval(resetResendTimer);
+    setTimeout(function() {
+      showScreen('auth');
+      setMsg('msg-auth', '', '');
+    }, 2000);
+  } catch(err) {
+    setMsg('msg-reset', window.t.errConnection, 'error');
+    setLoading('reset-btn', false, window.t.btnResetPassword);
+  }
+});
+
+document.getElementById('btn-resend-reset').addEventListener('click', async function() {
+  setMsg('msg-reset', '', '');
+  try {
+    await fetch('/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: forgotEmail }),
+    });
+    setMsg('msg-reset', window.t.otpResent, 'success');
+    startResetResendCountdown(60);
+  } catch(err) {
+    setMsg('msg-reset', window.t.errConnection, 'error');
   }
 });

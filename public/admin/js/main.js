@@ -78,7 +78,7 @@ async function loadUsers() {
   const search = document.getElementById('user-search').value.trim();
   const plan = document.getElementById('user-plan-filter').value;
   const tbody = document.getElementById('users-tbody');
-  tbody.innerHTML = '<tr><td colspan="6" class="loading">Đang tải…</td></tr>';
+  tbody.innerHTML = `<tr><td colspan="6" class="loading">${window.t.adminLoading}</td></tr>`;
   try {
     const data = await api(`/admin/users?page=${usersPage}&limit=${USERS_LIMIT}&search=${encodeURIComponent(search)}&plan=${encodeURIComponent(plan)}`);
     const { users, total } = data.meta;
@@ -146,7 +146,7 @@ async function loadPayments() {
   const status = document.getElementById('pay-status-filter').value;
   const plan = document.getElementById('pay-plan-filter').value;
   const tbody = document.getElementById('payments-tbody');
-  tbody.innerHTML = '<tr><td colspan="6" class="loading">Đang tải…</td></tr>';
+  tbody.innerHTML = `<tr><td colspan="6" class="loading">${window.t.adminLoading}</td></tr>`;
   try {
     const params = new URLSearchParams({ page: paymentsPage, limit: PAYMENTS_LIMIT });
     if (email) params.set('email', email);
@@ -205,7 +205,7 @@ document.getElementById('grant-confirm').addEventListener('click', async () => {
   try {
     await api(`/admin/users/${grantUserId}/subscription`, { method: 'PATCH', body: JSON.stringify({ plan, days }) });
     document.getElementById('grant-modal').classList.remove('open');
-    toast('Đã cấp subscription!');
+    toast(window.t.adminGranted);
     loadUsers();
   } catch (e) { toast(e.message, 'error'); }
 });
@@ -223,7 +223,7 @@ async function banUser(userId, email, ban) {
 // ── User Detail Modal ─────────────────────────────
 async function openDetail(userId, email) {
   document.getElementById('detail-title').textContent = email;
-  document.getElementById('detail-content').innerHTML = '<div class="loading">Đang tải…</div>';
+  document.getElementById('detail-content').innerHTML = `<div class="loading">${window.t.adminLoading}</div>`;
   document.getElementById('detail-modal').classList.add('open');
   try {
     const data = await api(`/admin/users/${userId}`);
@@ -234,15 +234,15 @@ async function openDetail(userId, email) {
 
     const subSection = subscription
       ? `<div class="detail-row"><span class="key">Plan</span><span class="badge badge-${esc(subscription.plan)}">${esc(subscription.plan.toUpperCase())}</span></div>
-         <div class="detail-row"><span class="key">Hết hạn</span><span>${fmtDate(subscription.expiredAt)}</span></div>
+         <div class="detail-row"><span class="key">${window.t.adminExpiry}</span><span>${fmtDate(subscription.expiredAt)}</span></div>
          <div class="detail-actions">
-           <button class="btn btn-danger btn-sm" onclick="revokeSubscription('${uid}','${safeEmail}')">Thu hồi subscription</button>
+           <button class="btn btn-danger btn-sm" onclick="revokeSubscription('${uid}','${safeEmail}')">${window.t.adminRevokeBtn}</button>
          </div>`
-      : '<div style="color:rgba(255,255,255,0.3);font-size:13px">Không có subscription</div>';
+      : `<div style="color:rgba(255,255,255,0.3);font-size:13px">${window.t.adminNoSub}</div>`;
 
     const galaxyRows = galaxies.length
       ? galaxies.map(g => `<div class="detail-row"><span class="key">${esc(g.name)}</span><span class="badge badge-${g.status === 'active' ? 'active' : 'inactive'}">${esc(g.status)}</span></div>`).join('')
-      : '<div style="color:rgba(255,255,255,0.3);font-size:13px">Chưa có galaxy</div>';
+      : `<div style="color:rgba(255,255,255,0.3);font-size:13px">${window.t.adminNoGalaxy}</div>`;
 
     const paymentRows = payments.length
       ? payments.map(p => `<div class="detail-row"><span class="key">${fmtDate(p.paidAt || p.createdAt)}</span><span><span class="badge badge-${esc(p.plan)}">${esc(p.plan)}</span> ${fmtVND(p.amount)} <span class="badge badge-${esc(p.status)}">${esc(p.status)}</span></span></div>`).join('')
@@ -292,7 +292,7 @@ async function saveRole(userId) {
   const role = document.getElementById('detail-role-select').value;
   try {
     await api(`/admin/users/${userId}/role`, { method: 'PATCH', body: JSON.stringify({ role }) });
-    toast('Đã cập nhật role');
+    toast(window.t.adminRoleUpdated);
     loadUsers();
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -300,17 +300,17 @@ async function saveRole(userId) {
 async function toggleVerified(userId, isVerified, email) {
   try {
     await api(`/admin/users/${userId}/status`, { method: 'PATCH', body: JSON.stringify({ isVerified }) });
-    toast(isVerified ? 'Đã mở khoá user' : 'Đã khoá user');
+    toast(isVerified ? window.t.adminUnlocked : window.t.adminLocked);
     openDetail(userId, email);
     loadUsers();
   } catch (e) { toast(e.message, 'error'); }
 }
 
 async function revokeSubscription(userId, email) {
-  if (!confirm('Thu hồi subscription của user này?')) return;
+  if (!confirm(window.t.adminConfirmRevoke)) return;
   try {
     await api(`/admin/users/${userId}/subscription`, { method: 'DELETE' });
-    toast('Đã thu hồi subscription');
+    toast(window.t.adminRevoked);
     openDetail(userId, email);
     loadUsers();
   } catch (e) { toast(e.message, 'error'); }
@@ -324,7 +324,7 @@ tabLoaded['dashboard'] = true;
 // ── Media: Themes ─────────────────────────────────
 async function loadThemes() {
   const tbody = document.getElementById('theme-table');
-  tbody.innerHTML = '<tr><td colspan="4" class="loading">Đang tải…</td></tr>';
+  tbody.innerHTML = `<tr><td colspan="4" class="loading">${window.t.adminLoading}</td></tr>`;
   try {
     const data = await api('/media/themes');
     const themes = data.meta || [];
@@ -386,7 +386,7 @@ document.getElementById('btn-save-theme').addEventListener('click', async () => 
 // ── Media: Music ──────────────────────────────────
 async function loadMusics() {
   const tbody = document.getElementById('music-table');
-  tbody.innerHTML = '<tr><td colspan="4" class="loading">Đang tải…</td></tr>';
+  tbody.innerHTML = `<tr><td colspan="4" class="loading">${window.t.adminLoading}</td></tr>`;
   try {
     const data = await api('/media/musics');
     const musics = data.meta || [];
@@ -468,8 +468,8 @@ async function loadAnalytics() {
         data: {
           labels,
           datasets: [
-            { label: 'Thành công (%)', data: successRates, borderColor: '#4ade80', backgroundColor: 'rgba(74,222,128,0.08)', borderWidth: 2, pointRadius: 3, fill: true, tension: 0.3 },
-            { label: 'Hủy (%)', data: rates, borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.08)', borderWidth: 2, pointRadius: 3, fill: true, tension: 0.3 },
+            { label: window.t.adminChartSuccess, data: successRates, borderColor: '#4ade80', backgroundColor: 'rgba(74,222,128,0.08)', borderWidth: 2, pointRadius: 3, fill: true, tension: 0.3 },
+            { label: window.t.adminChartCancel, data: rates, borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.08)', borderWidth: 2, pointRadius: 3, fill: true, tension: 0.3 },
           ],
         },
         options: {

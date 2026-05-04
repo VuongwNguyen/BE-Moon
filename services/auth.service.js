@@ -154,6 +154,97 @@ class AuthService {
     return { token, user: { _id: user._id, email: user.email, role: user.role } };
   }
 
+  async forgotPassword({ email }) {
+    const user = await UserModel.findOne({ email });
+    if (!user || !user.isVerified) return { email };
+
+    if (user.otpSentAt && user.otpPurpose === 'reset') {
+      const secondsSince = (Date.now() - new Date(user.otpSentAt).getTime()) / 1000;
+      if (secondsSince < OTP_RESEND_SECONDS) {
+        const wait = Math.ceil(OTP_RESEND_SECONDS - secondsSince);
+        throw new errorResponse({ message: `Please wait ${wait} seconds before requesting again`, statusCode: 429 });
+      }
+    }
+
+    const otp = generateOtp();
+    user.otpCode = await bcrypt.hash(otp, 10);
+    user.otpExpiresAt = new Date(Date.now() + OTP_EXPIRES_MINUTES * 60 * 1000);
+    user.otpSentAt = new Date();
+    user.otpAttempts = 0;
+    user.otpPurpose = 'reset';
+    await user.save();
+
+    await EmailService.sendPasswordResetOtp(email, otp);
+    return { email };
+  }
+
+  async verifyResetOtp({ email, otp }) {
+    const user = await UserModel.findOne({ email });
+    if (!user || !user.isVerified || user.otpPurpose !== 'reset') {
+      throw new errorResponse({ message: "Invalid request", statusCode: 400 });
+    }
+    if (!user.otpCode || !user.otpExpiresAt || new Date() > user.otpExpiresAt) {
+      throw new errorResponse({ message: "OTP expired, please request again", statusCode: 400 });
+    }
+    const valid = await bcrypt.compare(otp, user.otpCode);
+    if (!valid) {
+      user.otpAttempts = (user.otpAttempts || 0) + 1;
+      if (user.otpAttempts >= 5) {
+        user.otpCode = null; user.otpExpiresAt = null; user.otpSentAt = null;
+        user.otpAttempts = 0; user.otpPurpose = null;
+        await user.save();
+        throw new errorResponse({ message: "Too many failed attempts. Please request again.", statusCode: 429 });
+      }
+      await user.save();
+      throw new errorResponse({ message: "Invalid OTP", statusCode: 400 });
+    }
+    user.otpCode = null;
+    user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 phút để đặt mật khẩu mới
+    user.otpAttempts = 0;
+    user.otpPurpose = 'reset-verified';
+    await user.save();
+    return { email };
+  }
+
+  async resetPassword({ email, newPassword }) {
+    const user = await UserModel.findOne({ email });
+    if (!user || user.otpPurpose !== 'reset-verified' || !user.otpExpiresAt || new Date() > user.otpExpiresAt) {
+      throw new errorResponse({ message: "Invalid or expired reset session", statusCode: 400 });
+    }
+    if (!newPassword || newPassword.length < 8) {
+      throw new errorResponse({ message: "Password must be at least 8 characters", statusCode: 400 });
+    }
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    user.otpCode = null; user.otpExpiresAt = null; user.otpSentAt = null;
+    user.otpAttempts = 0; user.otpPurpose = null;
+    user.sessions = []; // invalidate all sessions
+    await user.save();
+    return {};
+  }
+
+  async changePassword({ userId, currentPassword, newPassword }) {
+    const user = await UserModel.findById(userId);
+    if (!user) throw new errorResponse({ message: "User not found", statusCode: 404 });
+    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!valid) throw new errorResponse({ message: "Current password is incorrect", statusCode: 401 });
+    if (newPassword.length < 8) throw new errorResponse({ message: "Password must be at least 8 characters", statusCode: 400 });
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    user.sessions = [];
+    await user.save();
+    return {};
+  }
+
+  async deleteAccount({ userId, password }) {
+    const user = await UserModel.findById(userId);
+    if (!user) throw new errorResponse({ message: "User not found", statusCode: 404 });
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) throw new errorResponse({ message: "Incorrect password", statusCode: 401 });
+    const GalaxyModel = require("../models/galaxy");
+    await GalaxyModel.deleteMany({ userId });
+    await user.deleteOne();
+    return {};
+  }
+
   async me(userId) {
     const GalaxyModel = require("../models/galaxy");
     const user = await UserModel.findById(userId).select("-passwordHash -otpCode -otpExpiresAt -otpSentAt");
