@@ -699,23 +699,59 @@ async function init() {
     if (!captions.length) return;
     const text = captions[captionIdx % captions.length];
     captionIdx++;
+
+    const FONT = '300 48px Georgia, serif';
+    const MAX_W = 640;  // max width mỗi dòng (pixels)
+    const PAD_X = 60;
+    const LINE_H = 72;
+    const PAD_Y = 40;
+
+    // Word-wrap
+    const tmp = document.createElement('canvas').getContext('2d');
+    tmp.font = FONT;
+    const words = text.split(' ');
+    const lines = [];
+    let cur = '';
+    for (const word of words) {
+      const test = cur ? cur + ' ' + word : word;
+      if (tmp.measureText(test).width > MAX_W && cur) {
+        lines.push(cur);
+        cur = word;
+      } else {
+        cur = test;
+      }
+    }
+    if (cur) lines.push(cur);
+
+    const W = MAX_W + PAD_X * 2;
+    const H = lines.length * LINE_H + PAD_Y * 2;
+    const cx = W / 2;
+
     const canvas = document.createElement('canvas');
-    canvas.width = 768; canvas.height = 120;
+    canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
+    ctx.font = FONT;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    // Outer glow pass
-    ctx.font = '300 52px Georgia, serif';
-    ctx.shadowColor = 'rgba(200,140,255,1.0)'; ctx.shadowBlur = 48;
-    ctx.fillStyle = 'rgba(200,140,255,0.25)';
-    ctx.fillText(text, 384, 60);
-    // Main text
-    ctx.shadowColor = 'rgba(255,200,255,0.9)'; ctx.shadowBlur = 20;
-    ctx.fillStyle = 'rgba(255,255,255,0.95)';
-    ctx.fillText(text, 384, 60);
+
+    lines.forEach((line, i) => {
+      const y = PAD_Y + i * LINE_H + LINE_H / 2;
+      // Outer glow
+      ctx.shadowColor = 'rgba(200,140,255,1.0)'; ctx.shadowBlur = 40;
+      ctx.fillStyle = 'rgba(200,140,255,0.25)';
+      ctx.fillText(line, cx, y);
+      // Main text
+      ctx.shadowColor = 'rgba(255,200,255,0.9)'; ctx.shadowBlur = 18;
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.fillText(line, cx, y);
+    });
+
+    // Scale sprite giữ tỉ lệ canvas
+    const scaleX = 18;
+    const scaleY = scaleX * (H / W);
     const mat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthWrite: false });
     const sprite = new THREE.Sprite(mat);
-    sprite.scale.set(20, 3.8, 1);
-    sprite.position.set((Math.random()-0.5)*6, (Math.random()-0.5)*3, zPos);
+    sprite.scale.set(scaleX, scaleY, 1);
+    sprite.position.set((Math.random()-0.5)*4, (Math.random()-0.5)*2, zPos);
     sprite.userData.pulsePhase = Math.random() * Math.PI * 2;
     scene.add(sprite);
     captionSprites.push(sprite);
@@ -727,8 +763,7 @@ async function init() {
     rowCount++;
     if (captions.length && rowCount % 5 === 0) {
       spawnCaption(zPos - ROW_DEPTH * 0.5);
-      window._nextRowZ = zPos - ROW_DEPTH * 2.5;
-      return;
+      // Không return — tiếp tục spawn ảnh bình thường cho row này
     }
     for (let c = 0; c < COLS; c++) {
       const texIdx = Math.floor(Math.random() * textures.length);

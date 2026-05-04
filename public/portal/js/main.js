@@ -96,61 +96,71 @@ function renderGalaxies(grid, galaxies) {
     card.className = 'galaxy-card';
     card.dataset.galaxyId = g._id;
 
+    // ── Header: name + view shortcut ──────────────────
+    const header = document.createElement('div');
+    header.className = 'galaxy-card-header';
+
     const name = document.createElement('div');
     name.className = 'galaxy-name';
     name.textContent = g.name;
 
-    const status = document.createElement('div');
-    status.className = 'galaxy-status';
-    status.textContent = g.status;
-
-    const idRow = document.createElement('div');
-    idRow.className = 'galaxy-id-row';
-
-    const id = document.createElement('div');
-    id.className = 'galaxy-id';
-    id.textContent = g._id;
-
-    const copyIdBtn = document.createElement('button');
-    copyIdBtn.className = 'btn-copy-id';
-    copyIdBtn.title = 'Copy ID';
-    copyIdBtn.textContent = '⎘';
-    copyIdBtn.addEventListener('click', (e) => {
+    const viewQuick = document.createElement('button');
+    viewQuick.className = 'btn-view-quick';
+    viewQuick.title = window.t.btnView || 'Xem';
+    viewQuick.textContent = '↗';
+    viewQuick.addEventListener('click', (e) => {
       e.stopPropagation();
-      const link = `${window.location.origin}/view/?galaxyId=${g._id}`;
-      navigator.clipboard.writeText(link).then(() => {
-        copyIdBtn.textContent = '✓';
-        setTimeout(() => { copyIdBtn.textContent = '⎘'; }, 1500);
-      });
+      window.open(`/view/?galaxyId=${g._id}`, '_blank');
     });
 
-    idRow.appendChild(id);
-    idRow.appendChild(copyIdBtn);
+    header.appendChild(name);
+    header.appendChild(viewQuick);
 
+    // ── Meta: template + status ────────────────────────
+    const meta = document.createElement('div');
+    meta.className = 'galaxy-meta';
+
+    const tmpl = document.createElement('div');
+    tmpl.className = 'galaxy-template-badge';
+    tmpl.textContent = g.template === 'fall' ? '🍂 Fall' : '🌌 Galaxy';
+
+    const status = document.createElement('div');
+    status.className = `galaxy-status${g.status !== 'active' ? ' inactive' : ''}`;
+    status.textContent = g.status;
+
+    meta.appendChild(tmpl);
+    meta.appendChild(status);
+
+    // ── Actions: manage + copy link ───────────────────
     const actions = document.createElement('div');
     actions.className = 'galaxy-actions';
 
     const manageBtn = document.createElement('button');
     manageBtn.className = 'btn-manage';
-    manageBtn.textContent = window.t.btnManage;
+    manageBtn.textContent = window.t.btnManage || 'Quản lý';
     manageBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       window.location.href = `/portal/galaxy.html?galaxyId=${g._id}`;
     });
 
-    const viewBtn = document.createElement('button');
-    viewBtn.className = 'btn-view';
-    viewBtn.textContent = window.t.btnView;
-    viewBtn.addEventListener('click', (e) => {
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'btn-copy-link';
+    copyBtn.title = 'Copy link chia sẻ';
+    copyBtn.textContent = '🔗';
+    copyBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      window.open(`/view/?galaxyId=${g._id}`, '_blank');
+      navigator.clipboard.writeText(`${window.location.origin}/view/?galaxyId=${g._id}`).then(() => {
+        copyBtn.textContent = '✓';
+        copyBtn.classList.add('copied');
+        setTimeout(() => { copyBtn.textContent = '🔗'; copyBtn.classList.remove('copied'); }, 1800);
+      });
     });
 
     actions.appendChild(manageBtn);
-    actions.appendChild(viewBtn);
-    card.appendChild(name);
-    card.appendChild(status);
-    card.appendChild(idRow);
+    actions.appendChild(copyBtn);
+
+    card.appendChild(header);
+    card.appendChild(meta);
     card.appendChild(actions);
 
     card.addEventListener('click', () => {
