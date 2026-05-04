@@ -149,11 +149,26 @@ function renderGalaxies(grid, galaxies) {
     copyBtn.textContent = '🔗';
     copyBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      navigator.clipboard.writeText(`${window.location.origin}/view/?galaxyId=${g._id}`).then(() => {
+      const url = `${window.location.origin}/view/?galaxyId=${g._id}`;
+      const onCopied = () => {
         copyBtn.textContent = '✓';
         copyBtn.classList.add('copied');
         setTimeout(() => { copyBtn.textContent = '🔗'; copyBtn.classList.remove('copied'); }, 1800);
-      });
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(onCopied);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        onCopied();
+      }
     });
 
     actions.appendChild(manageBtn);
