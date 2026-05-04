@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aurora Memories</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #010a18; overflow: hidden; font-family: sans-serif; }
+    #canvas-container { width: 100vw; height: 100vh; }
+
+    /* ── Landscape warning ── */
+    #landscape-warning {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: radial-gradient(ellipse at center, #010a18 0%, #000 100%);
+      flex-direction: column; align-items: center; justify-content: center;
+      color: white; text-align: center; padding: 24px;
+    }
+    body.portrait-mode #landscape-warning { display: flex; }
+    .rotate-icon {
+      width: 60px; height: 60px; border: 3px solid rgba(0,255,180,0.5);
+      border-radius: 12px; margin-bottom: 24px;
+      animation: rotateHint 2s ease-in-out infinite;
+    }
+    @keyframes rotateHint {
+      0%, 100% { transform: rotate(0deg); }
+      50%       { transform: rotate(90deg); }
+    }
+
+    /* ── Intro overlay ── */
+    #intro {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at center, #010a18 0%, #000510 100%);
+      cursor: pointer; transition: opacity 1s ease;
+    }
+    #intro.hidden { opacity: 0; pointer-events: none; }
+    #intro-title {
+      font-size: clamp(26px, 5.5vw, 52px);
+      color: #e0fff5;
+      letter-spacing: 0.12em;
+      font-weight: 300;
+      margin-bottom: 10px;
+      text-align: center;
+      text-shadow: 0 0 30px rgba(0,255,180,0.6), 0 0 60px rgba(0,180,255,0.3);
+    }
+    #intro-sub {
+      font-size: 13px; color: rgba(0,255,200,0.45);
+      letter-spacing: 0.22em; text-transform: uppercase;
+      margin-bottom: 52px;
+    }
+    .pulse-ring {
+      width: 64px; height: 64px; border-radius: 50%;
+      border: 1px solid rgba(0,255,180,0.5);
+      animation: pulse 2.2s ease-out infinite;
+    }
+    @keyframes pulse {
+      0%   { transform: scale(0.8); opacity: 1; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+    .tap-hint {
+      margin-top: 22px; font-size: 13px;
+      color: rgba(0,220,180,0.35); letter-spacing: 0.12em;
+    }
+
+    /* ── Audio button ── */
+    #btn-audio {
+      position: fixed; top: 20px; right: 20px; z-index: 200;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(0,10,30,0.7); border: 1px solid rgba(0,255,180,0.25);
+      color: #fff; font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    #btn-audio:hover { background: rgba(0,255,180,0.15); }
+    #btn-audio.hidden { display: none; }
+
+    /* ── Lightbox ── */
+    #lightbox {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,5,20,0.92);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+    #lightbox.visible { opacity: 1; pointer-events: all; }
+    #lightbox-img {
+      max-width: 90vw; max-height: 88vh;
+      border-radius: 6px;
+      box-shadow: 0 0 40px rgba(0,255,180,0.3), 0 0 80px rgba(0,140,255,0.2);
+    }
+    #lightbox-close {
+      position: absolute; top: 20px; right: 24px;
+      color: rgba(0,255,200,0.7); font-size: 32px; cursor: pointer;
+      line-height: 1; background: none; border: none;
+      transition: color 0.2s;
+    }
+    #lightbox-close:hover { color: #fff; }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <div id="landscape-warning">
+    <div class="rotate-icon"></div>
+    <h1 style="font-size:1.4em;margin-bottom:8px;color:#e0fff5">Aurora Memories</h1>
+    <p style="font-size:0.85em;opacity:0.6;margin-top:8px">Xoay ngang màn hình để có trải nghiệm tốt nhất</p>
+  </div>
+
+  <div id="intro">
+    <div id="intro-title">Aurora Memories</div>
+    <div id="intro-sub">Ký ức dưới ánh cực quang</div>
+    <div class="pulse-ring"></div>
+    <div class="tap-hint">Chạm để bắt đầu</div>
+  </div>
+
+  <button id="btn-audio" class="hidden">🔇</button>
+
+  <div id="lightbox">
+    <button id="lightbox-close">✕</button>
+    <img id="lightbox-img" src="" alt="" />
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.152.2/build/three.module.js"
+    }
+  }
+  </script>
+
+  <script>
+    const musicManager = {
+      audio: null, isPlaying: false, _initialized: false,
+      init(url) {
+        if (this._initialized) return;
+        this._initialized = true;
+        const btn = document.getElementById('btn-audio');
+        if (!url) { if (btn) btn.classList.add('hidden'); return; }
+        this.audio = new Audio(url);
+        this.audio.loop = true; this.audio.volume = 0.7; this.audio.preload = 'auto';
+        this.audio.onplay  = () => { this.isPlaying = true;  if (btn) btn.textContent = '🔊'; };
+        this.audio.onpause = () => { this.isPlaying = false; if (btn) btn.textContent = '🔇'; };
+        this.audio.oncanplay    = () => this.audio.play().catch(() => {});
+        this.audio.onloadeddata = () => this.audio.play().catch(() => {});
+        this.audio.play().catch(() => {});
+        let attempts = 0;
+        const retry = () => {
+          if (attempts++ < 10 && !this.isPlaying)
+            this.audio.play().catch(() => { if (attempts < 10) setTimeout(retry, 500); });
+        };
+        setTimeout(retry, 100);
+        if (btn) { btn.classList.remove('hidden'); btn.addEventListener('click', () => this.toggle()); }
+        window.addEventListener('focus', () => { if (this.audio && !this.isPlaying) this.audio.play().catch(() => {}); });
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden && this.audio && !this.isPlaying) this.audio.play().catch(() => {});
+        });
+      },
+      play()   { return this.audio?.play() ?? Promise.reject(); },
+      toggle() { this.audio?.paused ? this.play().catch(() => {}) : this.audio?.pause(); }
+    };
+    window.musicManager = musicManager;
+
+    function checkOrientation() {
+      const isPortrait = window.innerHeight > window.innerWidth && 'ontouchstart' in window;
+      document.body.classList.toggle('portrait-mode', isPortrait);
+    }
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
+    checkOrientation();
+  </script>
+
+  <script type="module" src="./js/aurora.js"></script>
+</body>
+</html>

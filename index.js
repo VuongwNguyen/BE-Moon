@@ -100,6 +100,8 @@ const TEMPLATE_HTML = {
     .replace(/\.\/js\//g, "/galaxy-moon/js/"),
   fall: fs.readFileSync(path.join(__dirname, "public/fall/index.html"), "utf8")
     .replace(/\.\/js\//g, "/fall/js/"),
+  aurora: fs.readFileSync(path.join(__dirname, "public/aurora/index.html"), "utf8")
+    .replace(/\.\/js\//g, "/aurora/js/"),
 };
 
 const GalaxyModel = require("./models/galaxy");

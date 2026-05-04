@@ -16,7 +16,7 @@ Mỗi template là một folder trong `public/`, đăng ký vào `enum` ở `mod
 | 3 | candle | Lãng mạn | ⬜ Chưa làm |
 | 4 | heartbeat | Lãng mạn | ⬜ Chưa làm |
 | 5 | firefly | Huyền bí | ⬜ Chưa làm |
-| 6 | aurora | Huyền bí | ⬜ Chưa làm |
+| 6 | aurora | Huyền bí | ✅ Done |
 | 7 | lantern | Huyền bí | ⬜ Chưa làm |
 | 8 | bubble | Huyền bí | ⬜ Chưa làm |
 | 9 | portal | Huyền bí | ⬜ Chưa làm |
