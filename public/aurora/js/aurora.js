@@ -24,9 +24,9 @@ document.getElementById('canvas-container').appendChild(renderer.domElement);
 
 const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 3000);
-camera.position.set(0, 1.8, 0);
+camera.position.set(0, 3.0, 0);
 // Positive rotation.x = look UP (right-hand rule about X-axis)
-camera.rotation.x = 0.42;
+camera.rotation.x = 0.55;
 
 window.addEventListener('resize', () => {
   camera.aspect = innerWidth/innerHeight;
@@ -61,7 +61,7 @@ const DOME_FRAG = `
     // Vertical ray curtain effect
     float ray = pow(max(0.0, sin(vN.x*18.0 + uTime*0.12)*0.5+0.5), 2.0);
 
-    float intensity = bandShape * shimmer * (0.8 + ray*0.5) * 7.0;
+    float intensity = bandShape * shimmer * (0.8 + ray*0.5) * 4.5;
 
     // Color: blend C1→C2→C3 across the sphere using vN.x
     float ct = clamp(vN.x*0.5+0.5 + sin(uTime*0.18)*0.1, 0.0, 1.0);
@@ -149,7 +149,7 @@ scene.add(ground);
 // ── Photo frame factory ───────────────────────────────────────────────────────
 function makeFrame(tex, imgSrc) {
   const ar  = tex.image.height / tex.image.width;
-  const fw  = 6.8, fh = fw * Math.min(Math.max(ar,0.55),1.6);
+  const fw  = 13.0, fh = fw * Math.min(Math.max(ar,0.55),1.6);
   const grp = new THREE.Group();
 
   // Dark mat backing
@@ -235,7 +235,8 @@ const clock=new THREE.Clock(), ray=new THREE.Raycaster(), mouse=new THREE.Vector
 function spawnRow(z){
   if(!textures.length){ nextZ=z-26; return; }
 
-  const cols=[{x:-9,y:0.5},{x:0,y:-0.8},{x:9,y:0.6}];
+  // 3 columns, photos float in the aurora (y = 3..12)
+  const cols=[{x:-17,y:5+Math.random()*4},{x:0,y:4+Math.random()*5},{x:17,y:5+Math.random()*4}];
   const n=textures.length===1?1:textures.length===2?2:3;
   const slots=n===1?[cols[1]]:n===2?[cols[0],cols[2]]:cols;
 
@@ -243,32 +244,32 @@ function spawnRow(z){
     const tex=textures[pIdx%textures.length], src=tex.image?.src||'';
     pIdx++;
     const p=makeFrame(tex,src);
-    const px=x+(Math.random()-0.5)*2, py=y+(Math.random()-0.5)*3;
+    const px=x+(Math.random()-0.5)*3, py=y;
     p.position.set(px,py,z);
     p.userData.bx=px; p.userData.by=py;
-    p.rotation.y=(Math.random()-0.5)*0.20;
+    p.rotation.y=(Math.random()-0.5)*0.18;
     scene.add(p); panels.push(p);
   });
 
-  // Small floaters for depth
+  // Mid-size floaters spread around, also in the sky
   for(let m=0;m<2+Math.floor(Math.random()*2);m++){
     if(!textures.length)break;
     const tex=textures[pIdx%textures.length], src=tex.image?.src||'';
     pIdx++;
     const p=makeFrame(tex,src);
-    const sc=0.18+Math.random()*0.28; p.scale.setScalar(sc);
-    const x=(Math.random()-0.5)*35, y=(Math.random()-0.5)*10+0.5;
-    p.position.set(x,y,z+(Math.random()-0.5)*10);
+    const sc=0.35+Math.random()*0.30; p.scale.setScalar(sc);
+    const x=(Math.random()-0.5)*45, y=3+Math.random()*10;
+    p.position.set(x,y,z+(Math.random()-0.5)*12);
     p.userData.bx=x; p.userData.by=y;
     scene.add(p); panels.push(p);
   }
 
   if(captions.length && pIdx%4===0){
     const cap=makeCaption(captions[cIdx%captions.length]); cIdx++;
-    cap.position.set((Math.random()-0.5)*14,(Math.random()-0.5)*4.5,z-9);
+    cap.position.set((Math.random()-0.5)*18, 2+Math.random()*4, z-10);
     scene.add(cap); capSprites.push(cap);
   }
-  nextZ=z-26;
+  nextZ=z-32;
 }
 
 // ── Input ─────────────────────────────────────────────────────────────────────
@@ -309,7 +310,7 @@ function animate(){
 
     camera.rotation.y += (-lookX - camera.rotation.y)*0.07;
     // Clamp vertical look so user can look up at aurora or down at ground
-    const targetX = Math.max(-0.2, Math.min(0.9, 0.42 - lookY*0.5));
+    const targetX = Math.max(-0.1, Math.min(1.0, 0.55 - lookY*0.5));
     camera.rotation.x += (targetX - camera.rotation.x)*0.07;
     lookX*=0.90; lookY*=0.90;
   }
