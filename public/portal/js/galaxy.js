@@ -244,17 +244,25 @@ class GalaxyManager {
 
   copyGalaxyLink() {
     const link = `${window.location.origin}/view/?galaxyId=${this.galaxyId}`;
-    navigator.clipboard.writeText(link)
-      .then(() => this.showToast(window.t.linkCopied, 'success'))
-      .catch(() => {
-        const ta = document.createElement('textarea');
-        ta.value = link;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        this.showToast(window.t.linkCopied, 'success');
-      });
+    const fallback = () => {
+      const ta = document.createElement('textarea');
+      ta.value = link;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      this.showToast(window.t.linkCopied, 'success');
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link)
+        .then(() => this.showToast(window.t.linkCopied, 'success'))
+        .catch(fallback);
+    } else {
+      fallback();
+    }
   }
 
   async deleteGalaxy() {
