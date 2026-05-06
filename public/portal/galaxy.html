@@ -523,6 +523,62 @@
       #toast-container { bottom: 16px; right: 16px; left: 16px; }
       .toast { max-width: 100%; white-space: normal; }
     }
+
+    /* ── Story Setup ── */
+    .setup-step { width: 100%; }
+    .story-type-btn {
+      display: block; width: 100%; padding: 16px 20px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 12px; color: var(--text); font-size: 1em;
+      cursor: pointer; text-align: left; font-family: inherit;
+      margin-bottom: 10px;
+    }
+    .story-type-btn:hover { border-color: var(--accent, #8b5cf6); }
+    .occasion-btn {
+      display: block; width: 100%; padding: 14px 18px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: 0.95em;
+      cursor: pointer; text-align: left; font-family: inherit;
+      margin-bottom: 8px;
+    }
+    .occasion-btn:hover { border-color: var(--accent, #8b5cf6); }
+    .chapter-hook-area {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px; margin-bottom: 14px;
+    }
+    .chapter-hook-label {
+      font-size: 0.75em; color: var(--text-sub); margin-bottom: 6px;
+    }
+    .chapter-hook-textarea {
+      width: 100%; background: transparent; border: none;
+      color: var(--text); font-size: 0.9em; font-family: inherit;
+      resize: none; outline: none; min-height: 56px;
+    }
+    .chapter-upload-zone {
+      border: 2px dashed var(--border); border-radius: 10px;
+      padding: 22px; text-align: center; cursor: pointer;
+      margin-bottom: 14px; color: var(--text-sub); font-size: 0.88em;
+    }
+    .chapter-upload-zone:hover { border-color: var(--accent, #8b5cf6); }
+    .chapter-photos-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .chapter-photo-thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; }
+    .btn-next-chapter {
+      width: 100%; padding: 13px; background: var(--accent, #8b5cf6);
+      border: none; border-radius: 10px; color: #fff;
+      font-size: 0.95em; cursor: pointer; font-family: inherit;
+    }
+    .btn-next-chapter:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-skip-chapter {
+      width: 100%; padding: 10px; background: none;
+      border: 1px solid var(--border); border-radius: 10px;
+      color: var(--text-sub); font-size: 0.88em;
+      cursor: pointer; margin-top: 8px; font-family: inherit;
+    }
+    .setup-back-btn {
+      background: none; border: none; color: var(--text-sub);
+      cursor: pointer; margin-bottom: 16px; font-size: 0.88em;
+      font-family: inherit; padding: 0;
+    }
   </style>
 </head>
 <body>
@@ -541,6 +597,31 @@
         <h1 id="galaxyName">Loading…</h1>
       </div>
     </header>
+
+    <!-- ── Story Setup ── -->
+    <div id="story-setup-section" style="display:none;padding:16px;">
+
+      <div id="step-type" class="setup-step">
+        <h2 style="font-size:1.2em;margin-bottom:16px;color:var(--text)">Chọn loại câu chuyện</h2>
+        <button class="story-type-btn" data-type="couple">
+          💑 Couple Story
+        </button>
+      </div>
+
+      <div id="step-occasion" class="setup-step" style="display:none;">
+        <button class="setup-back-btn" id="btn-back-type">← Quay lại</button>
+        <h2 style="font-size:1.2em;margin-bottom:16px;color:var(--text)">Đây là dịp gì?</h2>
+        <div id="occasion-list"></div>
+      </div>
+
+      <div id="step-chapters" class="setup-step" style="display:none;">
+        <button class="setup-back-btn" id="btn-back-occasion">← Quay lại</button>
+        <div id="chapter-progress" style="font-size:0.8em;color:var(--text-sub);margin-bottom:10px;"></div>
+        <div id="chapter-content"></div>
+      </div>
+
+    </div>
+    <!-- ── End Story Setup ── -->
 
     <!-- Customization -->
     <div class="card">
