@@ -3,30 +3,41 @@ const GalaxyModel = require("../models/galaxy");
 const { errorResponse } = require("../context/responseHandle");
 
 class GalleryService {
-  async createGallery({ galaxyId, title, description, uploadedFiles = [] }) {
-    uploadedFiles.forEach(async (file) => {
+  async createGallery({ galaxyId, title, description, stage, uploadedFiles = [] }) {
+    for (let i = 0; i < uploadedFiles.length; i++) {
+      const file = uploadedFiles[i];
       await GalleryModel.create({
         galaxyId,
         title,
         description,
         imageUrl: file.url,
         fileId: file.fileId || null,
+        stage: stage || null,
+        order: i,
       });
-    });
+    }
     return;
   }
 
   async getGalleryItems({ galaxyId }) {
-    const galleryItems = await GalleryModel.find({ galaxyId, status: "active" })
-      .sort({ createdAt: -1 })
-      // .limit(200); // Consider pagination if needed
+    const galleryItems = await GalleryModel.find({ galaxyId, status: 'active' })
+      .sort({ createdAt: -1 });
 
     if (!galleryItems) {
-      throw new errorResponse({
-        message: "error while fetching gallery items",
-        statusCode: 404,
+      throw new errorResponse({ message: 'error while fetching gallery items', statusCode: 404 });
+    }
+
+    const STAGE_ORDER = { intro: 0, memory: 1, highlight: 2, ending: 3 };
+    const hasStages = galleryItems.some(item => item.stage);
+    if (hasStages) {
+      galleryItems.sort((a, b) => {
+        const sa = STAGE_ORDER[a.stage] ?? 99;
+        const sb = STAGE_ORDER[b.stage] ?? 99;
+        if (sa !== sb) return sa - sb;
+        return (a.order || 0) - (b.order || 0);
       });
     }
+
     return galleryItems;
   }
 
