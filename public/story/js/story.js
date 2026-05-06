@@ -31,19 +31,35 @@ function resolveHook(chapterId, userChapters, configChapters) {
   return configChapters.find(c => c.id === chapterId)?.hooks[0] || '';
 }
 
-const elIntro         = document.getElementById('se-intro');
-const elIntroTitle    = document.getElementById('se-intro-title');
-const elIntroOccasion = document.getElementById('se-intro-occasion');
-const elHook          = document.getElementById('se-hook');
-const elHookText      = document.getElementById('se-hook-text');
-const elPhoto         = document.getElementById('se-photo');
-const elPhotoImg      = document.getElementById('se-photo-img');
-const elCounter       = document.getElementById('se-counter');
-const elFinale        = document.getElementById('se-finale');
+const elIntro          = document.getElementById('se-intro');
+const elIntroTitle     = document.getElementById('se-intro-title');
+const elIntroOccasion  = document.getElementById('se-intro-occasion');
+const elProgressFill   = document.getElementById('se-progress-fill');
+const elPhoto          = document.getElementById('se-photo');
+const elPhotoImg       = document.getElementById('se-photo-img');
+const elHookOverlay    = document.getElementById('se-hook-overlay');
+const elChapterTag     = document.getElementById('se-chapter-tag');
+const elHookText       = document.getElementById('se-hook-text');
+const elPhotoDots      = document.getElementById('se-photo-dots');
+const elFinale         = document.getElementById('se-finale');
 
 const wait    = ms => new Promise(res => setTimeout(res, ms));
 const fadeIn  = el => el.classList.add('visible');
 const fadeOut = el => el.classList.remove('visible');
+
+function setProgress(chapterIdx, totalChapters) {
+  const pct = totalChapters > 0 ? ((chapterIdx + 1) / totalChapters) * 100 : 0;
+  elProgressFill.style.width = pct + '%';
+}
+
+function renderDots(total, active) {
+  elPhotoDots.replaceChildren();
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'se-dot' + (i === active ? ' active' : '');
+    elPhotoDots.appendChild(d);
+  }
+}
 
 function waitTapOrTimer(ms) {
   return new Promise(resolve => {
@@ -56,30 +72,32 @@ function waitTapOrTimer(ms) {
   });
 }
 
-async function playChapter(hookText, photoUrls) {
-  elHookText.textContent = hookText;
-  fadeIn(elHook);
-  await wait(2800);
-  fadeOut(elHook);
-  await wait(600);
+async function playChapter(hookText, chapterTag, photoUrls, chapterIdx, totalChapters) {
+  setProgress(chapterIdx, totalChapters);
+
+  elChapterTag.textContent = chapterTag;
+  elHookText.textContent   = hookText;
 
   for (let i = 0; i < photoUrls.length; i++) {
     elPhotoImg.src = photoUrls[i];
-
-    elCounter.replaceChildren();
-    photoUrls.forEach((_, di) => {
-      const dot = document.createElement('div');
-      dot.className = 'se-dot' + (di === i ? ' active' : '');
-      elCounter.appendChild(dot);
-    });
+    if (photoUrls.length > 1) renderDots(photoUrls.length, i);
+    else elPhotoDots.replaceChildren();
 
     fadeIn(elPhoto);
-    await waitTapOrTimer(4500);
+
+    if (i === 0) {
+      // Hook fades in with first photo, then fades out after 2500ms
+      fadeIn(elHookOverlay);
+      await wait(2500);
+      fadeOut(elHookOverlay);
+    }
+
+    await waitTapOrTimer(i === 0 ? 5500 : 4500);
     fadeOut(elPhoto);
-    await wait(400);
+    await wait(380);
   }
 
-  elCounter.replaceChildren();
+  elPhotoDots.replaceChildren();
 }
 
 async function main() {
@@ -98,6 +116,7 @@ async function main() {
 
   const configChapters = occasionConf.chapters;
   const grouped        = groupByStage(items);
+  const chaptersWithPhotos = configChapters.filter(ch => (grouped[ch.id] || []).length > 0);
 
   // Preload images
   Object.values(grouped).flat().forEach(url => { const img = new Image(); img.src = url; });
@@ -116,14 +135,17 @@ async function main() {
   document.documentElement.requestFullscreen?.().catch?.(() => {});
   await wait(900);
 
-  for (const chapter of configChapters) {
-    const photos = grouped[chapter.id] || [];
-    if (!photos.length) continue;
-    const hook = resolveHook(chapter.id, view.chapters, configChapters);
-    await playChapter(hook, photos);
-    await wait(300);
+  for (let i = 0; i < chaptersWithPhotos.length; i++) {
+    const chapter = chaptersWithPhotos[i];
+    const photos  = grouped[chapter.id] || [];
+    const hook    = resolveHook(chapter.id, view.chapters, configChapters);
+    const tag     = `${chapter.label} · ${String(i + 1).padStart(2, '0')}`;
+    await playChapter(hook, tag, photos, i, chaptersWithPhotos.length);
+    await wait(280);
   }
 
+  // Fill progress to 100% on finale
+  elProgressFill.style.width = '100%';
   fadeIn(elFinale);
   await wait(2800);
   window.location.replace(`/view/?galaxyId=${galaxyId}&skip_se=true`);
