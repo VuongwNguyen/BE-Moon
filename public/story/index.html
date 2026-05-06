@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lumora Story</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background:#080810; color:#fff;
+      font-family:'Georgia',serif;
+      overflow:hidden; height:100vh; width:100vw;
+      user-select:none;
+    }
+    #se-intro {
+      position:fixed; inset:0; z-index:50;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      background:#080810; cursor:pointer;
+      transition:opacity 0.8s ease;
+    }
+    #se-intro.hidden { opacity:0; pointer-events:none; }
+    #se-intro-title {
+      font-size:clamp(24px,5vw,48px);
+      font-weight:300; letter-spacing:0.08em;
+      color:#f0ece4; text-align:center; margin-bottom:8px;
+    }
+    #se-intro-occasion {
+      font-size:13px; color:rgba(255,255,255,0.35);
+      letter-spacing:0.2em; text-transform:uppercase; margin-bottom:52px;
+      font-family:sans-serif;
+    }
+    .se-pulse {
+      width:56px; height:56px; border-radius:50%;
+      border:1px solid rgba(255,255,255,0.3);
+      animation:sePulse 2s ease-out infinite;
+    }
+    @keyframes sePulse {
+      0%   { transform:scale(0.8); opacity:1; }
+      100% { transform:scale(2.2); opacity:0; }
+    }
+    .se-tap-hint {
+      margin-top:20px; font-family:sans-serif;
+      font-size:12px; color:rgba(255,255,255,0.3); letter-spacing:0.15em;
+    }
+    #se-hook {
+      position:fixed; inset:0; z-index:30;
+      display:flex; align-items:center; justify-content:center;
+      padding:48px; background:rgba(8,8,16,0.95);
+      opacity:0; pointer-events:none; transition:opacity 0.6s ease;
+    }
+    #se-hook.visible { opacity:1; pointer-events:all; }
+    #se-hook-text {
+      font-size:clamp(20px,3.5vw,36px);
+      font-weight:300; line-height:1.7;
+      text-align:center; color:#f0ece4;
+      max-width:600px; letter-spacing:0.02em;
+    }
+    #se-photo {
+      position:fixed; inset:0; z-index:20;
+      display:flex; align-items:center; justify-content:center;
+      background:#080810; opacity:0; pointer-events:none;
+      transition:opacity 0.5s ease; cursor:pointer;
+    }
+    #se-photo.visible { opacity:1; pointer-events:all; }
+    #se-photo-img { max-width:100%; max-height:100%; object-fit:contain; }
+    #se-counter {
+      position:fixed; bottom:24px; left:50%;
+      transform:translateX(-50%); z-index:40;
+      display:flex; gap:6px;
+    }
+    .se-dot {
+      width:6px; height:6px; border-radius:50%;
+      background:rgba(255,255,255,0.25); transition:background 0.3s;
+    }
+    .se-dot.active { background:rgba(255,255,255,0.8); }
+    #se-finale {
+      position:fixed; inset:0; z-index:60;
+      display:flex; align-items:center; justify-content:center;
+      background:#080810; opacity:0; pointer-events:none;
+      transition:opacity 1s ease;
+    }
+    #se-finale.visible { opacity:1; }
+    #se-finale-text {
+      font-size:clamp(16px,2.8vw,28px);
+      font-weight:300; color:rgba(240,236,228,0.7);
+      letter-spacing:0.05em; text-align:center;
+    }
+    #btn-audio {
+      position:fixed; top:20px; right:20px; z-index:100;
+      width:40px; height:40px; border-radius:50%;
+      background:rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.15);
+      color:#fff; font-size:16px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+    }
+    #btn-audio.hidden { display:none; }
+  </style>
+</head>
+<body>
+
+  <div id="se-intro">
+    <div id="se-intro-title">Lumora</div>
+    <div id="se-intro-occasion"></div>
+    <div class="se-pulse"></div>
+    <div class="se-tap-hint">Chạm để bắt đầu</div>
+  </div>
+
+  <div id="se-hook"><div id="se-hook-text"></div></div>
+
+  <div id="se-photo">
+    <img id="se-photo-img" src="" alt="" />
+  </div>
+
+  <div id="se-counter"></div>
+
+  <div id="se-finale"><div id="se-finale-text">Và đây là tất cả ký ức của chúng ta...</div></div>
+
+  <button id="btn-audio" class="hidden">🔇</button>
+
+  <script>
+    window.musicManager = {
+      audio:null, isPlaying:false, _initialized:false,
+      init(url){
+        if(this._initialized)return; this._initialized=true;
+        const btn=document.getElementById('btn-audio');
+        if(!url){btn&&btn.classList.add('hidden');return;}
+        this.audio=new Audio(url);
+        this.audio.loop=true; this.audio.volume=0.7;
+        this.audio.onplay =()=>{this.isPlaying=true; if(btn)btn.textContent='🔊';};
+        this.audio.onpause=()=>{this.isPlaying=false;if(btn)btn.textContent='🔇';};
+        this.audio.play().catch(()=>{});
+        if(btn){btn.classList.remove('hidden');btn.addEventListener('click',()=>this.toggle());}
+      },
+      play(){return this.audio?.play()??Promise.reject();},
+      toggle(){this.audio?.paused?this.play().catch(()=>{}):this.audio?.pause();}
+    };
+  </script>
+
+  <script type="module" src="./js/story.js"></script>
+</body>
+</html>
