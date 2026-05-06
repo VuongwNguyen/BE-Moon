@@ -91,6 +91,7 @@ class GalaxyService {
       storyType: galaxy.storyType || null,
       occasion: galaxy.occasion || null,
       chapters: galaxy.chapters || [],
+      seEffect: galaxy.seEffect || 'none',
     };
   }
 
