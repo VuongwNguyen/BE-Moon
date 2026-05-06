@@ -88,6 +88,9 @@ class GalaxyService {
       theme: galaxy.themeId || null,
       music: galaxy.backgroundMusicId || null,
       template: galaxy.template || 'galaxy',
+      storyType: galaxy.storyType || null,
+      occasion: galaxy.occasion || null,
+      chapters: galaxy.chapters || [],
     };
   }
 
