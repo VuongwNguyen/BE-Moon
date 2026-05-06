@@ -222,12 +222,18 @@ async function runChapter(chapter, chapterIdx, totalChapters) {
   await typingThen(null, chapter.hooks[0]);
   const { wrap, nextBtn } = buildChapterCard(chapter, chapterIdx, totalChapters);
   appendEl(wrap);
-  await new Promise(resolve => {
+  await new Promise((resolve, reject) => {
     nextBtn.addEventListener('click', async () => {
       nextBtn.disabled = true;
       nextBtn.textContent = 'Đang lưu…';
-      await saveChapter(chapter.id);
-      resolve();
+      try {
+        await saveChapter(chapter.id);
+        resolve();
+      } catch (err) {
+        nextBtn.disabled = false;
+        nextBtn.textContent = 'Tiếp →';
+        reject(err);
+      }
     }, { once: true });
   });
 }
@@ -258,12 +264,18 @@ async function runOptionalChapter(chapter, chapterIdx, totalChapters, occasion) 
     const { wrap, nextBtn } = buildChapterCard(chapter, chapterIdx, totalChapters);
     nextBtn.disabled = false;
     appendEl(wrap);
-    await new Promise(resolve => {
+    await new Promise((resolve, reject) => {
       nextBtn.addEventListener('click', async () => {
         nextBtn.disabled = true;
         nextBtn.textContent = 'Đang lưu…';
-        await saveChapter(chapter.id);
-        resolve();
+        try {
+          await saveChapter(chapter.id);
+          resolve();
+        } catch (err) {
+          nextBtn.disabled = false;
+          nextBtn.textContent = 'Tiếp →';
+          reject(err);
+        }
       }, { once: true });
     });
   }
@@ -275,16 +287,22 @@ async function runLastChapter(chapter, chapterIdx, totalChapters) {
   nextBtn.textContent = 'Hoàn thành ✓';
   nextBtn.classList.add('done');
   appendEl(wrap);
-  await new Promise(resolve => {
+  await new Promise((resolve, reject) => {
     nextBtn.addEventListener('click', async () => {
       nextBtn.disabled = true;
       nextBtn.textContent = 'Đang lưu…';
-      await saveChapter(chapter.id);
-      await saveStoryMeta(selectedOccasion);
-      appendLMsgWithNote('Câu chuyện của bạn đã sẵn sàng ✨', 'Đang chuyển về trang quản lý…');
-      await wait(1800);
-      window.location.href = `/portal/galaxy.html?galaxyId=${galaxyId}`;
-      resolve();
+      try {
+        await saveChapter(chapter.id);
+        await saveStoryMeta(selectedOccasion);
+        appendLMsgWithNote('Câu chuyện của bạn đã sẵn sàng ✨', 'Đang chuyển về trang quản lý…');
+        await wait(1800);
+        window.location.href = `/portal/galaxy.html?galaxyId=${galaxyId}`;
+        resolve();
+      } catch (err) {
+        nextBtn.disabled = false;
+        nextBtn.textContent = 'Hoàn thành ✓';
+        reject(err);
+      }
     }, { once: true });
   });
 }
