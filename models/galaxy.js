@@ -34,6 +34,24 @@ const galaxySchema = new Schema({
     enum: ["galaxy", "fall"],
     default: "galaxy",
   },
+  storyType: {
+    type: String,
+    enum: ['couple'],
+    default: null,
+  },
+  occasion: {
+    type: String,
+    default: null,
+  },
+  chapters: {
+    type: [
+      {
+        id:       { type: String },
+        hookText: { type: String, default: null },
+      }
+    ],
+    default: [],
+  },
   createdAt: {
     type: Date,
     default: Date.now,
