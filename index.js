@@ -100,7 +100,8 @@ const TEMPLATE_HTML = {
     .replace(/\.\/js\//g, "/galaxy-moon/js/"),
   fall: fs.readFileSync(path.join(__dirname, "public/fall/index.html"), "utf8")
     .replace(/\.\/js\//g, "/fall/js/"),
-
+  story: fs.readFileSync(path.join(__dirname, "public/story/index.html"), "utf8")
+    .replace(/\.\/js\//g, "/story/js/"),
 };
 
 const GalaxyModel = require("./models/galaxy");
@@ -118,12 +119,18 @@ app.get("/view/", async (req, res, next) => {
   const { galaxyId } = req.query;
   if (!galaxyId) return res.redirect("/");
   try {
-    const galaxy = await GalaxyModel.findById(galaxyId, "name template status").lean();
+    const galaxy = await GalaxyModel.findById(galaxyId, "name template status storyType occasion chapters").lean();
     if (!galaxy || galaxy.status !== "active") {
       return res.status(404).json({ status: false, message: "Galaxy not found", statusCode: 404 });
     }
-    const template = galaxy.template || "galaxy";
-    const html = TEMPLATE_HTML[template] ?? TEMPLATE_HTML.galaxy;
+    const skipSE = req.query.skip_se === 'true';
+    let html;
+    if (galaxy.storyType && !skipSE) {
+      html = TEMPLATE_HTML.story;
+    } else {
+      const template = galaxy.template || "galaxy";
+      html = TEMPLATE_HTML[template] ?? TEMPLATE_HTML.galaxy;
+    }
     const name = escapeHtml(galaxy.name || "Lumora");
     const base = req.protocol + "://" + req.get("host");
     const ogTags = `
