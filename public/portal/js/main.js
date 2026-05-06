@@ -210,8 +210,13 @@ document.getElementById('btn-create').addEventListener('click', async function()
       btn.textContent = window.t.btnCreate;
       return;
     }
-    closeModal();
-    loadGalaxies();
+    const newId = data.meta?._id || data.meta?.id;
+    if (newId) {
+      window.location.href = `/portal/galaxy.html?galaxyId=${newId}&setup=true`;
+    } else {
+      closeModal();
+      loadGalaxies();
+    }
   } catch {
     msg.textContent = window.t.errConnect;
     btn.disabled = false;
