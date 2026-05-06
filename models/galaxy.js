@@ -34,6 +34,11 @@ const galaxySchema = new Schema({
     enum: ["galaxy", "fall"],
     default: "galaxy",
   },
+  seEffect: {
+    type: String,
+    enum: ['none', 'stardust', 'firefly', 'aurora'],
+    default: 'none',
+  },
   storyType: {
     type: String,
     enum: ['couple'],
