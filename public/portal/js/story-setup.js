@@ -20,6 +20,7 @@ const OPTIONAL_QUESTIONS = {
 let STORY_CONFIG = null;
 let selectedOccasion = null;
 const chapterFiles = {};
+const chapterHooks = {};
 
 // ── DOM helpers ───────────────────────────────────────────────────────────────
 
@@ -127,7 +128,7 @@ async function saveChapter(chapterId) {
 async function saveStoryMeta(occasion) {
   const chapters = STORY_CONFIG['couple'].occasions[occasion].chapters.map(ch => ({
     id: ch.id,
-    hookText: null,
+    hookText: chapterHooks[ch.id] || null,
   }));
   const res = await fetch(`/galaxies/${galaxyId}`, {
     method: 'PUT',
@@ -201,6 +202,24 @@ function buildChapterCard(chapter, chapterIdx, totalChapters) {
     nextBtn.disabled = false;
     scrollBottom();
   });
+
+  // Hook textarea
+  const hookSection = document.createElement('div');
+  hookSection.className = 'ch-hook-section';
+  const hookLabel = document.createElement('div');
+  hookLabel.className = 'ch-hook-label';
+  hookLabel.textContent = 'Lời dẫn (tuỳ chọn)';
+  const hookTA = document.createElement('textarea');
+  hookTA.className = 'ch-hook-textarea';
+  hookTA.placeholder = chapter.hooks[0];
+  hookTA.rows = 2;
+  hookTA.value = chapterHooks[chapter.id] || '';
+  hookTA.addEventListener('input', () => {
+    chapterHooks[chapter.id] = hookTA.value.trim() || null;
+  });
+  hookSection.appendChild(hookLabel);
+  hookSection.appendChild(hookTA);
+  card.appendChild(hookSection);
 
   wrap.appendChild(card);
 
