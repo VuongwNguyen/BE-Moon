@@ -36,6 +36,7 @@ const elIntroTitle     = document.getElementById('se-intro-title');
 const elIntroOccasion  = document.getElementById('se-intro-occasion');
 const elProgressFill   = document.getElementById('se-progress-fill');
 const elPhoto          = document.getElementById('se-photo');
+const elPhotoBg        = document.getElementById('se-photo-bg');
 const elPhotoImg       = document.getElementById('se-photo-img');
 const elHookOverlay    = document.getElementById('se-hook-overlay');
 const elChapterTag     = document.getElementById('se-chapter-tag');
@@ -80,6 +81,7 @@ async function playChapter(hookText, chapterTag, photoUrls, chapterIdx, totalCha
 
   for (let i = 0; i < photoUrls.length; i++) {
     elPhotoImg.src = photoUrls[i];
+    elPhotoBg.style.backgroundImage = `url('${photoUrls[i]}')`;
     if (photoUrls.length > 1) renderDots(photoUrls.length, i);
     else elPhotoDots.replaceChildren();
 
