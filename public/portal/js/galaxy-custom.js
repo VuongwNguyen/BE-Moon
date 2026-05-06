@@ -272,6 +272,8 @@ document.getElementById('templateSelect').addEventListener('change', scheduleSav
   await loadGalaxyCustomization();
 })();
 
+window.removeCaption = removeCaption;
+
 // ── Story Banner ──────────────────────────────────────────────────────────
 async function loadStoryBanner() {
   if (!galaxyId) return;
@@ -309,5 +311,3 @@ async function loadStoryBanner() {
 }
 
 loadStoryBanner();
-
-window.removeCaption = removeCaption;
