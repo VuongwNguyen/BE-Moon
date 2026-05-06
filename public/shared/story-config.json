@@ -1,0 +1,88 @@
+{
+  "couple": {
+    "label": "Couple Story",
+    "occasions": {
+      "anniversary": {
+        "label": "Ky niem",
+        "chapters": [
+          {
+            "id": "intro",
+            "label": "Khoi dau",
+            "required": true,
+            "photoCount": { "min": 1, "max": 1 },
+            "hooks": [
+              "Chung ta bat dau tu mot ngay rat binh thuong...",
+              "Anh khong nghi moi thu lai bat dau nhu the nay..."
+            ]
+          },
+          {
+            "id": "memory",
+            "label": "Ky uc",
+            "required": true,
+            "photoCount": { "min": 1, "max": 5 },
+            "hooks": [
+              "Roi nhung ngay binh thuong tro thanh nhung ngay khong the quen...",
+              "Co nhung khoanh khac minh chang chup lai, nhung van nho mai..."
+            ]
+          },
+          {
+            "id": "highlight",
+            "label": "Khoanh khac dac biet",
+            "required": false,
+            "photoCount": { "min": 1, "max": 2 },
+            "hooks": [
+              "Va co mot khoanh khac anh nho mai...",
+              "Neu phai chon mot ngay de nho, anh se chon ngay nay..."
+            ]
+          },
+          {
+            "id": "ending",
+            "label": "Ket",
+            "required": true,
+            "photoCount": { "min": 1, "max": 1 },
+            "hooks": [
+              "Cam on vi da o day, va vi tat ca nhung dieu do...",
+              "Anh khong can nhieu hon. Chi can em o day la du..."
+            ]
+          }
+        ]
+      },
+      "confession": {
+        "label": "To tinh",
+        "chapters": [
+          { "id": "intro",     "label": "Truoc khi gap em",        "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Truoc khi gap em, anh khong nghi dieu nay se xay ra..."] },
+          { "id": "memory",    "label": "Nhung ngay ben em",       "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Roi em xuat hien. Va moi thu khac di..."] },
+          { "id": "highlight", "label": "Khoanh khac anh nhan ra", "required": false, "photoCount": { "min": 1, "max": 1 }, "hooks": ["Co mot khoanh khac anh biet minh da thich em tu lau..."] },
+          { "id": "ending",    "label": "Dieu anh muon noi",       "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Va bay gio, anh chi muon noi voi em mot dieu..."] }
+        ]
+      },
+      "missing": {
+        "label": "Nho nhau",
+        "chapters": [
+          { "id": "intro",     "label": "Khi xa nhau",               "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Co nhung ngay xa nhau, anh lai nho ve..."] },
+          { "id": "memory",    "label": "Nhung ngay da co",          "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Nhung ngay minh o ben nhau, anh da khong biet tran trong..."] },
+          { "id": "highlight", "label": "Khoanh khac anh nho nhat", "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Neu duoc chon mot ky uc de giu lai, anh se chon cai nay..."] },
+          { "id": "ending",    "label": "Gui den em",                "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Anh nho em. Chi vay thoi, nhung nhieu lam..."] }
+        ]
+      },
+      "proposal": {
+        "label": "Cau hon",
+        "chapters": [
+          { "id": "intro",     "label": "Ngay dau tien",           "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Moi thu bat dau tu mot ngay anh khong bao gio quen..."] },
+          { "id": "memory",    "label": "Hanh trinh cua chung ta", "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Chung ta da di qua rat nhieu thu cung nhau..."] },
+          { "id": "highlight", "label": "Ly do",                   "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Va day la ly do anh biet em la nguoi anh muon o ben mai mai..."] },
+          { "id": "ending",    "label": "Cau hoi",                 "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Em co muon cung anh viet tiep cau chuyen nay khong?"] }
+        ]
+      },
+      "birthday": {
+        "label": "Sinh nhat nguoi yeu",
+        "chapters": [
+          { "id": "intro",     "label": "Ngay hom nay",              "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Hom nay la ngay cua em. Va anh muon ke em nghe..."] },
+          { "id": "memory",    "label": "Mot nam qua",               "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Mot nam qua, chung ta da co nhung dieu nay..."] },
+          { "id": "highlight", "label": "Dieu anh thich nhat o em", "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Nhung co mot dieu anh thich nhat o em, do la..."] },
+          { "id": "ending",    "label": "Loi chuc",                  "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Chuc em sinh nhat vui ve. Cam on vi da la em..."] }
+        ]
+      }
+    }
+  }
+}
