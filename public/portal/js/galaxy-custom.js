@@ -272,4 +272,223 @@ document.getElementById('templateSelect').addEventListener('change', scheduleSav
   await loadGalaxyCustomization();
 })();
 
+// ── Story Setup Flow ──────────────────────────────────────────────────────────
+(async function initStorySetup() {
+  const params   = new URLSearchParams(location.search);
+  const galaxyId = params.get('galaxyId');
+  const isSetup  = params.get('setup') === 'true';
+  const token    = localStorage.getItem('token');
+
+  if (!galaxyId || !isSetup) return;
+
+  const configRes  = await fetch('/shared/story-config.json');
+  const STORY_CONFIG = await configRes.json();
+
+  const galaxyRes = await fetch(`/galaxies/${galaxyId}`, {
+    headers: { Authorization: 'Bearer ' + token }
+  });
+  const galaxy = galaxyRes.ok ? (await galaxyRes.json()).meta : null;
+
+  // Galaxy đã setup rồi thì bỏ qua
+  if (galaxy && galaxy.storyType) return;
+
+  const setupSection = document.getElementById('story-setup-section');
+  if (!setupSection) return;
+  setupSection.style.display = 'block';
+
+  // Ẩn phần customization bình thường trong lúc setup
+  const customSection = document.getElementById('customization-section');
+  if (customSection) customSection.style.display = 'none';
+
+  let selectedType      = null;
+  let selectedOccasion  = null;
+  let currentChapterIdx = 0;
+  const chapterFiles    = {};   // { chapterId: File[] }
+  const chapterHooks    = {};   // { chapterId: string }
+
+  const stepType     = document.getElementById('step-type');
+  const stepOccasion = document.getElementById('step-occasion');
+  const stepChapters = document.getElementById('step-chapters');
+  const occasionList = document.getElementById('occasion-list');
+  const chapterProg  = document.getElementById('chapter-progress');
+  const chapterContent = document.getElementById('chapter-content');
+
+  function getChapters() {
+    return STORY_CONFIG[selectedType].occasions[selectedOccasion].chapters;
+  }
+
+  // Step 1 — Story Type
+  document.querySelectorAll('.story-type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedType = btn.dataset.type;
+      renderOccasions();
+      stepType.style.display = 'none';
+      stepOccasion.style.display = 'block';
+    });
+  });
+
+  // Step 2 — Occasion
+  function renderOccasions() {
+    occasionList.replaceChildren();
+    const occasions = STORY_CONFIG[selectedType].occasions;
+    Object.entries(occasions).forEach(([id, occ]) => {
+      const btn = document.createElement('button');
+      btn.className = 'occasion-btn';
+      btn.textContent = occ.label;
+      btn.addEventListener('click', () => {
+        selectedOccasion  = id;
+        currentChapterIdx = 0;
+        Object.keys(chapterFiles).forEach(k => delete chapterFiles[k]);
+        Object.keys(chapterHooks).forEach(k => delete chapterHooks[k]);
+        stepOccasion.style.display = 'none';
+        stepChapters.style.display = 'block';
+        renderChapter(currentChapterIdx);
+      });
+      occasionList.appendChild(btn);
+    });
+  }
+
+  document.getElementById('btn-back-type').addEventListener('click', () => {
+    stepOccasion.style.display = 'none';
+    stepType.style.display = 'block';
+  });
+
+  document.getElementById('btn-back-occasion').addEventListener('click', () => {
+    stepChapters.style.display = 'none';
+    stepOccasion.style.display = 'block';
+  });
+
+  // Step 3 — Chapters
+  function renderChapter(idx) {
+    const chapters = getChapters();
+    const ch       = chapters[idx];
+    const isLast   = idx === chapters.length - 1;
+
+    chapterProg.textContent = `Chương ${idx + 1} / ${chapters.length}`;
+    chapterContent.replaceChildren();
+
+    // Title
+    const titleEl = document.createElement('h2');
+    titleEl.style.cssText = 'font-size:1.1em;margin-bottom:8px;color:var(--text)';
+    titleEl.textContent = ch.label;
+    if (!ch.required) {
+      const optTag = document.createElement('span');
+      optTag.style.cssText = 'font-size:0.72em;color:var(--text-sub);margin-left:8px';
+      optTag.textContent = '(không bắt buộc)';
+      titleEl.appendChild(optTag);
+    }
+    chapterContent.appendChild(titleEl);
+
+    // Hook text
+    const hookWrap = document.createElement('div');
+    hookWrap.className = 'chapter-hook-area';
+    const hookLabel = document.createElement('div');
+    hookLabel.className = 'chapter-hook-label';
+    hookLabel.textContent = 'Lời dẫn (để trống = dùng gợi ý Lumora)';
+    const hookTA = document.createElement('textarea');
+    hookTA.className = 'chapter-hook-textarea';
+    hookTA.placeholder = ch.hooks[0];
+    hookTA.value = chapterHooks[ch.id] || '';
+    hookTA.addEventListener('input', () => { chapterHooks[ch.id] = hookTA.value.trim(); });
+    hookWrap.appendChild(hookLabel);
+    hookWrap.appendChild(hookTA);
+    chapterContent.appendChild(hookWrap);
+
+    // Upload
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.multiple = ch.photoCount.max > 1;
+    fileInput.style.display = 'none';
+
+    const uploadZone = document.createElement('div');
+    uploadZone.className = 'chapter-upload-zone';
+    uploadZone.textContent = `Chọn ảnh (${ch.photoCount.min}–${ch.photoCount.max} ảnh)`;
+    uploadZone.addEventListener('click', () => fileInput.click());
+
+    const preview = document.createElement('div');
+    preview.className = 'chapter-photos-preview';
+
+    function refreshPreview() {
+      preview.replaceChildren();
+      (chapterFiles[ch.id] || []).forEach(file => {
+        const img = document.createElement('img');
+        img.className = 'chapter-photo-thumb';
+        img.src = URL.createObjectURL(file);
+        preview.appendChild(img);
+      });
+      nextBtn.disabled = ch.required && !(chapterFiles[ch.id] || []).length;
+    }
+
+    fileInput.addEventListener('change', () => {
+      chapterFiles[ch.id] = Array.from(fileInput.files).slice(0, ch.photoCount.max);
+      refreshPreview();
+    });
+
+    chapterContent.appendChild(fileInput);
+    chapterContent.appendChild(uploadZone);
+    chapterContent.appendChild(preview);
+
+    // Next button
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'btn-next-chapter';
+    nextBtn.textContent = isLast ? 'Hoàn thành ✓' : 'Chương tiếp →';
+    nextBtn.disabled = ch.required && !(chapterFiles[ch.id] || []).length;
+    nextBtn.addEventListener('click', async () => {
+      nextBtn.disabled = true;
+      nextBtn.textContent = 'Đang lưu...';
+      await saveChapter(ch.id);
+      if (isLast) { await saveStoryMeta(); finishSetup(); }
+      else { currentChapterIdx++; renderChapter(currentChapterIdx); }
+    });
+    chapterContent.appendChild(nextBtn);
+
+    // Skip button (optional only)
+    if (!ch.required) {
+      const skipBtn = document.createElement('button');
+      skipBtn.className = 'btn-skip-chapter';
+      skipBtn.textContent = 'Bỏ qua chương này';
+      skipBtn.addEventListener('click', async () => {
+        if (isLast) { await saveStoryMeta(); finishSetup(); }
+        else { currentChapterIdx++; renderChapter(currentChapterIdx); }
+      });
+      chapterContent.appendChild(skipBtn);
+    }
+
+    refreshPreview();
+  }
+
+  async function saveChapter(chapterId) {
+    const files = chapterFiles[chapterId] || [];
+    if (!files.length) return;
+    const form = new FormData();
+    form.append('galaxyId', galaxyId);
+    form.append('title', 'Uploaded image');
+    form.append('description', 'Image uploaded from portal');
+    form.append('stage', chapterId);
+    files.forEach(f => form.append('files', f));
+    await fetch('/gallary/upload', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token },
+      body: form,
+    });
+  }
+
+  async function saveStoryMeta() {
+    const chapters = getChapters().map(ch => ({
+      id:       ch.id,
+      hookText: chapterHooks[ch.id] || null,
+    }));
+    await fetch(`/galaxies/${galaxyId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ storyType: selectedType, occasion: selectedOccasion, chapters }),
+    });
+  }
+
+  function finishSetup() {
+    window.location.href = `/portal/galaxy.html?galaxyId=${galaxyId}`;
+  }
+})();
+
 window.removeCaption = removeCaption;
