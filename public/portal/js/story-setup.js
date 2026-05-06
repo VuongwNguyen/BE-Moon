@@ -7,11 +7,6 @@ if (!galaxyId) window.location.href = '/portal/';
 
 const chat = document.getElementById('chat');
 
-const OCCASION_LABELS = {
-  anniversary: 'Kỷ niệm', confession: 'Tỏ tình',
-  missing: 'Nhớ nhau', proposal: 'Cầu hôn', birthday: 'Sinh nhật',
-};
-
 const OPTIONAL_QUESTIONS = {
   highlight: {
     anniversary: 'Có khoảnh khắc đặc biệt nào bạn muốn lưu lại không?',
@@ -121,11 +116,12 @@ async function saveChapter(chapterId) {
   form.append('description', 'Image uploaded from story setup');
   form.append('stage', chapterId);
   files.forEach(f => form.append('files', f));
-  await fetch('/gallary/upload', {
+  const res = await fetch('/gallary/upload', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + token },
     body: form,
   });
+  if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
 }
 
 async function saveStoryMeta(occasion) {
@@ -133,11 +129,12 @@ async function saveStoryMeta(occasion) {
     id: ch.id,
     hookText: null,
   }));
-  await fetch(`/galaxies/${galaxyId}`, {
+  const res = await fetch(`/galaxies/${galaxyId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
     body: JSON.stringify({ storyType: 'couple', occasion, chapters }),
   });
+  if (!res.ok) throw new Error(`Save story failed: ${res.status}`);
 }
 
 // ── Chapter card builder ──────────────────────────────────────────────────────
@@ -172,6 +169,7 @@ function buildChapterCard(chapter, chapterIdx, totalChapters) {
   card.appendChild(fileInput);
 
   function renderPhotos() {
+    photosEl.querySelectorAll('img').forEach(img => URL.revokeObjectURL(img.src));
     photosEl.replaceChildren();
     const files = chapterFiles[chapter.id] || [];
     files.forEach(file => {
@@ -220,11 +218,11 @@ function buildChapterCard(chapter, chapterIdx, totalChapters) {
 
 // ── Chapter runners ───────────────────────────────────────────────────────────
 
-function runChapter(chapter, chapterIdx, totalChapters) {
-  return new Promise(async resolve => {
-    await typingThen(null, chapter.hooks[0]);
-    const { wrap, nextBtn } = buildChapterCard(chapter, chapterIdx, totalChapters);
-    appendEl(wrap);
+async function runChapter(chapter, chapterIdx, totalChapters) {
+  await typingThen(null, chapter.hooks[0]);
+  const { wrap, nextBtn } = buildChapterCard(chapter, chapterIdx, totalChapters);
+  appendEl(wrap);
+  await new Promise(resolve => {
     nextBtn.addEventListener('click', async () => {
       nextBtn.disabled = true;
       nextBtn.textContent = 'Đang lưu…';
@@ -234,62 +232,56 @@ function runChapter(chapter, chapterIdx, totalChapters) {
   });
 }
 
-function runOptionalChapter(chapter, chapterIdx, totalChapters, occasion) {
-  return new Promise(async resolve => {
-    const question = OPTIONAL_QUESTIONS[chapter.id]?.[occasion]
-      || `Có ${chapter.label.toLowerCase()} nào bạn muốn thêm không?`;
-    await typingThen(question);
+async function runOptionalChapter(chapter, chapterIdx, totalChapters, occasion) {
+  const question = OPTIONAL_QUESTIONS[chapter.id]?.[occasion]
+    || `Có ${chapter.label.toLowerCase()} nào bạn muốn thêm không?`;
+  await typingThen(question);
 
-    const yesno = document.createElement('div');
-    yesno.className = 'btn-yesno';
-    const btnYes = document.createElement('button');
-    btnYes.className = 'btn-yes';
-    btnYes.textContent = 'Có 🫧';
-    const btnNo = document.createElement('button');
-    btnNo.className = 'btn-no';
-    btnNo.textContent = 'Không có';
-    yesno.appendChild(btnYes);
-    yesno.appendChild(btnNo);
-    appendEl(yesno);
+  const yesno = document.createElement('div');
+  yesno.className = 'btn-yesno';
+  const btnYes = document.createElement('button');
+  btnYes.className = 'btn-yes';
+  btnYes.textContent = 'Có 🫧';
+  const btnNo = document.createElement('button');
+  btnNo.className = 'btn-no';
+  btnNo.textContent = 'Không có';
+  yesno.appendChild(btnYes);
+  yesno.appendChild(btnNo);
+  appendEl(yesno);
 
-    btnYes.addEventListener('click', async () => {
-      yesno.replaceChildren();
-      appendUMsg('Có 🫧');
-      const { wrap, nextBtn } = buildChapterCard(chapter, chapterIdx, totalChapters);
-      nextBtn.disabled = false;
-      appendEl(wrap);
+  const userSaidYes = await new Promise(resolve => {
+    btnYes.addEventListener('click', () => { yesno.replaceChildren(); appendUMsg('Có 🫧'); resolve(true); }, { once: true });
+    btnNo.addEventListener('click',  () => { yesno.replaceChildren(); appendUMsg('Không có'); resolve(false); }, { once: true });
+  });
+
+  if (userSaidYes) {
+    const { wrap, nextBtn } = buildChapterCard(chapter, chapterIdx, totalChapters);
+    nextBtn.disabled = false;
+    appendEl(wrap);
+    await new Promise(resolve => {
       nextBtn.addEventListener('click', async () => {
         nextBtn.disabled = true;
         nextBtn.textContent = 'Đang lưu…';
         await saveChapter(chapter.id);
         resolve();
       }, { once: true });
-    }, { once: true });
-
-    btnNo.addEventListener('click', () => {
-      yesno.replaceChildren();
-      appendUMsg('Không có');
-      resolve();
-    }, { once: true });
-  });
+    });
+  }
 }
 
-function runLastChapter(chapter, chapterIdx, totalChapters) {
-  return new Promise(async resolve => {
-    await typingThen(null, chapter.hooks[0]);
-    const { wrap, nextBtn } = buildChapterCard(chapter, chapterIdx, totalChapters);
-    nextBtn.textContent = 'Hoàn thành ✓';
-    nextBtn.classList.add('done');
-    appendEl(wrap);
+async function runLastChapter(chapter, chapterIdx, totalChapters) {
+  await typingThen(null, chapter.hooks[0]);
+  const { wrap, nextBtn } = buildChapterCard(chapter, chapterIdx, totalChapters);
+  nextBtn.textContent = 'Hoàn thành ✓';
+  nextBtn.classList.add('done');
+  appendEl(wrap);
+  await new Promise(resolve => {
     nextBtn.addEventListener('click', async () => {
       nextBtn.disabled = true;
       nextBtn.textContent = 'Đang lưu…';
       await saveChapter(chapter.id);
       await saveStoryMeta(selectedOccasion);
-      appendLMsgWithNote(
-        'Câu chuyện của bạn đã sẵn sàng ✨',
-        'Đang chuyển về trang quản lý…'
-      );
+      appendLMsgWithNote('Câu chuyện của bạn đã sẵn sàng ✨', 'Đang chuyển về trang quản lý…');
       await wait(1800);
       window.location.href = `/portal/galaxy.html?galaxyId=${galaxyId}`;
       resolve();
@@ -305,7 +297,7 @@ async function init() {
     fetch(`/galaxies/${galaxyId}`, { headers: { Authorization: 'Bearer ' + token } }),
   ]);
 
-  if (!galaxyRes.ok) { window.location.href = '/portal/'; return; }
+  if (!galaxyRes.ok || !cfgRes.ok) { window.location.href = '/portal/'; return; }
 
   STORY_CONFIG = await cfgRes.json();
   const galaxy = (await galaxyRes.json()).meta;
@@ -359,4 +351,6 @@ async function init() {
   }
 }
 
-init();
+init().catch(err => {
+  console.error('[story-setup] init failed:', err);
+});
