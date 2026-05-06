@@ -23,6 +23,14 @@ const gallerySchema = new Schema({
     type: String,
     default: null,
   },
+  stage: {
+    type: String,
+    default: null,
+  },
+  order: {
+    type: Number,
+    default: 0,
+  },
   status: {
     enum: ["active", "inactive"],
     default: "active",
