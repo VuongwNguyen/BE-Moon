@@ -3,84 +3,84 @@
     "label": "Couple Story",
     "occasions": {
       "anniversary": {
-        "label": "Ky niem",
+        "label": "Kỷ niệm",
         "chapters": [
           {
             "id": "intro",
-            "label": "Khoi dau",
+            "label": "Khởi đầu",
             "required": true,
             "photoCount": { "min": 1, "max": 1 },
             "hooks": [
-              "Chung ta bat dau tu mot ngay rat binh thuong...",
-              "Anh khong nghi moi thu lai bat dau nhu the nay..."
+              "Chúng ta bắt đầu từ một ngày rất bình thường...",
+              "Anh không nghĩ mọi thứ lại bắt đầu như thế này..."
             ]
           },
           {
             "id": "memory",
-            "label": "Ky uc",
+            "label": "Ký ức",
             "required": true,
             "photoCount": { "min": 1, "max": 5 },
             "hooks": [
-              "Roi nhung ngay binh thuong tro thanh nhung ngay khong the quen...",
-              "Co nhung khoanh khac minh chang chup lai, nhung van nho mai..."
+              "Rồi những ngày bình thường trở thành những ngày không thể quên...",
+              "Có những khoảnh khắc mình chẳng chụp lại, nhưng vẫn nhớ mãi..."
             ]
           },
           {
             "id": "highlight",
-            "label": "Khoanh khac dac biet",
+            "label": "Khoảnh khắc đặc biệt",
             "required": false,
             "photoCount": { "min": 1, "max": 2 },
             "hooks": [
-              "Va co mot khoanh khac anh nho mai...",
-              "Neu phai chon mot ngay de nho, anh se chon ngay nay..."
+              "Và có một khoảnh khắc anh nhớ mãi...",
+              "Nếu phải chọn một ngày để nhớ, anh sẽ chọn ngày này..."
             ]
           },
           {
             "id": "ending",
-            "label": "Ket",
+            "label": "Kết",
             "required": true,
             "photoCount": { "min": 1, "max": 1 },
             "hooks": [
-              "Cam on vi da o day, va vi tat ca nhung dieu do...",
-              "Anh khong can nhieu hon. Chi can em o day la du..."
+              "Cảm ơn vì đã ở đây, và vì tất cả những điều đó...",
+              "Anh không cần nhiều hơn. Chỉ cần em ở đây là đủ..."
             ]
           }
         ]
       },
       "confession": {
-        "label": "To tinh",
+        "label": "Tỏ tình",
         "chapters": [
-          { "id": "intro",     "label": "Truoc khi gap em",        "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Truoc khi gap em, anh khong nghi dieu nay se xay ra..."] },
-          { "id": "memory",    "label": "Nhung ngay ben em",       "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Roi em xuat hien. Va moi thu khac di..."] },
-          { "id": "highlight", "label": "Khoanh khac anh nhan ra", "required": false, "photoCount": { "min": 1, "max": 1 }, "hooks": ["Co mot khoanh khac anh biet minh da thich em tu lau..."] },
-          { "id": "ending",    "label": "Dieu anh muon noi",       "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Va bay gio, anh chi muon noi voi em mot dieu..."] }
+          { "id": "intro",     "label": "Trước khi gặp em",        "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Trước khi gặp em, anh không nghĩ điều này sẽ xảy ra..."] },
+          { "id": "memory",    "label": "Những ngày bên em",       "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Rồi em xuất hiện. Và mọi thứ khác đi..."] },
+          { "id": "highlight", "label": "Khoảnh khắc anh nhận ra", "required": false, "photoCount": { "min": 1, "max": 1 }, "hooks": ["Có một khoảnh khắc anh biết mình đã thích em từ lâu..."] },
+          { "id": "ending",    "label": "Điều anh muốn nói",       "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Và bây giờ, anh chỉ muốn nói với em một điều..."] }
         ]
       },
       "missing": {
-        "label": "Nho nhau",
+        "label": "Nhớ nhau",
         "chapters": [
-          { "id": "intro",     "label": "Khi xa nhau",               "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Co nhung ngay xa nhau, anh lai nho ve..."] },
-          { "id": "memory",    "label": "Nhung ngay da co",          "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Nhung ngay minh o ben nhau, anh da khong biet tran trong..."] },
-          { "id": "highlight", "label": "Khoanh khac anh nho nhat", "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Neu duoc chon mot ky uc de giu lai, anh se chon cai nay..."] },
-          { "id": "ending",    "label": "Gui den em",                "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Anh nho em. Chi vay thoi, nhung nhieu lam..."] }
+          { "id": "intro",     "label": "Khi xa nhau",               "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Có những ngày xa nhau, anh lại nhớ về..."] },
+          { "id": "memory",    "label": "Những ngày đã có",          "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Những ngày mình ở bên nhau, anh đã không biết trân trọng..."] },
+          { "id": "highlight", "label": "Khoảnh khắc anh nhớ nhất", "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Nếu được chọn một ký ức để giữ lại, anh sẽ chọn cái này..."] },
+          { "id": "ending",    "label": "Gửi đến em",                "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Anh nhớ em. Chỉ vậy thôi, nhưng nhiều lắm..."] }
         ]
       },
       "proposal": {
-        "label": "Cau hon",
+        "label": "Cầu hôn",
         "chapters": [
-          { "id": "intro",     "label": "Ngay dau tien",           "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Moi thu bat dau tu mot ngay anh khong bao gio quen..."] },
-          { "id": "memory",    "label": "Hanh trinh cua chung ta", "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Chung ta da di qua rat nhieu thu cung nhau..."] },
-          { "id": "highlight", "label": "Ly do",                   "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Va day la ly do anh biet em la nguoi anh muon o ben mai mai..."] },
-          { "id": "ending",    "label": "Cau hoi",                 "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Em co muon cung anh viet tiep cau chuyen nay khong?"] }
+          { "id": "intro",     "label": "Ngày đầu tiên",           "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Mọi thứ bắt đầu từ một ngày anh không bao giờ quên..."] },
+          { "id": "memory",    "label": "Hành trình của chúng ta", "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Chúng ta đã đi qua rất nhiều thứ cùng nhau..."] },
+          { "id": "highlight", "label": "Lý do",                   "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Và đây là lý do anh biết em là người anh muốn ở bên mãi mãi..."] },
+          { "id": "ending",    "label": "Câu hỏi",                 "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Em có muốn cùng anh viết tiếp câu chuyện này không?"] }
         ]
       },
       "birthday": {
-        "label": "Sinh nhat nguoi yeu",
+        "label": "Sinh nhật người yêu",
         "chapters": [
-          { "id": "intro",     "label": "Ngay hom nay",              "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Hom nay la ngay cua em. Va anh muon ke em nghe..."] },
-          { "id": "memory",    "label": "Mot nam qua",               "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Mot nam qua, chung ta da co nhung dieu nay..."] },
-          { "id": "highlight", "label": "Dieu anh thich nhat o em", "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Nhung co mot dieu anh thich nhat o em, do la..."] },
-          { "id": "ending",    "label": "Loi chuc",                  "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Chuc em sinh nhat vui ve. Cam on vi da la em..."] }
+          { "id": "intro",     "label": "Ngày hôm nay",              "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Hôm nay là ngày của em. Và anh muốn kể em nghe..."] },
+          { "id": "memory",    "label": "Một năm qua",               "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Một năm qua, chúng ta đã có những điều này..."] },
+          { "id": "highlight", "label": "Điều anh thích nhất ở em", "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Nhưng có một điều anh thích nhất ở em, đó là..."] },
+          { "id": "ending",    "label": "Lời chúc",                  "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Chúc em sinh nhật vui vẻ. Cảm ơn vì đã là em..."] }
         ]
       }
     }
