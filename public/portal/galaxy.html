@@ -524,6 +524,79 @@
       .toast { max-width: 100%; white-space: normal; }
     }
 
+    /* ── Story Banner ── */
+    .story-banner {
+      background: linear-gradient(135deg, rgba(109,40,217,0.1) 0%, rgba(76,29,149,0.05) 100%);
+      border: 1px solid rgba(139,92,246,0.2);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+    .story-banner-av {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg, #6d28d9, #4c1d95);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-family: 'Jost', sans-serif;
+      color: rgba(255,255,255,0.85);
+      box-shadow: 0 0 12px rgba(109,40,217,0.3);
+      margin-top: 2px;
+    }
+    .story-banner-body { flex: 1; }
+    .story-banner-body p {
+      font-size: 13px; line-height: 1.65;
+      color: rgba(237,233,254,0.7);
+      margin-bottom: 12px;
+      font-family: 'Jost', sans-serif;
+    }
+    .story-banner-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-story-add {
+      padding: 8px 18px; border-radius: 20px;
+      background: rgba(139,92,246,0.18);
+      border: 1px solid rgba(139,92,246,0.38);
+      font-family: 'Jost', sans-serif; font-size: 12px;
+      color: rgba(196,181,253,0.9); cursor: pointer;
+      letter-spacing: 0.02em;
+    }
+    .btn-story-add:hover { background: rgba(139,92,246,0.28); }
+    .btn-story-dismiss {
+      padding: 8px 14px; border-radius: 20px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.09);
+      font-family: 'Jost', sans-serif; font-size: 12px;
+      color: rgba(255,255,255,0.28); cursor: pointer;
+    }
+    .story-info-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .story-info-left .story-badge {
+      font-size: 11px; font-family: 'Jost', sans-serif;
+      color: rgba(196,181,253,0.7);
+      letter-spacing: 0.06em; margin-bottom: 3px;
+    }
+    .story-info-left .story-occasion {
+      font-size: 14px; color: rgba(237,233,254,0.85);
+    }
+    .btn-story-reset {
+      padding: 7px 16px; border-radius: 20px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      font-family: 'Jost', sans-serif; font-size: 12px;
+      color: rgba(255,255,255,0.35); cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-story-reset:hover { border-color: rgba(139,92,246,0.3); color: rgba(196,181,253,0.7); }
+
   </style>
 </head>
 <body>
@@ -542,6 +615,27 @@
         <h1 id="galaxyName">Loading…</h1>
       </div>
     </header>
+
+    <!-- ── Story Banner ── -->
+    <div id="story-banner" class="story-banner" style="display:none;">
+      <div class="story-banner-av">L</div>
+      <div class="story-banner-body">
+        <p>Galaxy này chưa có câu chuyện. Lumora có thể giúp bạn tạo một câu chuyện theo dịp — kỷ niệm, tỏ tình, sinh nhật…</p>
+        <div class="story-banner-btns">
+          <button class="btn-story-add" id="btn-story-add">✨ Thêm câu chuyện</button>
+          <button class="btn-story-dismiss" id="btn-story-dismiss">Không cần</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="story-info-card" class="story-info-card" style="display:none;">
+      <div class="story-info-left">
+        <div class="story-badge">✨ Couple Story</div>
+        <div class="story-occasion" id="story-occasion-label"></div>
+      </div>
+      <button class="btn-story-reset" id="btn-story-reset">Cài lại</button>
+    </div>
+    <!-- ── End Story Banner ── -->
 
     <!-- Customization -->
     <div class="card">
