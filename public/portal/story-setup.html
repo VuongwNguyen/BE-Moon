@@ -172,6 +172,25 @@
       font-size: 11px; color: rgba(255,255,255,0.3);
       display: block; margin-top: 5px; font-style: normal;
     }
+    /* ── Hook textarea in chapter card ── */
+    .ch-hook-section { padding: 0 15px 13px; }
+    .ch-hook-label {
+      font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(255,255,255,0.2); font-family: 'Jost', sans-serif;
+      margin-bottom: 5px;
+    }
+    .ch-hook-textarea {
+      width: 100%; padding: 8px 11px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      font-size: 12px; font-family: 'Georgia', serif; font-style: italic;
+      color: rgba(237,233,254,0.6); line-height: 1.6;
+      resize: none; outline: none; display: block;
+      transition: border-color 0.2s;
+    }
+    .ch-hook-textarea::placeholder { color: rgba(255,255,255,0.2); }
+    .ch-hook-textarea:focus { border-color: rgba(139,92,246,0.35); }
   </style>
 </head>
 <body>
