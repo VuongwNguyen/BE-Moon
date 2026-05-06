@@ -4,7 +4,7 @@ const { successfullyResponse, errorResponse } = require("../context/responseHand
 
 class GalleryController {
   async createGallery(req, res, next) {
-    const { galaxyId, title, description } = req.body;
+    const { galaxyId, title, description, stage } = req.body;
 
     if (!galaxyId) {
       return next(new errorResponse({ message: "galaxyId is required", statusCode: 400 }));
@@ -19,7 +19,7 @@ class GalleryController {
     }
 
     const { uploadedFiles } = req;
-    await GalleryService.createGallery({ galaxyId, title, description, uploadedFiles });
+    await GalleryService.createGallery({ galaxyId, title, description, stage, uploadedFiles });
 
     return new successfullyResponse({
       message: "Gallery item created successfully",
