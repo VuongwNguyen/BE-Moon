@@ -55,6 +55,7 @@ async function performSave() {
   const musicId = document.getElementById('musicSelect').value || null;
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const payload = { themeId, backgroundMusicId: musicId, caption: currentCaptions };
+  payload.seEffect = document.getElementById('effectSelect').value || 'none';
   if (user.role === 'admin') {
     payload.template = document.getElementById('templateSelect').value || 'galaxy';
   }
@@ -158,6 +159,8 @@ async function loadGalaxyCustomization() {
     if (galaxy.themeId) document.getElementById('themeSelect').value = galaxy.themeId;
     if (galaxy.backgroundMusicId) document.getElementById('musicSelect').value = galaxy.backgroundMusicId;
     if (galaxy.template) document.getElementById('templateSelect').value = galaxy.template;
+    const effectEl = document.getElementById('effectSelect');
+    if (effectEl) effectEl.value = galaxy.seEffect || 'none';
     if (Array.isArray(galaxy.caption)) {
       currentCaptions = galaxy.caption;
       renderCaptions();
@@ -264,6 +267,7 @@ document.getElementById('captionInput').addEventListener('keydown', (e) => {
 document.getElementById('themeSelect').addEventListener('change', scheduleSave);
 document.getElementById('musicSelect').addEventListener('change', scheduleSave);
 document.getElementById('templateSelect').addEventListener('change', scheduleSave);
+document.getElementById('effectSelect').addEventListener('change', scheduleSave);
 
 // ── Initialize ────────────────────────────────────
 (async () => {
