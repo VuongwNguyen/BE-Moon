@@ -291,7 +291,6 @@ async function loadStoryBanner() {
     anniversary: 'Kỷ niệm', confession: 'Tỏ tình',
     missing: 'Nhớ nhau', proposal: 'Cầu hôn', birthday: 'Sinh nhật',
   };
-  const DISMISS_KEY = `story-banner-dismissed-${galaxyId}`;
   const banner   = document.getElementById('story-banner');
   const infoCard = document.getElementById('story-info-card');
 
@@ -302,13 +301,12 @@ async function loadStoryBanner() {
     document.getElementById('btn-story-reset').addEventListener('click', () => {
       window.location.href = `/portal/story-setup.html?galaxyId=${galaxyId}`;
     });
-  } else if (!localStorage.getItem(DISMISS_KEY)) {
+  } else {
     banner.style.display = 'flex';
     document.getElementById('btn-story-add').addEventListener('click', () => {
       window.location.href = `/portal/story-setup.html?galaxyId=${galaxyId}`;
     });
     document.getElementById('btn-story-dismiss').addEventListener('click', () => {
-      localStorage.setItem(DISMISS_KEY, '1');
       banner.style.display = 'none';
     });
   }
