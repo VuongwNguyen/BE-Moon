@@ -1,3 +1,5 @@
+import { initEffect } from './effects.js';
+
 const galaxyId = new URLSearchParams(location.search).get('galaxyId');
 
 async function fetchAll() {
@@ -120,6 +122,11 @@ async function main() {
   const grouped        = groupByStage(items);
   const chaptersWithPhotos = configChapters.filter(ch => (grouped[ch.id] || []).length > 0);
 
+  const stopEffect = initEffect(
+    view.seEffect || 'none',
+    document.getElementById('se-effect-canvas')
+  );
+
   // Preload images
   Object.values(grouped).flat().forEach(url => { const img = new Image(); img.src = url; });
 
@@ -150,6 +157,7 @@ async function main() {
   elProgressFill.style.width = '100%';
   fadeIn(elFinale);
   await wait(2800);
+  stopEffect();
   window.location.replace(`/view/?galaxyId=${galaxyId}&skip_se=true`);
 }
 
