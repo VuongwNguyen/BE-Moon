@@ -272,7 +272,7 @@ class AuthService {
     const user = await UserModel.findById(userId, 'sessions').lean();
     if (!user) throw new errorResponse({ message: 'User not found', statusCode: 404 });
     return {
-      sessions: user.sessions.map(s => ({
+      sessions: (user.sessions || []).map(s => ({
         sid: s.sid,
         ua: s.ua,
         ip: s.ip,
