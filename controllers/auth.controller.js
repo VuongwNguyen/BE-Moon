@@ -20,7 +20,12 @@ class AuthController {
     if (!email || !otp) {
       return next(new errorResponse({ message: "email and otp are required", statusCode: 400 }));
     }
-    const result = await AuthService.verifyOtp({ email, otp });
+    const result = await AuthService.verifyOtp({
+      email,
+      otp,
+      ua: req.headers['user-agent'] || '',
+      ip: req.ip || '',
+    });
     return new successfullyResponse({
       message: "Email verified successfully",
       meta: result,

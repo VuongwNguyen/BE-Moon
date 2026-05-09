@@ -57,7 +57,7 @@ class AuthService {
     return { email };
   }
 
-  async verifyOtp({ email, otp }) {
+  async verifyOtp({ email, otp, ua = '', ip = '' }) {
     const user = await UserModel.findOne({ email });
     if (!user || user.isVerified) {
       throw new errorResponse({ message: "Invalid request", statusCode: 400 });
@@ -88,9 +88,11 @@ class AuthService {
     user.otpExpiresAt = null;
     user.otpSentAt = null;
     user.otpAttempts = 0;
+    const sessionId = require('crypto').randomBytes(16).toString('hex');
+    user.sessions = [...(user.sessions || []), { sid: sessionId, ua, ip, createdAt: new Date() }].slice(-3);
     await user.save();
 
-    const token = signToken(user);
+    const token = signToken(user, sessionId);
     return { token, user: { _id: user._id, email: user.email, role: user.role } };
   }
 
