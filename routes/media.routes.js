@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const asyncHandler = require('../context/asyncHandler');
-const { requireAuth } = require('../middlewares/auth');
+const { requireAuth, requireAdmin } = require('../middlewares/auth');
 const MediaController = require('../controllers/media.controller');
 const ImageKit = require('../middlewares/ImageKit');
 const multer = require('multer');
@@ -25,13 +25,13 @@ router.get('/themes', asyncHandler(MediaController.getThemes));
 router.get('/musics', asyncHandler(MediaController.getMusics));
 
 // Admin routes - cần thêm middleware kiểm tra admin
-router.post('/themes', requireAuth, asyncHandler(MediaController.createTheme));
-router.put('/themes/:id', requireAuth, asyncHandler(MediaController.updateTheme));
-router.delete('/themes/:id', requireAuth, asyncHandler(MediaController.deleteTheme));
+router.post('/themes', requireAuth, requireAdmin, asyncHandler(MediaController.createTheme));
+router.put('/themes/:id', requireAuth, requireAdmin, asyncHandler(MediaController.updateTheme));
+router.delete('/themes/:id', requireAuth, requireAdmin, asyncHandler(MediaController.deleteTheme));
 
-router.post('/upload-music', requireAuth, upload.single('file'), ImageKit.uploadMusic.bind(ImageKit), asyncHandler(MediaController.uploadMusic));
-router.post('/musics', requireAuth, asyncHandler(MediaController.createMusic));
-router.put('/musics/:id', requireAuth, asyncHandler(MediaController.updateMusic));
-router.delete('/musics/:id', requireAuth, asyncHandler(MediaController.deleteMusic));
+router.post('/upload-music', requireAuth, requireAdmin, upload.single('file'), ImageKit.uploadMusic.bind(ImageKit), asyncHandler(MediaController.uploadMusic));
+router.post('/musics', requireAuth, requireAdmin, asyncHandler(MediaController.createMusic));
+router.put('/musics/:id', requireAuth, requireAdmin, asyncHandler(MediaController.updateMusic));
+router.delete('/musics/:id', requireAuth, requireAdmin, asyncHandler(MediaController.deleteMusic));
 
 module.exports = router;
