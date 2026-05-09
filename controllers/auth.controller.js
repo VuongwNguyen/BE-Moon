@@ -44,7 +44,12 @@ class AuthController {
     if (!email || !password) {
       return next(new errorResponse({ message: "email and password are required", statusCode: 400 }));
     }
-    const result = await AuthService.login({ email, password });
+    const result = await AuthService.login({
+      email,
+      password,
+      ua: req.headers['user-agent'] || '',
+      ip: req.ip || '',
+    });
     return new successfullyResponse({
       message: "Login successful",
       meta: result,

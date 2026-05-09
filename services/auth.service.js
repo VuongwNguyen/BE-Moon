@@ -121,7 +121,7 @@ class AuthService {
     return { email };
   }
 
-  async login({ email, password }) {
+  async login({ email, password, ua = '', ip = '' }) {
     const user = await UserModel.findOne({ email });
     if (!user) {
       throw new errorResponse({ message: "Invalid credentials", statusCode: 401 });
@@ -146,7 +146,8 @@ class AuthService {
     }
     const MAX_SESSIONS = 3;
     const sessionId = require('crypto').randomBytes(16).toString('hex');
-    user.sessions = [...(user.sessions || []), sessionId].slice(-MAX_SESSIONS);
+    const sessionEntry = { sid: sessionId, ua, ip, createdAt: new Date() };
+    user.sessions = [...(user.sessions || []), sessionEntry].slice(-MAX_SESSIONS);
     user.loginAttempts = 0;
     user.lockedUntil = null;
     await user.save();
