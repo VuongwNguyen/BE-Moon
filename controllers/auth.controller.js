@@ -103,6 +103,21 @@ class AuthController {
       meta: result,
     }).json(res);
   }
+
+  async logout(req, res, next) {
+    await AuthService.logout({ userId: req.user._id, sid: req.user.sid });
+    return new successfullyResponse({ message: 'Logged out successfully' }).json(res);
+  }
+
+  async logoutAll(req, res, next) {
+    await AuthService.logoutAll({ userId: req.user._id });
+    return new successfullyResponse({ message: 'All sessions logged out' }).json(res);
+  }
+
+  async sessions(req, res, next) {
+    const result = await AuthService.getSessions({ userId: req.user._id, currentSid: req.user.sid });
+    return new successfullyResponse({ message: 'Sessions fetched', meta: result }).json(res);
+  }
 }
 
 module.exports = new AuthController();
