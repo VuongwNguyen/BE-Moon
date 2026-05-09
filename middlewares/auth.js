@@ -11,10 +11,10 @@ const requireAuth = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await UserModel.findById(decoded._id, "sessions role isVerified").lean();
-    if (!user || !user.sessions?.includes(decoded.sid)) {
+    if (!user || !user.sessions?.some(s => s.sid === decoded.sid)) {
       return next(new errorResponse({ message: "Session expired, please login again", statusCode: 401 }));
     }
-    req.user = decoded;
+    req.user = { ...decoded, role: user.role };
     next();
   } catch {
     return next(new errorResponse({ message: "Invalid or expired token", statusCode: 401 }));
