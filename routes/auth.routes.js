@@ -13,5 +13,8 @@ router.post("/reset-password", asyncHandler(AuthController.resetPassword));
 router.put("/change-password", requireAuth, asyncHandler(AuthController.changePassword));
 router.delete("/account", requireAuth, asyncHandler(AuthController.deleteAccount));
 router.get("/me", requireAuth, asyncHandler(AuthController.me));
+router.post("/logout", requireAuth, asyncHandler(AuthController.logout));
+router.post("/logout-all", requireAuth, asyncHandler(AuthController.logoutAll));
+router.get("/sessions", requireAuth, asyncHandler(AuthController.sessions));
 
 module.exports = router;
