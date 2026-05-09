@@ -8,6 +8,7 @@ const { randomInt } = require("crypto");
 
 const OTP_EXPIRES_MINUTES = 5;
 const OTP_RESEND_SECONDS = 60;
+const MAX_SESSIONS = 3;
 
 function generateOtp() {
   return randomInt(100000, 1000000).toString();
@@ -89,7 +90,7 @@ class AuthService {
     user.otpSentAt = null;
     user.otpAttempts = 0;
     const sessionId = require('crypto').randomBytes(16).toString('hex');
-    user.sessions = [...(user.sessions || []), { sid: sessionId, ua, ip, createdAt: new Date() }].slice(-3);
+    user.sessions = [...(user.sessions || []), { sid: sessionId, ua, ip, createdAt: new Date() }].slice(-MAX_SESSIONS);
     await user.save();
 
     const token = signToken(user, sessionId);
@@ -146,7 +147,6 @@ class AuthService {
       try { await this.resendOtp({ email }); } catch (_) {}
       throw new errorResponse({ message: "Email not verified. A new OTP has been sent.", statusCode: 403 });
     }
-    const MAX_SESSIONS = 3;
     const sessionId = require('crypto').randomBytes(16).toString('hex');
     const sessionEntry = { sid: sessionId, ua, ip, createdAt: new Date() };
     user.sessions = [...(user.sessions || []), sessionEntry].slice(-MAX_SESSIONS);
@@ -259,6 +259,7 @@ class AuthService {
   }
 
   async logout({ userId, sid }) {
+    if (!sid) throw new errorResponse({ message: 'Session ID missing', statusCode: 400 });
     await UserModel.findByIdAndUpdate(userId, {
       $pull: { sessions: { sid } },
     });

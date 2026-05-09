@@ -11,7 +11,7 @@ const requireAuth = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await UserModel.findById(decoded._id, "sessions role isVerified").lean();
-    if (!user || !user.sessions?.some(s => s.sid === decoded.sid)) {
+    if (!user || !user.isVerified || !user.sessions?.some(s => s.sid === decoded.sid)) {
       return next(new errorResponse({ message: "Session expired, please login again", statusCode: 401 }));
     }
     req.user = { ...decoded, role: user.role };
@@ -22,10 +22,12 @@ const requireAuth = async (req, res, next) => {
 };
 
 const requireAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== "admin") {
-    return next(new errorResponse({ message: "Forbidden", statusCode: 403 }));
-  }
-  next();
+  requireAuth(req, res, (err) => {
+    if (err) return next(err);
+    if (req.user.role !== "admin")
+      return next(new errorResponse({ message: "Forbidden", statusCode: 403 }));
+    next();
+  });
 };
 
 module.exports = { requireAuth, requireAdmin };

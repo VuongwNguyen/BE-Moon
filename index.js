@@ -25,7 +25,7 @@ mongoose.connection.once("open", async () => {
   try {
     const UserModel = require("./models/user");
     const result = await UserModel.updateMany(
-      { "sessions.0": { $type: "string" } },
+      { sessions: { $elemMatch: { $type: "string" } } },
       { $set: { sessions: [] } }
     );
     if (result.modifiedCount > 0) {
