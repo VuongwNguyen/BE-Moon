@@ -1,8 +1,8 @@
 const router = require('express').Router();
-const { requireAuth, requireAdmin } = require('../middlewares/auth');
+const { requireAdmin } = require('../middlewares/auth');
 const { getStats, getUsers, getUserDetail, grantSubscription, revokeSubscription, changeRole, toggleUserStatus, banUser, getPayments, getCancellationChart } = require('../controllers/admin.controller');
 
-router.use(requireAuth, requireAdmin);
+router.use(requireAdmin);
 
 router.get('/stats', getStats);
 router.get('/users', getUsers);
