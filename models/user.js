@@ -54,14 +54,12 @@ const userSchema = new Schema({
     type: Date,
     default: Date.now,
   },
-  tokenVersion: {
-    type: Number,
-    default: 0,
-  },
-  sessions: {
-    type: [String], // array of sessionId
-    default: [],
-  },
+  sessions: [{
+    sid:       { type: String, required: true },
+    ua:        { type: String, default: '' },
+    ip:        { type: String, default: '' },
+    createdAt: { type: Date, default: Date.now },
+  }],
 });
 
 module.exports = model("User", userSchema, "users");
