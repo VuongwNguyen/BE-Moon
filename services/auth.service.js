@@ -257,6 +257,30 @@ class AuthService {
     const galaxies = await GalaxyModel.find({ userId, status: "active" });
     return { user, galaxies };
   }
+
+  async logout({ userId, sid }) {
+    await UserModel.findByIdAndUpdate(userId, {
+      $pull: { sessions: { sid } },
+    });
+  }
+
+  async logoutAll({ userId }) {
+    await UserModel.findByIdAndUpdate(userId, { sessions: [] });
+  }
+
+  async getSessions({ userId, currentSid }) {
+    const user = await UserModel.findById(userId, 'sessions').lean();
+    if (!user) throw new errorResponse({ message: 'User not found', statusCode: 404 });
+    return {
+      sessions: user.sessions.map(s => ({
+        sid: s.sid,
+        ua: s.ua,
+        ip: s.ip,
+        createdAt: s.createdAt,
+        isCurrent: s.sid === currentSid,
+      })),
+    };
+  }
 }
 
 module.exports = new AuthService();
