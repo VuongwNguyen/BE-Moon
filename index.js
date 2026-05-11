@@ -20,25 +20,6 @@ if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET is not set");
 // ── Database ──────────────────────────────────────
 connectToDatabase.connect();
 
-// ── Migration: Clear legacy string sessions ───────
-const mongoose = require("mongoose");
-mongoose.connection.once("open", async () => {
-  try {
-    const UserModel = require("./models/user");
-    const result = await UserModel.updateMany(
-      { $or: [
-        { sessions: { $elemMatch: { $type: "string" } } },
-        { sessions: { $elemMatch: { sid: { $exists: false } } } },
-      ] },
-      { $set: { sessions: [] } }
-    );
-    if (result.modifiedCount > 0) {
-      console.log(`[migration] Cleared legacy sessions for ${result.modifiedCount} user(s)`);
-    }
-  } catch (err) {
-    console.error("[migration] Error clearing legacy sessions:", err.message);
-  }
-});
 
 // ── CORS ──────────────────────────────────────────
 const allowedOrigins = process.env.ALLOWED_ORIGINS
