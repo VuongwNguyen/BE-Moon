@@ -58,7 +58,7 @@
 
     /* ── Progress bar ── */
     #se-progress-bar {
-      position:fixed; top:0; left:0; right:0; height:2px;
+      position:fixed; top:env(safe-area-inset-top); left:0; right:0; height:2px;
       background:rgba(255,255,255,0.07); z-index:45; pointer-events:none;
     }
     #se-progress-fill {
@@ -97,7 +97,7 @@
     /* ── Hook overlay (inside photo) ── */
     #se-hook-overlay {
       position:absolute; bottom:0; left:0; right:0;
-      padding:0 22px 28px;
+      padding:0 calc(22px + env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) calc(22px + env(safe-area-inset-left));
       pointer-events:none;
       opacity:0; transition:opacity 0.55s ease;
     }
@@ -116,7 +116,7 @@
 
     /* ── Photo dots (per-photo inside chapter) ── */
     #se-photo-dots {
-      position:fixed; bottom:12px; right:18px; z-index:40;
+      position:fixed; bottom:calc(12px + env(safe-area-inset-bottom)); right:calc(18px + env(safe-area-inset-right)); z-index:40;
       display:flex; gap:4px; align-items:center; pointer-events:none;
     }
     .se-dot {
@@ -141,7 +141,7 @@
 
     /* ── Audio button ── */
     #btn-audio {
-      position:fixed; top:18px; right:18px; z-index:100;
+      position:fixed; top:calc(18px + env(safe-area-inset-top)); right:calc(18px + env(safe-area-inset-right)); z-index:100;
       width:36px; height:36px; border-radius:50%;
       background:rgba(255,255,255,0.07);
       border:1px solid rgba(255,255,255,0.13);

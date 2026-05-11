@@ -12,7 +12,7 @@
 .music-status {
   display: flex;
   position: fixed;
-  top: 15px;
+  top: calc(15px + env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
   background-color: rgba(0, 0, 0, 0.7);
