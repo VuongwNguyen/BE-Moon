@@ -20,7 +20,6 @@ if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET is not set");
 // ── Database ──────────────────────────────────────
 connectToDatabase.connect();
 
-
 // ── CORS ──────────────────────────────────────────
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
