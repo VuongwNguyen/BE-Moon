@@ -46,13 +46,17 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(function(btn) {
   });
 });
 
+function clearLocalSession() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  window.location.href = '/auth/';
+}
+
 async function logout() {
   try {
     await fetch('/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
   } catch (_) {}
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  window.location.href = '/auth/';
+  clearLocalSession();
 }
 
 function openModal() {
@@ -74,7 +78,7 @@ async function loadGalaxies() {
     const res = await fetch('/galaxies/my', {
       headers: { 'Authorization': 'Bearer ' + token }
     });
-    if (res.status === 401) { logout(); return; }
+    if (res.status === 401) { clearLocalSession(); return; }
     const data = await res.json();
     renderGalaxies(grid, data.meta || []);
   } catch {
@@ -270,7 +274,7 @@ async function loadSessions() {
   msg.textContent = '';
   try {
     const res = await fetch('/auth/sessions', { headers: { 'Authorization': 'Bearer ' + token } });
-    if (res.status === 401) { logout(); return; }
+    if (res.status === 401) { clearLocalSession(); return; }
     const data = await res.json();
     const sessions = (data.meta && data.meta.sessions) || [];
     list.textContent = '';
@@ -313,9 +317,9 @@ async function loadSessions() {
             method: 'DELETE',
             headers: { 'Authorization': 'Bearer ' + token },
           });
-          if (r.status === 401) { logout(); return; }
+          if (r.status === 401) { clearLocalSession(); return; }
           const d = await r.json();
-          if (d.meta && d.meta.isCurrent) { logout(); return; }
+          if (d.meta && d.meta.isCurrent) { clearLocalSession(); return; }
           setAccMsg('msg-sessions', window.t.sessionsRevoked, false);
           loadSessions();
         } catch (_) {
