@@ -55,12 +55,16 @@ body.portrait-mode #landscape-warning {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  overflow: hidden; /* Giữ nguyên để tránh thanh cuộn */
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 #container {
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   /* Làm nền tối hơn và chuyển màu mượt hơn */
   background: radial-gradient(circle at center, #0a0a1f 0%, #000000 100%);
   position: fixed;
