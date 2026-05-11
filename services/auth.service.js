@@ -90,7 +90,8 @@ class AuthService {
     user.otpSentAt = null;
     user.otpAttempts = 0;
     const sessionId = require('crypto').randomBytes(16).toString('hex');
-    user.sessions = [...(user.sessions || []), { sid: sessionId, ua, ip, createdAt: new Date() }].slice(-MAX_SESSIONS);
+    const validSessions = (user.sessions || []).filter(s => s && s.sid);
+    user.sessions = [...validSessions, { sid: sessionId, ua, ip, createdAt: new Date() }].slice(-MAX_SESSIONS);
     await user.save();
 
     const token = signToken(user, sessionId);
@@ -149,7 +150,8 @@ class AuthService {
     }
     const sessionId = require('crypto').randomBytes(16).toString('hex');
     const sessionEntry = { sid: sessionId, ua, ip, createdAt: new Date() };
-    user.sessions = [...(user.sessions || []), sessionEntry].slice(-MAX_SESSIONS);
+    const validSessions = (user.sessions || []).filter(s => s && s.sid);
+    user.sessions = [...validSessions, sessionEntry].slice(-MAX_SESSIONS);
     user.loginAttempts = 0;
     user.lockedUntil = null;
     await user.save();

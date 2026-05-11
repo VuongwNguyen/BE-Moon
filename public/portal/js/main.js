@@ -30,6 +30,7 @@ document.getElementById('btn-goto-account').addEventListener('click', function()
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-account').classList.add('active');
+  loadSessions();
 });
 
 // Tab switching
@@ -40,13 +41,15 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(function(btn) {
     document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
     btn.classList.add('active');
     document.getElementById('panel-' + tab).classList.add('active');
-    if (tab === 'subscription' && window._loadSubscription) {
-      window._loadSubscription();
-    }
+    if (tab === 'subscription' && window._loadSubscription) window._loadSubscription();
+    if (tab === 'account') loadSessions();
   });
 });
 
-function logout() {
+async function logout() {
+  try {
+    await fetch('/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
+  } catch (_) {}
   localStorage.removeItem('token');
   localStorage.removeItem('user');
   window.location.href = '/auth/';
@@ -255,6 +258,91 @@ document.getElementById('btn-change-pw').addEventListener('click', async functio
     setTimeout(logout, 2000);
   } catch { setAccMsg('msg-change-pw', window.t.errConnect, true); }
   finally { btn.disabled = false; btn.textContent = window.t.btnChangePassword; }
+});
+
+// ── Sessions ──────────────────────────────────────────────────────────────────
+
+async function loadSessions() {
+  const list = document.getElementById('sessions-list');
+  const msg = document.getElementById('msg-sessions');
+  if (!list) return;
+  list.textContent = window.t.sessionsLoading;
+  msg.textContent = '';
+  try {
+    const res = await fetch('/auth/sessions', { headers: { 'Authorization': 'Bearer ' + token } });
+    if (res.status === 401) { logout(); return; }
+    const data = await res.json();
+    const sessions = (data.meta && data.meta.sessions) || [];
+    list.textContent = '';
+    if (!sessions.length) {
+      list.textContent = window.t.sessionsEmpty;
+      return;
+    }
+    sessions.forEach(function(s) {
+      const item = document.createElement('div');
+      item.className = 'session-item';
+
+      const meta = document.createElement('div');
+      meta.className = 'session-meta';
+
+      const ua = document.createElement('div');
+      ua.className = 'session-ua';
+      ua.textContent = s.ua || 'Unknown device';
+      if (s.isCurrent) {
+        const badge = document.createElement('span');
+        badge.className = 'session-badge';
+        badge.textContent = window.t.sessionsCurrent;
+        ua.appendChild(badge);
+      }
+
+      const detail = document.createElement('div');
+      detail.className = 'session-detail';
+      const date = s.createdAt ? new Date(s.createdAt).toLocaleString() : '';
+      detail.textContent = [s.ip, date].filter(Boolean).join(' · ');
+
+      meta.appendChild(ua);
+      meta.appendChild(detail);
+
+      const btn = document.createElement('button');
+      btn.className = 'btn-session-revoke';
+      btn.textContent = window.t.sessionsLogoutOne;
+      btn.addEventListener('click', async function() {
+        btn.disabled = true;
+        try {
+          const r = await fetch('/auth/sessions/' + s.sid, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token },
+          });
+          if (r.status === 401) { logout(); return; }
+          const d = await r.json();
+          if (d.meta && d.meta.isCurrent) { logout(); return; }
+          setAccMsg('msg-sessions', window.t.sessionsRevoked, false);
+          loadSessions();
+        } catch (_) {
+          btn.disabled = false;
+        }
+      });
+
+      item.appendChild(meta);
+      if (!s.isCurrent) item.appendChild(btn);
+      list.appendChild(item);
+    });
+  } catch (_) {
+    list.textContent = window.t.errConnect;
+  }
+}
+
+document.getElementById('btn-logout-all').addEventListener('click', async function() {
+  var btn = this;
+  btn.disabled = true;
+  try {
+    var res = await fetch('/auth/logout-all', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    if (!res.ok) { btn.disabled = false; return; }
+    logout();
+  } catch (_) { btn.disabled = false; }
 });
 
 document.getElementById('btn-delete-account').addEventListener('click', async function() {

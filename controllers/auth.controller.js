@@ -1,6 +1,16 @@
 const AuthService = require("../services/auth.service");
 const { successfullyResponse, errorResponse } = require("../context/responseHandle");
 
+function getClientIp(req) {
+  const raw =
+    req.headers['cf-connecting-ip'] ||
+    req.headers['x-real-ip'] ||
+    (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
+    req.ip ||
+    '';
+  return raw.replace(/^::ffff:/, '');
+}
+
 class AuthController {
   async register(req, res, next) {
     const { email, password } = req.body;
@@ -24,7 +34,7 @@ class AuthController {
       email,
       otp,
       ua: req.headers['user-agent'] || '',
-      ip: req.ip || '',
+      ip: getClientIp(req),
     });
     return new successfullyResponse({
       message: "Email verified successfully",
@@ -53,7 +63,7 @@ class AuthController {
       email,
       password,
       ua: req.headers['user-agent'] || '',
-      ip: req.ip || '',
+      ip: getClientIp(req),
     });
     return new successfullyResponse({
       message: "Login successful",
@@ -117,6 +127,13 @@ class AuthController {
   async sessions(req, res, next) {
     const result = await AuthService.getSessions({ userId: req.user._id, currentSid: req.user.sid });
     return new successfullyResponse({ message: 'Sessions fetched', meta: result }).json(res);
+  }
+
+  async revokeSession(req, res, next) {
+    const { sid } = req.params;
+    await AuthService.logout({ userId: req.user._id, sid });
+    const isCurrent = sid === req.user.sid;
+    return new successfullyResponse({ message: 'Session revoked', meta: { isCurrent } }).json(res);
   }
 }
 

@@ -16,5 +16,6 @@ router.get("/me", requireAuth, asyncHandler(AuthController.me));
 router.post("/logout", requireAuth, asyncHandler(AuthController.logout));
 router.post("/logout-all", requireAuth, asyncHandler(AuthController.logoutAll));
 router.get("/sessions", requireAuth, asyncHandler(AuthController.sessions));
+router.delete("/sessions/:sid", requireAuth, asyncHandler(AuthController.revokeSession));
 
 module.exports = router;

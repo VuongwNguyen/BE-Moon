@@ -706,6 +706,56 @@
     .btn-danger-full:hover { background: rgba(248,113,113,0.16); }
     .btn-danger-full:disabled { opacity: 0.5; cursor: not-allowed; }
 
+    /* ── Sessions list ───────────────────────────── */
+    .session-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .session-item:last-child { border-bottom: none; }
+    .session-meta { flex: 1; min-width: 0; }
+    .session-ua {
+      font-size: 13px;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .session-detail {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-top: 3px;
+    }
+    .session-badge {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      background: rgba(110,231,183,0.1);
+      color: var(--green);
+      border: 1px solid rgba(110,231,183,0.22);
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .btn-session-revoke {
+      flex-shrink: 0;
+      padding: 5px 12px;
+      background: rgba(248,113,113,0.08);
+      border: 1px solid rgba(248,113,113,0.18);
+      color: var(--red);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: 'Jost', sans-serif;
+      transition: background 0.15s;
+    }
+    .btn-session-revoke:hover { background: rgba(248,113,113,0.18); }
+
     /* ── Settings dropdown ───────────────────────── */
     .settings-wrap { position: relative; }
     .btn-settings {
@@ -831,6 +881,14 @@
           </div>
         </div>
 
+        <!-- Phiên đăng nhập -->
+        <div class="account-card" style="margin-bottom:16px" id="sessions-card">
+          <div class="account-section-title" id="sessions-title"></div>
+          <div id="sessions-list"></div>
+          <button class="btn-danger-full" id="btn-logout-all" style="margin-top:12px"></button>
+          <div class="account-msg" id="msg-sessions"></div>
+        </div>
+
         <!-- Đổi mật khẩu -->
         <div class="account-card" style="margin-bottom:16px">
           <div class="account-section-title" id="account-change-pw-title"></div>
@@ -884,6 +942,10 @@
       document.getElementById('btn-cancel').textContent = t.btnCancel;
       document.getElementById('btn-create').textContent = t.btnCreate;
       document.getElementById('sub-loading').textContent = t.subLoading;
+      // Sessions card
+      document.getElementById('sessions-title').textContent = t.sessionsTitle;
+      document.getElementById('btn-logout-all').textContent = t.sessionsLogoutAll;
+      document.getElementById('sessions-list').textContent = t.sessionsLoading;
       // Account tab
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       document.getElementById('account-email-display').textContent = user.email || '';

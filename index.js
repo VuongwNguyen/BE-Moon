@@ -11,6 +11,7 @@ const connectToDatabase = require("./connection");
 require("dotenv").config();
 
 const app = express();
+app.set('trust proxy', 1);
 const port = process.env.PORT || 3030;
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -25,11 +26,14 @@ mongoose.connection.once("open", async () => {
   try {
     const UserModel = require("./models/user");
     const result = await UserModel.updateMany(
-      { sessions: { $elemMatch: { $type: "string" } } },
+      { $or: [
+        { sessions: { $elemMatch: { $type: "string" } } },
+        { sessions: { $elemMatch: { sid: { $exists: false } } } },
+      ] },
       { $set: { sessions: [] } }
     );
     if (result.modifiedCount > 0) {
-      console.log(`[migration] Cleared legacy string sessions for ${result.modifiedCount} user(s)`);
+      console.log(`[migration] Cleared legacy sessions for ${result.modifiedCount} user(s)`);
     }
   } catch (err) {
     console.error("[migration] Error clearing legacy sessions:", err.message);

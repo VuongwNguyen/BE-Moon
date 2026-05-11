@@ -45,6 +45,14 @@ const LANG = {
     deleteAccountBtn: 'Xoá tài khoản',
     deleteAccountConfirm: 'Nhập mật khẩu để xác nhận xoá tài khoản. Tất cả galaxies và dữ liệu sẽ bị xoá vĩnh viễn.',
     deleteAccountSuccess: 'Tài khoản đã được xoá.',
+    sessionsTitle: 'Phiên đăng nhập',
+    sessionsCurrent: 'Thiết bị này',
+    sessionsLogoutOne: 'Đăng xuất',
+    sessionsLogoutAll: 'Đăng xuất tất cả thiết bị',
+    sessionsEmpty: 'Không có phiên nào.',
+    sessionsRevoked: 'Đã đăng xuất phiên.',
+    sessionsAllRevoked: 'Đã đăng xuất tất cả thiết bị.',
+    sessionsLoading: 'Đang tải phiên...',
 
     // ── Subscription ─────────────────────────────
     subLoading: 'Đang tải...',
@@ -210,6 +218,14 @@ const LANG = {
     deleteAccountBtn: 'Delete account',
     deleteAccountConfirm: 'Enter your password to confirm. All galaxies and data will be permanently deleted.',
     deleteAccountSuccess: 'Account deleted.',
+    sessionsTitle: 'Active Sessions',
+    sessionsCurrent: 'This device',
+    sessionsLogoutOne: 'Sign out',
+    sessionsLogoutAll: 'Sign out all devices',
+    sessionsEmpty: 'No active sessions.',
+    sessionsRevoked: 'Session signed out.',
+    sessionsAllRevoked: 'All devices signed out.',
+    sessionsLoading: 'Loading sessions...',
 
     // ── Subscription ─────────────────────────────
     subLoading: 'Loading...',
