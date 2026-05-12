@@ -11,7 +11,20 @@ const requireAuth = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await UserModel.findById(decoded._id, "sessions role isVerified").lean();
-    if (!user || !user.isVerified || !user.sessions?.some(s => s.sid === decoded.sid)) {
+    if (!user) {
+      console.warn('[auth] 401 — user not found:', decoded._id);
+      return next(new errorResponse({ message: "Session expired, please login again", statusCode: 401 }));
+    }
+    if (!user.isVerified) {
+      console.warn('[auth] 401 — user not verified:', decoded._id);
+      return next(new errorResponse({ message: "Session expired, please login again", statusCode: 401 }));
+    }
+    if (!decoded.sid) {
+      console.warn('[auth] 401 — token has no sid (old token):', decoded._id);
+      return next(new errorResponse({ message: "Session expired, please login again", statusCode: 401 }));
+    }
+    if (!user.sessions?.some(s => s.sid === decoded.sid)) {
+      console.warn('[auth] 401 — sid not in sessions:', decoded.sid, 'sessions:', user.sessions?.map(s => s.sid));
       return next(new errorResponse({ message: "Session expired, please login again", statusCode: 401 }));
     }
     req.user = { ...decoded, role: user.role };
