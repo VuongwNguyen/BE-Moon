@@ -469,6 +469,6 @@ const LANG = {
 };
 
 const stored = localStorage.getItem('lang');
-const auto = (navigator.language || '').startsWith('en') && !navigator.languages?.some(l => l.startsWith('vi')) ? 'en' : 'vi';
+const auto = navigator.languages?.some(l => l.startsWith('vi')) ? 'vi' : 'en';
 const userLang = (stored && LANG[stored]) ? stored : auto;
 window.t = LANG[userLang];
