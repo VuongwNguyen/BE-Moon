@@ -133,7 +133,8 @@ app.get("/view/", async (req, res, next) => {
       html = TEMPLATE_HTML[template] ?? TEMPLATE_HTML.galaxy;
     }
     const name = escapeHtml(galaxy.name || "Lumora");
-    const base = (process.env.APP_URL || (req.protocol + "://" + req.get("host"))).replace(/\/$/, "");
+    const proto = process.env.HTTPS === 'true' ? 'https' : req.protocol;
+    const base = (process.env.APP_URL || (proto + "://" + req.get("host"))).replace(/\/$/, "");
     const ogImage = `${base}/og-image.png`;
     const ogDesc = `Explore the memory galaxy “${name}” in stunning 3D space.`;
     const ogTags = `
