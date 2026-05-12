@@ -106,6 +106,7 @@ const TEMPLATE_HTML = {
 };
 
 const GalaxyModel = require("./models/galaxy");
+const GalleryModel = require("./models/gallery");
 
 function escapeHtml(str) {
   return String(str)
@@ -132,10 +133,12 @@ app.get("/view/", async (req, res, next) => {
       const template = galaxy.template || "galaxy";
       html = TEMPLATE_HTML[template] ?? TEMPLATE_HTML.galaxy;
     }
-    const name = escapeHtml(galaxy.name || "Lumora");
+    const name = escapeHtml(galaxy.name || “Lumora”);
     const proto = process.env.HTTPS === 'true' ? 'https' : req.protocol;
-    const base = (process.env.APP_URL || (proto + "://" + req.get("host"))).replace(/\/$/, "");
-    const ogImage = `${base}/og-image.png`;
+    const base = (process.env.APP_URL || (proto + “://” + req.get(“host”))).replace(/\/$/, “”);
+    const firstPhoto = await GalleryModel.findOne({ galaxyId: galaxy._id, status: “active” }, “imageUrl”).sort({ order: 1, createdAt: 1 }).lean();
+    const ogImage = firstPhoto?.imageUrl || `${base}/og-image.png`;
+    const ogImageIsExternal = !!firstPhoto?.imageUrl;
     const ogDesc = `Explore the memory galaxy “${name}” in stunning 3D space.`;
     const ogTags = `
   <meta property=”og:type” content=”website” />
@@ -143,10 +146,10 @@ app.get("/view/", async (req, res, next) => {
   <meta property=”og:title” content=”${name} — Lumora” />
   <meta property=”og:description” content=”${ogDesc}” />
   <meta property=”og:image” content=”${ogImage}” />
-  <meta property=”og:image:secure_url” content=”${ogImage}” />
+  <meta property=”og:image:secure_url” content=”${ogImage}” />${ogImageIsExternal ? '' : `
   <meta property=”og:image:type” content=”image/png” />
   <meta property=”og:image:width” content=”1850” />
-  <meta property=”og:image:height” content=”990” />
+  <meta property=”og:image:height” content=”990” />`}
   <meta property=”og:url” content=”${base + req.originalUrl}” />
   <meta name=”twitter:card” content=”summary_large_image” />
   <meta name=”twitter:title” content=”${name} — Lumora” />
