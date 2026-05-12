@@ -269,7 +269,7 @@
   </section>
 
   <!-- How it works -->
-  <section>
+  <section id="how">
     <div class="section-inner">
       <div class="section-tag">Cách hoạt động</div>
       <h2 class="section-title">3 bước đơn giản</h2>
@@ -369,7 +369,16 @@
 
   <script src="/shared/js/i18n.js"></script>
   <script>
-    // Apply i18n
+    // Helper: set text with <br/> line breaks safely (no innerHTML)
+    function applyBr(el, str) {
+      el.textContent = '';
+      str.split('<br/>').forEach((part, i) => {
+        if (i > 0) el.appendChild(document.createElement('br'));
+        el.appendChild(document.createTextNode(part));
+      });
+    }
+
+    // Nav & footer
     document.querySelector('a[href="#features"]').textContent = t.navFeatures;
     document.querySelector('a[href="#pricing"]').textContent = t.navPricing;
     document.querySelector('.nav-links a[href="/auth/"]:not(.btn-nav)').textContent = t.navLogin;
@@ -378,7 +387,81 @@
     document.querySelector('footer .links a[href="/privacy/"]').textContent = t.footerPrivacy;
     document.querySelector('footer .links a[href="/auth/"]').textContent = t.footerLogin;
     document.querySelector('footer .copy').textContent = t.footerCopy;
+
+    // Hero
+    document.querySelector('.hero-tag').textContent = t.landingHeroTag;
+    const heroH1 = document.querySelector('.hero h1');
+    heroH1.childNodes[0].nodeValue = t.landingHeroTitleLine1;
+    heroH1.querySelector('span').textContent = t.landingHeroTitleLine2;
+    document.querySelector('.hero p').textContent = t.landingHeroDesc;
+    document.querySelector('.hero-cta .btn-primary').textContent = t.landingHeroCtaPrimary;
+    document.querySelector('.hero-cta .btn-ghost').textContent = t.landingHeroCtaGhost;
+
+    // Demo
+    document.querySelector('#demo .section-tag').textContent = t.landingDemoTag;
+    document.querySelector('#demo .section-title').textContent = t.landingDemoTitle;
+    document.querySelector('#demo .section-sub').textContent = t.landingDemoSub;
     document.querySelector('#demoOverlay div:nth-child(2)').textContent = t.demoClick;
+    document.querySelector('#demoOverlay div:nth-child(3)').textContent = t.landingDemoNote;
+
+    // Features
+    document.querySelector('#features .section-tag').textContent = t.landingFeaturesTag;
+    applyBr(document.querySelector('#features .section-title'), t.landingFeaturesTitle);
+    document.querySelector('#features .section-sub').textContent = t.landingFeaturesSub;
+    [
+      [t.landingF1Title, t.landingF1Desc],
+      [t.landingF2Title, t.landingF2Desc],
+      [t.landingF3Title, t.landingF3Desc],
+      [t.landingF4Title, t.landingF4Desc],
+      [t.landingF5Title, t.landingF5Desc],
+      [t.landingF6Title, t.landingF6Desc],
+    ].forEach(([title, desc], i) => {
+      const card = document.querySelectorAll('.feature-card')[i];
+      if (card) { card.querySelector('h3').textContent = title; card.querySelector('p').textContent = desc; }
+    });
+
+    // How it works
+    document.querySelector('#how .section-tag').textContent = t.landingHowTag;
+    document.querySelector('#how .section-title').textContent = t.landingHowTitle;
+    [
+      [t.landingStep1Title, t.landingStep1Desc],
+      [t.landingStep2Title, t.landingStep2Desc],
+      [t.landingStep3Title, t.landingStep3Desc],
+    ].forEach(([title, desc], i) => {
+      const step = document.querySelectorAll('.step')[i];
+      if (step) { step.querySelector('h3').textContent = title; step.querySelector('p').textContent = desc; }
+    });
+
+    // Pricing
+    document.querySelector('#pricing .section-tag').textContent = t.landingPricingTag;
+    document.querySelector('#pricing .section-title').textContent = t.landingPricingTitle;
+    document.querySelector('#pricing .section-sub').textContent = t.landingPricingSub;
+    const priceCards = document.querySelectorAll('.price-card');
+    priceCards[0].querySelector('.price-label').textContent = t.landingFreeLabel;
+    priceCards[0].querySelector('.price-period').textContent = t.landingFreePeriod;
+    [t.landingFreeF1, t.landingFreeF2, t.landingFreeF3].forEach((text, i) => {
+      const li = priceCards[0].querySelectorAll('.price-features li')[i];
+      if (li) li.textContent = text;
+    });
+    priceCards[0].querySelector('.btn-plan').textContent = t.landingFreeBtn;
+    priceCards[1].querySelector('.price-period').textContent = t.landingPlusPeriod;
+    [t.landingPlusF1, t.landingPlusF2, t.landingPlusF3, t.landingPlusF4].forEach((text, i) => {
+      const li = priceCards[1].querySelectorAll('.price-features li')[i];
+      if (li) li.textContent = text;
+    });
+    priceCards[1].querySelector('.btn-plan').textContent = t.landingPlusBtn;
+    priceCards[2].querySelector('.price-label').textContent = t.landingProLabel;
+    priceCards[2].querySelector('.price-period').textContent = t.landingProPeriod;
+    [t.landingProF1, t.landingProF2, t.landingProF3, t.landingProF4, t.landingProF5].forEach((text, i) => {
+      const li = priceCards[2].querySelectorAll('.price-features li')[i];
+      if (li) li.textContent = text;
+    });
+    priceCards[2].querySelector('.btn-plan').textContent = t.landingProBtn;
+
+    // CTA
+    applyBr(document.querySelector('.cta-banner h2'), t.landingCtaTitle);
+    document.querySelector('.cta-banner p').textContent = t.landingCtaSub;
+    document.querySelector('.cta-banner .btn-primary').textContent = t.landingCtaBtn;
 
     // Generate stars
     const container = document.getElementById('stars');
