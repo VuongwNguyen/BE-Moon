@@ -1,50 +1,15 @@
 {
   "couple": {
     "label": "Couple Story",
+    "labelVi": "💑 Tình yêu",
     "occasions": {
       "anniversary": {
         "label": "Kỷ niệm",
         "chapters": [
-          {
-            "id": "intro",
-            "label": "Khởi đầu",
-            "required": true,
-            "photoCount": { "min": 1, "max": 1 },
-            "hooks": [
-              "Chúng ta bắt đầu từ một ngày rất bình thường...",
-              "Anh không nghĩ mọi thứ lại bắt đầu như thế này..."
-            ]
-          },
-          {
-            "id": "memory",
-            "label": "Ký ức",
-            "required": true,
-            "photoCount": { "min": 1, "max": 5 },
-            "hooks": [
-              "Rồi những ngày bình thường trở thành những ngày không thể quên...",
-              "Có những khoảnh khắc mình chẳng chụp lại, nhưng vẫn nhớ mãi..."
-            ]
-          },
-          {
-            "id": "highlight",
-            "label": "Khoảnh khắc đặc biệt",
-            "required": false,
-            "photoCount": { "min": 1, "max": 2 },
-            "hooks": [
-              "Và có một khoảnh khắc anh nhớ mãi...",
-              "Nếu phải chọn một ngày để nhớ, anh sẽ chọn ngày này..."
-            ]
-          },
-          {
-            "id": "ending",
-            "label": "Kết",
-            "required": true,
-            "photoCount": { "min": 1, "max": 1 },
-            "hooks": [
-              "Cảm ơn vì đã ở đây, và vì tất cả những điều đó...",
-              "Anh không cần nhiều hơn. Chỉ cần em ở đây là đủ..."
-            ]
-          }
+          { "id": "intro",     "label": "Khởi đầu",              "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Chúng ta bắt đầu từ một ngày rất bình thường...", "Anh không nghĩ mọi thứ lại bắt đầu như thế này..."] },
+          { "id": "memory",    "label": "Ký ức",                 "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Rồi những ngày bình thường trở thành những ngày không thể quên...", "Có những khoảnh khắc mình chẳng chụp lại, nhưng vẫn nhớ mãi..."] },
+          { "id": "highlight", "label": "Khoảnh khắc đặc biệt", "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Và có một khoảnh khắc anh nhớ mãi...", "Nếu phải chọn một ngày để nhớ, anh sẽ chọn ngày này..."] },
+          { "id": "ending",    "label": "Kết",                   "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Cảm ơn vì đã ở đây, và vì tất cả những điều đó...", "Anh không cần nhiều hơn. Chỉ cần em ở đây là đủ..."] }
         ]
       },
       "confession": {
@@ -81,6 +46,244 @@
           { "id": "memory",    "label": "Một năm qua",               "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Một năm qua, chúng ta đã có những điều này..."] },
           { "id": "highlight", "label": "Điều anh thích nhất ở em", "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Nhưng có một điều anh thích nhất ở em, đó là..."] },
           { "id": "ending",    "label": "Lời chúc",                  "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Chúc em sinh nhật vui vẻ. Cảm ơn vì đã là em..."] }
+        ]
+      }
+    }
+  },
+
+  "birthday": {
+    "label": "Birthday Story",
+    "labelVi": "🎂 Sinh nhật",
+    "occasions": {
+      "friend": {
+        "label": "Bạn bè",
+        "chapters": [
+          { "id": "intro",     "label": "Người bạn đặc biệt",   "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Có một người mình muốn làm ngạc nhiên hôm nay...", "Hôm nay là ngày của bạn. Và mình muốn kể bạn nghe..."] },
+          { "id": "memory",    "label": "Những ngày bên nhau",   "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Chúng mình đã có những khoảnh khắc như thế này...", "Nhìn lại, mình không nhớ ngày nào chán khi có bạn..."] },
+          { "id": "highlight", "label": "Kỷ niệm đáng nhớ nhất", "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Và đây là kỷ niệm mình nhớ nhất về bạn...", "Có một hôm mình sẽ nhớ mãi vì bạn..."] },
+          { "id": "ending",    "label": "Lời chúc",              "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Chúc mừng sinh nhật. Cảm ơn vì đã là bạn của mình.", "Mình không nói nhiều, nhưng mình trân trọng bạn lắm đó."] }
+        ]
+      },
+      "parent": {
+        "label": "Bố/Mẹ",
+        "chapters": [
+          { "id": "intro",     "label": "Ngày của bố/mẹ",        "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Bố/Mẹ ơi, hôm nay là ngày của bố/mẹ. Con muốn kể bố/mẹ nghe...", "Con không hay nói, nhưng hôm nay con muốn gửi điều này..."] },
+          { "id": "memory",    "label": "Những ký ức bên nhau",  "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Con nhớ những ngày như thế này với bố/mẹ...", "Có những khoảnh khắc con không bao giờ quên..."] },
+          { "id": "highlight", "label": "Điều con nhớ nhất",     "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Có một kỷ niệm mà con mang theo mãi...", "Đây là khoảnh khắc con thấy bố/mẹ vĩ đại nhất..."] },
+          { "id": "ending",    "label": "Lời con muốn nói",      "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Con yêu bố/mẹ. Chúc bố/mẹ sinh nhật thật vui.", "Cảm ơn bố/mẹ vì tất cả. Con không nói đủ đâu."] }
+        ]
+      },
+      "sibling": {
+        "label": "Anh/Chị/Em",
+        "chapters": [
+          { "id": "intro",     "label": "Ngày của mày",           "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Hôm nay là ngày đặc biệt của mày. Tao không nói nhiều đâu, nhưng...", "Tao biết mày không ngờ tao lại làm cái này..."] },
+          { "id": "memory",    "label": "Lớn lên cùng nhau",      "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Tao nhớ những ngày mình lớn lên cùng nhau...", "Dù hay cãi nhau nhưng có những khoảnh khắc như thế này..."] },
+          { "id": "highlight", "label": "Kỷ niệm tao cười mãi",  "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Có một khoảnh khắc mà tao vẫn cười mỗi khi nghĩ lại...", "Cái hôm đó mày chắc không nhớ, nhưng tao nhớ mãi..."] },
+          { "id": "ending",    "label": "Lời chúc thật lòng",     "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Chúc mừng sinh nhật. Dù nói ít nhưng tao quan tâm nhiều đó.", "Tao tự hào về mày. Không nói thường xuyên, nhưng hôm nay nói."] }
+        ]
+      }
+    }
+  },
+
+  "friendship": {
+    "label": "Friendship Story",
+    "labelVi": "👫 Bạn bè",
+    "occasions": {
+      "bestfriend": {
+        "label": "Người bạn thân",
+        "chapters": [
+          { "id": "intro",     "label": "Người đặc biệt đó",       "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Có một người mà mình gọi là bạn thân, nhưng thực ra hơn thế nhiều...", "Không phải tự nhiên mà mình làm cái này. Tại vì bạn xứng đáng được nhận nó."] },
+          { "id": "memory",    "label": "Những ngày bên nhau",     "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Những ngày mình ở bên nhau, thật ra không có gì đặc biệt...", "Nhưng nhìn lại, mỗi ngày đó đều là một ký ức..."] },
+          { "id": "highlight", "label": "Kỷ niệm không quên",     "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Nhưng có một lần mình nhớ mãi...", "Và cái hôm đó — mình nghĩ cả hai đứa mình đều nhớ..."] },
+          { "id": "ending",    "label": "Lời muốn nói",            "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Cảm ơn vì đã luôn ở đây. Bạn biết mình nói gì rồi đó.", "Không cần nói nhiều. Chỉ cần biết là mình trân trọng bạn."] }
+        ]
+      },
+      "group": {
+        "label": "Nhóm bạn",
+        "chapters": [
+          { "id": "intro",     "label": "Nhóm này...",              "required": true,  "photoCount": { "min": 1, "max": 2 }, "hooks": ["Có một nhóm người mà khi nhắc đến, mình vẫn cười một mình...", "Group mình — không ai nghĩ lại hợp nhau đến vậy..."] },
+          { "id": "memory",    "label": "Những ngày cùng nhau",    "required": true,  "photoCount": { "min": 1, "max": 6 }, "hooks": ["Chúng mình đã có những ngày như thế này...", "Mỗi lần tụ tập là một ký ức, dù ngắn dù dài..."] },
+          { "id": "highlight", "label": "Cái hôm đó",              "required": false, "photoCount": { "min": 1, "max": 3 }, "hooks": ["Và cái hôm đó — không ai quên được...", "Có một buổi mà mình nghĩ cả nhóm sẽ nhớ mãi..."] },
+          { "id": "ending",    "label": "Gửi cả nhóm",             "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Dù mỗi người một nơi, group chat vẫn đỏ mỗi khi cần nhau.", "Nhóm mình nhỏ nhưng đủ. Cảm ơn vì đã là nhóm của nhau."] }
+        ]
+      },
+      "reunion": {
+        "label": "Gặp lại",
+        "chapters": [
+          { "id": "intro",     "label": "Đã lâu lắm rồi",         "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Đã lâu lắm rồi chúng mình không gặp nhau...", "Mình nghĩ đến bạn nhiều hơn bạn nghĩ đấy..."] },
+          { "id": "memory",    "label": "Những ngày trước kia",   "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Nhưng mỗi khi nhớ lại, vẫn như hôm qua...", "Những ngày đó — mình vẫn giữ trong đầu đến giờ..."] },
+          { "id": "highlight", "label": "Một kỷ niệm cũ",         "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Có một lần mình muốn bạn nhớ lại...", "Cái này — bạn còn nhớ không?"] },
+          { "id": "ending",    "label": "Hẹn gặp lại",            "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Dù xa, vẫn nhớ. Hẹn gặp lại sớm nhé.", "Mình ổn. Bạn ổn. Chúng mình vẫn ổn với nhau. Đủ rồi."] }
+        ]
+      }
+    }
+  },
+
+  "school": {
+    "label": "School Story",
+    "labelVi": "🎓 Học đường",
+    "occasions": {
+      "graduation": {
+        "label": "Tốt nghiệp",
+        "chapters": [
+          { "id": "intro",     "label": "Kết thúc một chương",    "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Hôm nay kết thúc một chương của cuộc đời...", "Mình không nghĩ ngày này đến nhanh đến vậy..."] },
+          { "id": "memory",    "label": "Những năm học",           "required": true,  "photoCount": { "min": 1, "max": 6 }, "hooks": ["Những năm học này, chúng mình đã đi qua nhiều thứ...", "Có những ngày tưởng bình thường mà giờ lại nhớ mãi..."] },
+          { "id": "highlight", "label": "Ngày đáng nhớ nhất",    "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Và cái ngày này — mình muốn lưu lại mãi...", "Trong tất cả những ngày đó, có một ngày đặc biệt hơn..."] },
+          { "id": "ending",    "label": "Bắt đầu thôi",           "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Tốt nghiệp rồi. Cuộc đời phía trước — bắt đầu thôi.", "Chương này đóng lại. Chương tiếp theo đang chờ."] }
+        ]
+      },
+      "classmates": {
+        "label": "Bạn cùng lớp",
+        "chapters": [
+          { "id": "intro",     "label": "Cái lớp đó...",           "required": true,  "photoCount": { "min": 1, "max": 2 }, "hooks": ["Lớp mình — những con người không biết có duyên từ đâu...", "Ai mà biết cái lớp học chung lại thành ký ức như thế này..."] },
+          { "id": "memory",    "label": "Ngày tháng cùng nhau",   "required": true,  "photoCount": { "min": 1, "max": 6 }, "hooks": ["Những ngày ngồi trong lớp, tưởng chán, mà nhớ mãi...", "Mỗi tiết học, mỗi lần ra chơi — đều để lại thứ gì đó..."] },
+          { "id": "highlight", "label": "Một ngày cả lớp nhớ",   "required": false, "photoCount": { "min": 1, "max": 3 }, "hooks": ["Cái hôm đó cả lớp cùng nhau...", "Có một ngày mình nghĩ không ai trong lớp quên được..."] },
+          { "id": "ending",    "label": "Dù mỗi người một hướng", "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Dù mỗi người một hướng, những ngày ở đây mãi là ký ức.", "Lớp tan rồi. Nhưng cái gì đó vẫn còn đây."] }
+        ]
+      },
+      "teacher": {
+        "label": "Thầy/Cô giáo",
+        "chapters": [
+          { "id": "intro",     "label": "Lời cảm ơn lâu rồi",    "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Có một người mình muốn gửi lời cảm ơn từ lâu...", "Thầy/Cô có biết không — mình vẫn nhớ từng điều này..."] },
+          { "id": "memory",    "label": "Những tiết học ấy",      "required": true,  "photoCount": { "min": 1, "max": 4 }, "hooks": ["Thầy/Cô không biết mình đã học được điều gì từ những khoảnh khắc đó...", "Không phải từ sách — mà từ cách thầy/cô đối xử với chúng mình..."] },
+          { "id": "highlight", "label": "Khoảnh khắc thay đổi",  "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Có một lần thầy/cô đã làm mình thay đổi...", "Mình nhớ mãi lần thầy/cô nói..."] },
+          { "id": "ending",    "label": "Lời cảm ơn",             "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Cảm ơn thầy/cô. Lời cảm ơn này mình giữ mãi.", "Thầy/Cô đã là một phần của con đường mình đi. Cảm ơn."] }
+        ]
+      }
+    }
+  },
+
+  "family": {
+    "label": "Family Story",
+    "labelVi": "👨‍👩‍👧 Gia đình",
+    "occasions": {
+      "parents": {
+        "label": "Bố Mẹ",
+        "chapters": [
+          { "id": "intro",     "label": "Con muốn nói điều này",  "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Con không nói nhiều. Nhưng con muốn kể bố mẹ nghe...", "Con làm cái này lâu rồi mới dám gửi. Bố mẹ đọc nhé..."] },
+          { "id": "memory",    "label": "Những ngày bên gia đình","required": true,  "photoCount": { "min": 1, "max": 6 }, "hooks": ["Con nhớ những ngày như thế này...", "Có những khoảnh khắc con nghĩ mãi mà không nói được..."] },
+          { "id": "highlight", "label": "Điều con nhớ mãi",       "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Có một khoảnh khắc mà con mang theo mãi...", "Đây là lần con thấy bố mẹ vĩ đại nhất..."] },
+          { "id": "ending",    "label": "Con yêu bố mẹ",          "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Con yêu bố mẹ, dù không hay nói ra.", "Cảm ơn bố mẹ vì tất cả. Con không nói đủ đâu."] }
+        ]
+      },
+      "grandparents": {
+        "label": "Ông Bà",
+        "chapters": [
+          { "id": "intro",     "label": "Cháu muốn lưu lại",      "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Ông/Bà ơi, cháu muốn lưu lại những điều này...", "Cháu không biết nói thế nào, nên cháu làm cái này..."] },
+          { "id": "memory",    "label": "Những lần bên ông bà",   "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Cháu nhớ những lần ở bên ông/bà...", "Những ngày về thăm ông/bà — cháu không bao giờ quên..."] },
+          { "id": "highlight", "label": "Kỷ niệm cháu giữ mãi",  "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Và có một kỷ niệm cháu không bao giờ quên...", "Cháu nhớ lần ông/bà..."] },
+          { "id": "ending",    "label": "Cháu cảm ơn ông bà",    "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Cảm ơn ông/bà vì tất cả những điều đó.", "Cháu yêu ông/bà. Cháu muốn ông/bà biết điều đó."] }
+        ]
+      },
+      "sibling": {
+        "label": "Anh Chị Em",
+        "chapters": [
+          { "id": "intro",     "label": "Không phải lúc nào cũng dễ", "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Mình và mày — không phải lúc nào cũng tâm đầu ý hợp...", "Tao không hay nói chuyện này, nhưng tao muốn mày biết..."] },
+          { "id": "memory",    "label": "Những ngày cùng lớn lên", "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Nhưng nhìn lại những khoảnh khắc này...", "Dù hay cãi nhau thật, nhưng tao vẫn nhớ những ngày này..."] },
+          { "id": "highlight", "label": "Lần tao nhớ mãi",         "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Có một lần mình nhớ mãi vì mày...", "Cái hôm đó tao tự hào về mày lắm..."] },
+          { "id": "ending",    "label": "Cảm ơn vì là nhau",       "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Cảm ơn vì đã là anh/chị/em của mình.", "Tao không nói nhiều. Nhưng mày quan trọng với tao lắm."] }
+        ]
+      }
+    }
+  },
+
+  "self": {
+    "label": "Self Story",
+    "labelVi": "🌟 Cá nhân",
+    "occasions": {
+      "birthday": {
+        "label": "Sinh nhật của mình",
+        "chapters": [
+          { "id": "past",      "label": "Mình đã từng...",         "required": true,  "photoCount": { "min": 1, "max": 2 }, "hooks": ["Hôm nay mình tặng cho chính mình một điều...", "Nhìn lại, mình đã không ngờ mình đi được đến đây..."] },
+          { "id": "memory",    "label": "Một năm qua",             "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Nhìn lại một năm qua, mình đã đi qua những ngày này...", "Có những ngày khó, có những ngày nhẹ — tất cả đều là mình..."] },
+          { "id": "highlight", "label": "Khoảnh khắc tự hào nhất","required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Và có một khoảnh khắc mình tự hào nhất...", "Đây là lần mình thấy mình vượt qua được..."] },
+          { "id": "hope",      "label": "Tiếp tục thôi",           "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Chúc mừng sinh nhật chính mình. Năm nay tốt hơn năm trước rồi.", "Mình đã đi được xa hơn mình nghĩ. Tiếp tục thôi."] }
+        ]
+      },
+      "journey": {
+        "label": "Hành trình",
+        "chapters": [
+          { "id": "past",      "label": "Điểm xuất phát",         "required": true,  "photoCount": { "min": 1, "max": 2 }, "hooks": ["Có những ngày mình chỉ muốn giữ lại...", "Mình bắt đầu từ chỗ này. Không ai biết ngoài mình."] },
+          { "id": "memory",    "label": "Hành trình đã đi",       "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Hành trình này không ai biết — chỉ có mình hiểu...", "Có những bước đi mình không ngờ mình làm được..."] },
+          { "id": "highlight", "label": "Khoảnh khắc bước ngoặt", "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Và đây là khoảnh khắc mình nhớ nhất...", "Đây là lần mình biết mình đi đúng hướng..."] },
+          { "id": "hope",      "label": "Tiếp tục",               "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Mình đã đi được xa hơn mình nghĩ. Tiếp tục thôi.", "Hành trình chưa xong. Nhưng mình không dừng lại đây."] }
+        ]
+      },
+      "reflection": {
+        "label": "Nhìn lại",
+        "chapters": [
+          { "id": "past",      "label": "Mình đã khác đi",        "required": true,  "photoCount": { "min": 1, "max": 2 }, "hooks": ["Ngồi nhìn lại, mình thấy mình đã khác đi nhiều...", "Có những phiên bản của mình mà mình muốn nhớ..."] },
+          { "id": "memory",    "label": "Những ngày đã qua",      "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Những ngày này — mình đã trải qua như thế này...", "Không phải ngày nào cũng tốt, nhưng ngày nào cũng là mình..."] },
+          { "id": "highlight", "label": "Khoảnh khắc không quên", "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Và có một khoảnh khắc mình không thể quên...", "Đây là lúc mình hiểu ra điều gì đó quan trọng..."] },
+          { "id": "hope",      "label": "Mình ổn",                "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Dù thế nào, mình ổn. Và mình sẽ tiếp tục ổn.", "Nhìn lại để nhớ — rồi tiếp tục về phía trước."] }
+        ]
+      }
+    }
+  },
+
+  "travel": {
+    "label": "Travel Story",
+    "labelVi": "✈️ Du lịch",
+    "occasions": {
+      "roadtrip": {
+        "label": "Road trip",
+        "chapters": [
+          { "id": "departure", "label": "Xuất phát",              "required": true,  "photoCount": { "min": 1, "max": 2 }, "hooks": ["Chuyến đi bắt đầu từ một cái gật đầu tự phát...", "Không ai biết chuyến này sẽ thế nào. Và đó là điều hay nhất."] },
+          { "id": "moments",   "label": "Trên đường",             "required": true,  "photoCount": { "min": 1, "max": 6 }, "hooks": ["Và từng khoảnh khắc trên đường đều đáng nhớ...", "Mỗi điểm dừng là một câu chuyện nhỏ..."] },
+          { "id": "highlight", "label": "Điểm dừng đặc biệt",    "required": false, "photoCount": { "min": 1, "max": 3 }, "hooks": ["Cái điểm dừng đó — không ai nghĩ sẽ nhớ mãi...", "Và rồi có một chỗ mình không muốn rời đi..."] },
+          { "id": "ending",    "label": "Về rồi, nhưng...",       "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Chuyến đi kết thúc. Nhưng những gì đọng lại thì không.", "Về rồi. Nhưng mình đã để lại thứ gì đó ở đó."] }
+        ]
+      },
+      "abroad": {
+        "label": "Nước ngoài",
+        "chapters": [
+          { "id": "departure", "label": "Lần đầu đặt chân",      "required": true,  "photoCount": { "min": 1, "max": 2 }, "hooks": ["Lần đầu tiên đặt chân đến nơi hoàn toàn xa lạ...", "Mình không biết gì về nơi này. Và mình thích điều đó."] },
+          { "id": "moments",   "label": "Từng ngày ở đó",        "required": true,  "photoCount": { "min": 1, "max": 6 }, "hooks": ["Và từng ngày ở đây là một khám phá mới...", "Mỗi buổi sáng thức dậy là một nơi mới..."] },
+          { "id": "highlight", "label": "Khoảnh khắc nhớ nhất",  "required": false, "photoCount": { "min": 1, "max": 3 }, "hooks": ["Có một khoảnh khắc mình nhớ nhất ở chuyến đi này...", "Và có một chỗ mình muốn quay lại..."] },
+          { "id": "ending",    "label": "Về nhưng chưa thực sự về", "required": true, "photoCount": { "min": 1, "max": 1 }, "hooks": ["Về rồi. Nhưng nơi đó còn một phần của mình ở lại.", "Chuyến đi xong. Nhưng mình mang về thứ gì đó không mua được."] }
+        ]
+      },
+      "adventure": {
+        "label": "Phiêu lưu",
+        "chapters": [
+          { "id": "departure", "label": "Không theo kế hoạch",   "required": true,  "photoCount": { "min": 1, "max": 2 }, "hooks": ["Chuyến này không theo kế hoạch. Và đó là điểm hay nhất...", "Mình chỉ biết xuất phát. Phần còn lại — cứ để xem."] },
+          { "id": "moments",   "label": "Những khoảnh khắc thật","required": true,  "photoCount": { "min": 1, "max": 6 }, "hooks": ["Những khoảnh khắc không ai chuẩn bị trước...", "Có những thứ chỉ xảy ra khi mình không có kế hoạch..."] },
+          { "id": "highlight", "label": "Cái lúc không tin được", "required": false, "photoCount": { "min": 1, "max": 3 }, "hooks": ["Và cái lúc đó — giờ nghĩ lại vẫn không tin...", "Đây là khoảnh khắc mình biết mình sẽ nhớ mãi..."] },
+          { "id": "ending",    "label": "Tinh thần đó vẫn còn",  "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Phiêu lưu kết thúc. Nhưng tinh thần đó chưa hết.", "Về rồi — nhưng mình đã khác hơn một chút."] }
+        ]
+      }
+    }
+  },
+
+  "special": {
+    "label": "Special Moment",
+    "labelVi": "✨ Khoảnh khắc đặc biệt",
+    "occasions": {
+      "proposal": {
+        "label": "Cầu hôn",
+        "chapters": [
+          { "id": "intro",     "label": "Anh đã nghĩ rất lâu",   "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Anh đã nghĩ về khoảnh khắc này rất lâu...", "Không phải hôm nay mới nghĩ. Anh biết từ lâu rồi."] },
+          { "id": "journey",   "label": "Hành trình của chúng ta","required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Tất cả hành trình chúng ta đã đi qua...", "Nhìn lại những ngày này, anh hiểu tại sao mình ở đây."] },
+          { "id": "highlight", "label": "Lý do anh biết",        "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Và đây là lý do anh biết em là người anh muốn ở bên...", "Có một khoảnh khắc anh chắc chắn hơn bao giờ hết..."] },
+          { "id": "ending",    "label": "Câu hỏi đó",            "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Em có muốn cùng anh viết tiếp câu chuyện này không?", "Anh không cần câu trả lời ngay. Nhưng anh muốn hỏi em."] }
+        ]
+      },
+      "achievement": {
+        "label": "Thành tựu",
+        "chapters": [
+          { "id": "intro",     "label": "Điều mình đã cố gắng",  "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Đây là điều mình đã cố gắng rất lâu mới đạt được...", "Không phải may mắn. Mình biết mình đã đi qua những gì."] },
+          { "id": "journey",   "label": "Con đường đến đây",     "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Hành trình để đến đây không dễ dàng...", "Có những ngày mình tưởng không qua được. Nhưng mình qua được."] },
+          { "id": "highlight", "label": "Khoảnh khắc quyết định", "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Và khoảnh khắc mình nhớ nhất trên con đường đó...", "Có một lần mình suýt bỏ cuộc. Và mình không bỏ."] },
+          { "id": "ending",    "label": "Làm được rồi",          "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Làm được rồi. Cảm ơn những người đã ở đây cùng mình.", "Xong rồi. Và bây giờ — tiếp tục mục tiêu tiếp theo."] }
+        ]
+      },
+      "milestone": {
+        "label": "Cột mốc",
+        "chapters": [
+          { "id": "intro",     "label": "Cột mốc không ai thấy", "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Có những cột mốc không ai thấy, nhưng mình biết...", "Ngày này quan trọng hơn mọi người nghĩ. Mình biết tại sao."] },
+          { "id": "journey",   "label": "Để đến được đây",       "required": true,  "photoCount": { "min": 1, "max": 5 }, "hooks": ["Để đến được đây, mình đã đi qua...", "Không phải ngày nào cũng thuận lợi. Nhưng mình ở đây."] },
+          { "id": "highlight", "label": "Khoảnh khắc đánh dấu",  "required": false, "photoCount": { "min": 1, "max": 2 }, "hooks": ["Và đây là khoảnh khắc đánh dấu tất cả...", "Cái ngày này — mình biết mình sẽ nhớ lại nhiều lần..."] },
+          { "id": "ending",    "label": "Câu chuyện vẫn tiếp",   "required": true,  "photoCount": { "min": 1, "max": 1 }, "hooks": ["Một cột mốc mới. Câu chuyện vẫn tiếp tục.", "Đây không phải điểm kết. Đây là điểm bắt đầu của phần tiếp theo."] }
         ]
       }
     }

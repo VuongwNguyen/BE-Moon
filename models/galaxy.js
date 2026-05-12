@@ -41,7 +41,7 @@ const galaxySchema = new Schema({
   },
   storyType: {
     type: String,
-    enum: ['couple'],
+    enum: ['couple', 'birthday', 'friendship', 'school', 'family', 'self', 'travel', 'special'],
     default: null,
   },
   occasion: {

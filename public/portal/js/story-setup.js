@@ -18,6 +18,7 @@ const OPTIONAL_QUESTIONS = {
 };
 
 let STORY_CONFIG = null;
+let selectedStoryType = null;
 let selectedOccasion = null;
 const chapterFiles = {};
 const chapterHooks = {};
@@ -126,14 +127,14 @@ async function saveChapter(chapterId) {
 }
 
 async function saveStoryMeta(occasion) {
-  const chapters = STORY_CONFIG['couple'].occasions[occasion].chapters.map(ch => ({
+  const chapters = STORY_CONFIG[selectedStoryType].occasions[occasion].chapters.map(ch => ({
     id: ch.id,
     hookText: chapterHooks[ch.id] || null,
   }));
   const res = await fetch(`/galaxies/${galaxyId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-    body: JSON.stringify({ storyType: 'couple', occasion, chapters }),
+    body: JSON.stringify({ storyType: selectedStoryType, occasion, chapters }),
   });
   if (!res.ok) throw new Error(`Save story failed: ${res.status}`);
 }
@@ -342,10 +343,38 @@ async function init() {
   document.getElementById('galaxy-name').textContent = galaxy.name || 'Galaxy';
   document.getElementById('back-link').href = `/portal/galaxy.html?galaxyId=${galaxyId}`;
 
-  // Step 1 — Occasion
-  await typingThen('Câu chuyện này dành cho dịp nào?', null, 500);
+  // Step 1 — Story type
+  await typingThen('Câu chuyện này thuộc loại nào?', null, 500);
 
-  const occasions = STORY_CONFIG['couple'].occasions;
+  const typeWrap = document.createElement('div');
+  typeWrap.className = 'chips-wrap';
+  Object.entries(STORY_CONFIG).forEach(([id, type]) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = type.labelVi || type.label;
+    chip.dataset.id = id;
+    typeWrap.appendChild(chip);
+  });
+  appendEl(typeWrap);
+
+  selectedStoryType = await new Promise(resolve => {
+    typeWrap.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        typeWrap.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+        chip.classList.add('on');
+        setTimeout(() => {
+          appendUMsg(chip.textContent);
+          typeWrap.querySelectorAll('.chip').forEach(c => { c.style.pointerEvents = 'none'; });
+          resolve(chip.dataset.id);
+        }, 200);
+      });
+    });
+  });
+
+  // Step 2 — Occasion
+  await typingThen('Dịp này là...?');
+
+  const occasions = STORY_CONFIG[selectedStoryType].occasions;
   const chipsWrap = document.createElement('div');
   chipsWrap.className = 'chips-wrap';
   Object.entries(occasions).forEach(([id, occ]) => {
@@ -364,16 +393,14 @@ async function init() {
         chip.classList.add('on');
         setTimeout(() => {
           appendUMsg(chip.textContent);
-          chipsWrap.querySelectorAll('.chip').forEach(c => {
-            c.style.pointerEvents = 'none';
-          });
+          chipsWrap.querySelectorAll('.chip').forEach(c => { c.style.pointerEvents = 'none'; });
           resolve(chip.dataset.id);
         }, 200);
       });
     });
   });
 
-  // Step 2..N — Chapters
+  // Step 3..N — Chapters
   const chapters = occasions[selectedOccasion].chapters;
   for (let i = 0; i < chapters.length; i++) {
     const ch = chapters[i];
