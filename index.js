@@ -134,16 +134,23 @@ app.get("/view/", async (req, res, next) => {
     }
     const name = escapeHtml(galaxy.name || "Lumora");
     const base = req.protocol + "://" + req.get("host");
+    const ogImage = `${base}/og-image.png`;
+    const ogDesc = `Explore the memory galaxy “${name}” in stunning 3D space.`;
     const ogTags = `
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="${name} — Lumora" />
-  <meta property=”og:description” content=”Khám phá thiên hà ký ức “${name}” trong không gian 3D tuyệt đẹp.” />
-  <meta property=”og:image” content=”${base}/og-image.png” />
+  <meta property=”og:type” content=”website” />
+  <meta property=”og:site_name” content=”Lumora” />
+  <meta property=”og:title” content=”${name} — Lumora” />
+  <meta property=”og:description” content=”${ogDesc}” />
+  <meta property=”og:image” content=”${ogImage}” />
+  <meta property=”og:image:secure_url” content=”${ogImage}” />
+  <meta property=”og:image:type” content=”image/png” />
+  <meta property=”og:image:width” content=”1850” />
+  <meta property=”og:image:height” content=”990” />
   <meta property=”og:url” content=”${base + req.originalUrl}” />
   <meta name=”twitter:card” content=”summary_large_image” />
   <meta name=”twitter:title” content=”${name} — Lumora” />
-  <meta name=”twitter:description” content=”Khám phá thiên hà ký ức “${name}” trong không gian 3D tuyệt đẹp.” />
-  <meta name="twitter:image" content="${base}/og-image.png" />`;
+  <meta name=”twitter:description” content=”${ogDesc}” />
+  <meta name=”twitter:image” content=”${ogImage}” />`;
     res.send(html.replace("<head>", "<head>" + ogTags));
   } catch (err) {
     next(err);
