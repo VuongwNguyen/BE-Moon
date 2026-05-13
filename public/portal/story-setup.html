@@ -39,11 +39,24 @@
         #060610;
     }
 
+    /* Photo background layer */
+    #preview-photos {
+      position: absolute; inset: 0; z-index: 0;
+      transition: opacity 0.6s ease;
+    }
+    .preview-photo-bg {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center;
+      opacity: 0;
+      animation: photoBgIn 0.8s ease forwards;
+    }
+    @keyframes photoBgIn { from { opacity: 0; } to { opacity: 0.22; } }
+
     /* Canvas effect layer */
     #se-canvas {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
-      pointer-events: none;
+      pointer-events: none; z-index: 1;
     }
 
     /* CSS stars */
@@ -279,6 +292,7 @@
 
   <!-- SE Visual Preview -->
   <div id="preview-pane">
+    <div id="preview-photos"></div>
     <canvas id="se-canvas"></canvas>
     <div id="se-center">
       <div id="preview-label">✦ Story Experience</div>
@@ -376,6 +390,27 @@
     window.updateSEPreview = function(type, occasion, galaxyName) {
       if (galaxyName) document.getElementById('preview-name').textContent = galaxyName;
       if (occasion)   document.getElementById('preview-occasion').textContent = occasion.toUpperCase();
+    };
+
+    // ── Photo preview update — instant background on file select ───
+    const _previewObjectURLs = [];
+    window.setPreviewPhotos = function(files) {
+      // Revoke old URLs
+      _previewObjectURLs.forEach(u => URL.revokeObjectURL(u));
+      _previewObjectURLs.length = 0;
+
+      const wrap = document.getElementById('preview-photos');
+      wrap.replaceChildren();
+
+      const arr = Array.from(files).slice(-1); // show last selected photo as bg
+      arr.forEach(file => {
+        const url = URL.createObjectURL(file);
+        _previewObjectURLs.push(url);
+        const div = document.createElement('div');
+        div.className = 'preview-photo-bg';
+        div.style.backgroundImage = `url(${url})`;
+        wrap.appendChild(div);
+      });
     };
 
     // ── Panel toggle ───────────────────────────────────────

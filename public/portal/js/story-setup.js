@@ -202,6 +202,9 @@ function buildChapterCard(chapter, chapterIdx, totalChapters) {
     renderPhotos();
     nextBtn.disabled = false;
     scrollBottom();
+    // Instant left preview update
+    const allFiles = Object.values(chapterFiles).flat();
+    window.setPreviewPhotos?.(allFiles);
   });
 
   // Hook hint (read-only, no textarea)
