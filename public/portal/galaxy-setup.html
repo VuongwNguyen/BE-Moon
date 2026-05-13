@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setup Galaxy — Lumora</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #04040c;
+      --accent: #8b5cf6;
+      --accent-light: #c4b5fd;
+      --accent-dim: rgba(139,92,246,0.12);
+      --text: #ede9f8;
+      --text-sub: rgba(237,233,248,0.45);
+      --border: rgba(255,255,255,0.07);
+      --border-accent: rgba(139,92,246,0.28);
+      --glass: rgba(4,4,12,0.88);
+      --panel-w: 360px;
+      --r: 12px;
+      --r-sm: 8px;
+    }
+
+    html, body { height: 100%; overflow: hidden; background: #000; }
+    body {
+      font-family: 'Jost', sans-serif; color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      display: flex; flex-direction: row;
+    }
+
+    /* ── Preview pane ── */
+    #preview-pane {
+      flex: 1; position: relative; overflow: hidden; background: #000;
+    }
+    #preview-frame {
+      width: 100%; height: 100%; border: none;
+      transition: filter 0.3s;
+    }
+    #preview-frame.loading { filter: blur(4px) brightness(0.5); }
+
+    /* ── Panel ── */
+    #setup-panel {
+      width: var(--panel-w); height: 100vh; flex-shrink: 0;
+      background: rgba(4,4,12,0.95);
+      border-left: 1px solid var(--border-accent);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Panel header */
+    .panel-header {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .back-link {
+      font-size: 12px; color: var(--text-sub); text-decoration: none;
+      letter-spacing: 0.05em; transition: color 0.2s;
+      display: inline-block; margin-bottom: 10px;
+    }
+    .back-link:hover { color: var(--text); }
+    .panel-galaxy-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 600;
+      color: #fff; letter-spacing: 0.02em;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* Panel body (scrollable) */
+    .panel-body {
+      flex: 1; overflow-y: auto; padding: 0 20px 80px;
+    }
+    .panel-body::-webkit-scrollbar { width: 4px; }
+    .panel-body::-webkit-scrollbar-track { background: transparent; }
+    .panel-body::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius: 2px; }
+
+    /* ── Checklist ── */
+    .checklist-section { padding: 18px 0 14px; border-bottom: 1px solid var(--border); }
+    .section-label {
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--accent-light); margin-bottom: 12px; opacity: 0.7;
+    }
+    .progress-bar-wrap { margin-bottom: 14px; }
+    .progress-bar-track {
+      height: 3px; background: rgba(255,255,255,0.08);
+      border-radius: 2px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%; background: var(--accent);
+      border-radius: 2px; transition: width 0.4s ease;
+    }
+    .progress-label {
+      font-size: 11px; color: var(--text-sub); margin-top: 6px;
+    }
+
+    .check-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 0; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .check-item:hover { opacity: 0.85; }
+    .check-icon {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 1.5px solid var(--border-accent);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 10px;
+      transition: all 0.2s;
+    }
+    .check-item.done .check-icon {
+      background: rgba(139,92,246,0.25);
+      border-color: var(--accent);
+      color: var(--accent-light);
+    }
+    .check-item.done .check-icon::after { content: '✓'; }
+    .check-text { font-size: 13px; color: var(--text-sub); transition: color 0.2s; }
+    .check-item.done .check-text { color: var(--accent-light); }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex; gap: 2px; padding: 14px 0 0;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .tab-btn {
+      flex: 1; padding: 8px 4px;
+      background: none; border: none; cursor: pointer;
+      font-size: 12px; font-family: 'Jost', sans-serif;
+      color: var(--text-sub); border-bottom: 2px solid transparent;
+      transition: all 0.2s; letter-spacing: 0.03em;
+      margin-bottom: -1px;
+    }
+    .tab-btn.active { color: var(--accent-light); border-bottom-color: var(--accent); }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    /* ── Tab content ── */
+    .tab-pane { display: none; padding-top: 18px; }
+    .tab-pane.active { display: block; }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 1.5px dashed var(--border-accent);
+      border-radius: var(--r); padding: 28px 16px;
+      text-align: center; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: var(--accent-dim);
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(139,92,246,0.18);
+    }
+    .upload-zone-icon { font-size: 28px; margin-bottom: 10px; }
+    .upload-zone-text { font-size: 13px; color: var(--text-sub); line-height: 1.5; }
+    .upload-zone-text strong { color: var(--accent-light); }
+
+    .gallery-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 6px; margin-top: 12px;
+    }
+    .gallery-thumb {
+      aspect-ratio: 1; border-radius: 6px; overflow: hidden;
+      background: rgba(255,255,255,0.05);
+      position: relative;
+    }
+    .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .gallery-thumb .del-btn {
+      position: absolute; top: 3px; right: 3px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(0,0,0,0.7); border: none; cursor: pointer;
+      color: #fff; font-size: 10px; opacity: 0;
+      transition: opacity 0.2s; display: flex; align-items: center; justify-content: center;
+    }
+    .gallery-thumb:hover .del-btn { opacity: 1; }
+
+    .upload-progress-bar {
+      height: 3px; background: rgba(255,255,255,0.08);
+      border-radius: 2px; margin-top: 12px; overflow: hidden; display: none;
+    }
+    .upload-progress-fill {
+      height: 100%; background: var(--accent);
+      border-radius: 2px; transition: width 0.2s; width: 0%;
+    }
+
+    /* Theme grid */
+    .theme-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .theme-card {
+      border-radius: var(--r-sm); overflow: hidden;
+      border: 2px solid var(--border); cursor: pointer;
+      transition: border-color 0.2s; position: relative;
+    }
+    .theme-card.selected { border-color: var(--accent); }
+    .theme-card img { width: 100%; display: block; aspect-ratio: 16/9; object-fit: cover; }
+    .theme-name {
+      padding: 6px 8px; font-size: 11px; color: var(--text-sub);
+      background: rgba(0,0,0,0.4); text-align: center;
+    }
+    .theme-card.selected .theme-name { color: var(--accent-light); }
+    .theme-no {
+      border: 1.5px dashed var(--border); border-radius: var(--r-sm);
+      padding: 20px 8px; text-align: center; cursor: pointer;
+      font-size: 12px; color: var(--text-sub);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .theme-no:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+    .theme-no.selected { border-color: var(--accent); color: var(--accent-light); }
+
+    /* Music list */
+    .music-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; border-radius: var(--r-sm);
+      cursor: pointer; transition: background 0.2s;
+      border: 1px solid transparent;
+    }
+    .music-item:hover { background: rgba(255,255,255,0.04); }
+    .music-item.selected { background: var(--accent-dim); border-color: var(--border-accent); }
+    .music-play {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; flex-shrink: 0; transition: background 0.2s;
+    }
+    .music-item:hover .music-play { background: rgba(255,255,255,0.14); }
+    .music-item.selected .music-play { background: var(--accent-dim); border-color: var(--accent); }
+    .music-info { flex: 1; min-width: 0; }
+    .music-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .music-no {
+      padding: 10px 12px; border-radius: var(--r-sm);
+      font-size: 12px; color: var(--text-sub); cursor: pointer;
+      border: 1.5px dashed var(--border); text-align: center;
+      transition: border-color 0.2s; margin-bottom: 8px;
+    }
+    .music-no:hover { border-color: rgba(255,255,255,0.2); }
+    .music-no.selected { border-color: var(--accent); color: var(--accent-light); }
+
+    /* Story section */
+    .story-status {
+      background: var(--accent-dim); border: 1px solid var(--border-accent);
+      border-radius: var(--r); padding: 16px; margin-bottom: 12px;
+    }
+    .story-badge { font-size: 11px; color: var(--accent-light); margin-bottom: 6px; letter-spacing: 0.05em; }
+    .story-type-label { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+    .story-occ { font-size: 12px; color: var(--text-sub); }
+    .btn-story {
+      width: 100%; padding: 12px; border-radius: var(--r-sm);
+      font-size: 13px; font-family: 'Jost', sans-serif;
+      cursor: pointer; transition: all 0.2s; border: none;
+      background: rgba(139,92,246,0.2); color: var(--accent-light);
+      border: 1px solid var(--border-accent);
+    }
+    .btn-story:hover { background: rgba(139,92,246,0.3); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 28px 16px;
+      color: var(--text-sub); font-size: 13px; line-height: 1.6;
+    }
+    .empty-state-icon { font-size: 32px; margin-bottom: 12px; }
+
+    /* Loading skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* ── Panel footer ── */
+    .panel-footer {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 14px 20px;
+      background: var(--glass);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+    .btn-share {
+      width: 100%; padding: 12px; border-radius: var(--r-sm);
+      background: var(--accent); color: #fff;
+      border: none; cursor: pointer; font-size: 14px;
+      font-family: 'Jost', sans-serif; font-weight: 500;
+      transition: background 0.2s, box-shadow 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-share:hover { background: #7c3aed; box-shadow: 0 6px 20px rgba(139,92,246,0.4); }
+
+    /* Toast */
+    #toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: rgba(20,20,40,0.95); border: 1px solid var(--border-accent);
+      color: var(--text); padding: 10px 20px; border-radius: 8px;
+      font-size: 13px; z-index: 100;
+      opacity: 0; transition: opacity 0.3s; pointer-events: none;
+    }
+    #toast.show { opacity: 1; }
+
+    /* Mobile */
+    @media (max-width: 640px) {
+      body { flex-direction: column; }
+      #preview-pane { height: 40vh; flex: none; }
+      #setup-panel {
+        width: 100%; height: 60vh;
+        border-left: none; border-top: 1px solid var(--border-accent);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="preview-pane">
+    <iframe id="preview-frame" allow="autoplay" class="loading"></iframe>
+  </div>
+
+  <div id="setup-panel">
+    <!-- Header -->
+    <div class="panel-header">
+      <a href="/portal/" class="back-link" id="back-link">← Portal</a>
+      <div class="panel-galaxy-name" id="galaxy-name">Đang tải...</div>
+    </div>
+
+    <!-- Body -->
+    <div class="panel-body">
+
+      <!-- Checklist -->
+      <div class="checklist-section">
+        <div class="section-label">Tiến độ thiết lập</div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+          </div>
+          <div class="progress-label" id="progress-label">0 / 4 hoàn thành</div>
+        </div>
+        <div class="check-item" id="check-photos" data-tab="photos">
+          <div class="check-icon"></div>
+          <span class="check-text">📸 Thêm ảnh vào galaxy</span>
+        </div>
+        <div class="check-item" id="check-theme" data-tab="theme">
+          <div class="check-icon"></div>
+          <span class="check-text">🎨 Chọn giao diện</span>
+        </div>
+        <div class="check-item" id="check-music" data-tab="music">
+          <div class="check-icon"></div>
+          <span class="check-text">🎵 Thêm nhạc nền</span>
+        </div>
+        <div class="check-item" id="check-story" data-tab="story">
+          <div class="check-icon"></div>
+          <span class="check-text">🎭 Tạo Story Experience</span>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="photos">Ảnh</button>
+        <button class="tab-btn" data-tab="theme">Theme</button>
+        <button class="tab-btn" data-tab="music">Nhạc</button>
+        <button class="tab-btn" data-tab="story">Story</button>
+      </div>
+
+      <!-- Photos tab -->
+      <div class="tab-pane active" id="tab-photos">
+        <div id="upload-zone" class="upload-zone">
+          <div class="upload-zone-icon">🌌</div>
+          <div class="upload-zone-text">
+            <strong>Kéo thả ảnh vào đây</strong><br>
+            hoặc click để chọn ảnh<br>
+            <span style="font-size:11px;opacity:0.6">JPG, PNG, WebP · Tối đa 20MB</span>
+          </div>
+        </div>
+        <input type="file" id="file-input" multiple accept="image/*" style="display:none">
+        <div class="upload-progress-bar" id="upload-progress">
+          <div class="upload-progress-fill" id="upload-progress-fill"></div>
+        </div>
+        <div class="gallery-grid" id="gallery-grid"></div>
+      </div>
+
+      <!-- Theme tab -->
+      <div class="tab-pane" id="tab-theme">
+        <div id="theme-content">
+          <div class="skeleton" style="height:120px;margin-bottom:8px"></div>
+          <div class="skeleton" style="height:120px"></div>
+        </div>
+      </div>
+
+      <!-- Music tab -->
+      <div class="tab-pane" id="tab-music">
+        <div id="music-content">
+          <div class="skeleton" style="height:52px;margin-bottom:6px"></div>
+          <div class="skeleton" style="height:52px;margin-bottom:6px"></div>
+          <div class="skeleton" style="height:52px"></div>
+        </div>
+      </div>
+
+      <!-- Story tab -->
+      <div class="tab-pane" id="tab-story">
+        <div id="story-content">
+          <div class="empty-state">
+            <div class="empty-state-icon">🎭</div>
+            <div>Story Experience biến galaxy của bạn thành một cuộc trò chuyện cảm xúc trước khi người nhận bước vào.</div>
+          </div>
+          <button class="btn-story" id="story-setup-btn">✦ Tạo Story Experience</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="panel-footer">
+      <button class="btn-share" id="share-btn">
+        🔗 Sao chép link chia sẻ
+      </button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script src="js/galaxy-setup.js"></script>
+</body>
+</html>
