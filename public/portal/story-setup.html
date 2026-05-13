@@ -33,6 +33,7 @@
     /* ── SE Preview pane ── */
     #preview-pane {
       flex: 1; position: relative; overflow: hidden;
+      isolation: isolate;
       background:
         radial-gradient(ellipse 80% 55% at 50% 10%, rgba(109,40,217,0.22) 0%, transparent 60%),
         radial-gradient(ellipse 50% 40% at 80% 90%, rgba(30,60,160,0.1) 0%, transparent 60%),
@@ -41,22 +42,39 @@
 
     /* Photo background layer */
     #preview-photos {
-      position: absolute; inset: 0; z-index: 0;
-      transition: opacity 0.6s ease;
+      position: absolute; inset: 0; z-index: 1;
     }
     .preview-photo-bg {
       position: absolute; inset: 0;
       background-size: cover; background-position: center;
-      opacity: 0;
-      animation: photoBgIn 0.8s ease forwards;
+      opacity: 0; transition: opacity 1s ease;
     }
-    @keyframes photoBgIn { from { opacity: 0; } to { opacity: 0.22; } }
 
-    /* Canvas effect layer */
+    /* Bottom text overlay — mirrors SE viewer */
+    #se-bottom {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
+      padding: 80px 36px 36px;
+      background: linear-gradient(to top, rgba(4,4,12,0.95) 0%, rgba(4,4,12,0.6) 50%, transparent 100%);
+      pointer-events: none;
+    }
+    #se-bottom-label {
+      font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(255,255,255,0.5); font-family: 'Jost', sans-serif;
+      margin-bottom: 12px;
+    }
+    #se-bottom-hook {
+      font-family: 'Georgia', serif; font-style: italic;
+      font-size: clamp(17px, 2.2vw, 26px);
+      color: #fff; line-height: 1.55;
+      text-shadow: 0 1px 12px rgba(0,0,0,0.6);
+    }
+
+    /* Canvas effect layer — subtle on top of photo */
     #se-canvas {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
-      pointer-events: none; z-index: 1;
+      pointer-events: none; z-index: 2;
+      opacity: 0.4;
     }
 
     /* CSS stars */
@@ -76,7 +94,11 @@
       align-items: center; justify-content: center;
       text-align: center; padding: 24px;
       pointer-events: none;
+      transition: opacity 0.5s;
     }
+    /* Hide center overlay when photo is shown */
+    #preview-pane.has-photo #se-center { opacity: 0; }
+    #preview-pane.has-photo #se-bottom { opacity: 1; }
     #preview-label {
       font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
       color: rgba(255,255,255,0.25); font-family: 'Jost', sans-serif;
@@ -294,6 +316,10 @@
   <div id="preview-pane">
     <div id="preview-photos"></div>
     <canvas id="se-canvas"></canvas>
+    <div id="se-bottom">
+      <div id="se-bottom-label"></div>
+      <div id="se-bottom-hook"></div>
+    </div>
     <div id="se-center">
       <div id="preview-label">✦ Story Experience</div>
       <div id="preview-name">—</div>
@@ -392,25 +418,55 @@
       if (occasion)   document.getElementById('preview-occasion').textContent = occasion.toUpperCase();
     };
 
-    // ── Photo preview update — instant background on file select ───
-    const _previewObjectURLs = [];
-    window.setPreviewPhotos = function(files) {
-      // Revoke old URLs
-      _previewObjectURLs.forEach(u => URL.revokeObjectURL(u));
-      _previewObjectURLs.length = 0;
+    // ── Photo preview: 1 ảnh duy nhất, cross-fade khi đổi chapter ──
+    const _objURLs = [];
 
+    function showSinglePhoto(url) {
       const wrap = document.getElementById('preview-photos');
-      wrap.replaceChildren();
+      if (!url) {
+        [...wrap.children].forEach(c => { c.style.opacity = '0'; setTimeout(() => c.remove(), 1000); });
+        document.getElementById('se-center').style.opacity = '1';
+        return;
+      }
+      const div = document.createElement('div');
+      div.className = 'preview-photo-bg';
+      div.style.backgroundImage = `url(${url})`;
+      wrap.appendChild(div);
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        div.style.opacity = '0.9';
+        [...wrap.children].forEach(c => {
+          if (c === div) return;
+          c.style.opacity = '0';
+          setTimeout(() => c.remove(), 1100);
+        });
+      }));
+      document.getElementById('preview-pane').classList.add('has-photo');
+    }
 
-      const arr = Array.from(files).slice(-1); // show last selected photo as bg
-      arr.forEach(file => {
-        const url = URL.createObjectURL(file);
-        _previewObjectURLs.push(url);
-        const div = document.createElement('div');
-        div.className = 'preview-photo-bg';
-        div.style.backgroundImage = `url(${url})`;
-        wrap.appendChild(div);
-      });
+    // Slideshow only when chapter has multiple photos
+    let _slideTimer = null;
+    function startChapterPreview(urls) {
+      clearInterval(_slideTimer);
+      if (!urls.length) { showSinglePhoto(null); return; }
+      showSinglePhoto(urls[0]);
+      if (urls.length > 1) {
+        let idx = 0;
+        _slideTimer = setInterval(() => {
+          idx = (idx + 1) % urls.length;
+          showSinglePhoto(urls[idx]);
+        }, 3500);
+      }
+    }
+
+    // From server URLs
+    window.setPreviewPhotoUrls = urls => startChapterPreview(urls || []);
+
+    // From file select
+    window.setPreviewPhotos = files => {
+      _objURLs.forEach(u => URL.revokeObjectURL(u));
+      _objURLs.length = 0;
+      const urls = Array.from(files).map(f => { const u = URL.createObjectURL(f); _objURLs.push(u); return u; });
+      startChapterPreview(urls);
     };
 
     // ── Panel toggle ───────────────────────────────────────

@@ -27,7 +27,16 @@ class GalleryService {
       throw new errorResponse({ message: 'error while fetching gallery items', statusCode: 404 });
     }
 
-    const STAGE_ORDER = { intro: 0, memory: 1, highlight: 2, ending: 3 };
+    const STAGE_ORDER = {
+      // position 0 — chapter đầu
+      intro: 0, departure: 0, past: 0,
+      // position 1 — chapter giữa / memories
+      memory: 1, memories: 1, moments: 1, journey: 1,
+      // position 2 — highlight (optional)
+      highlight: 2,
+      // position 3 — chapter cuối
+      ending: 3, hope: 3, reveal: 3,
+    };
     const hasStages = galleryItems.some(item => item.stage);
     if (hasStages) {
       galleryItems.sort((a, b) => {

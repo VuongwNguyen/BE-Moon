@@ -139,6 +139,33 @@ async function saveStoryMeta(occasion) {
   if (!res.ok) throw new Error(`Save story failed: ${res.status}`);
 }
 
+// ── Left preview helpers ──────────────────────────────────────────────────────
+
+function showChapterPreview(chapter, chapterIdx, totalChapters) {
+  const localFiles = chapterFiles[chapter.id];
+  if (localFiles && localFiles.length) {
+    // Local selection takes priority (instant preview of new upload)
+    window.setPreviewPhotos?.(localFiles);
+  } else {
+    // Fall back to server photo as baseline when switching chapters
+    const serverUrls = window._galleryByChapter?.[chapter.id] || [];
+    window.setPreviewPhotoUrls?.(serverUrls);
+  }
+  // Set bottom text directly — skip window bridge to avoid timing issues
+  const occasionCfg = STORY_CONFIG?.[selectedStoryType]?.occasions?.[selectedOccasion];
+  const hookText = window._dbChapterHooks?.[chapter.id]
+    || chapter.hooks?.[0]
+    || chapter.label;
+  const labelEl = document.getElementById('se-bottom-label');
+  const hookEl  = document.getElementById('se-bottom-hook');
+  if (labelEl) {
+    const num = String(chapterIdx + 1).padStart(2, '0');
+    const tot = String(totalChapters).padStart(2, '0');
+    labelEl.textContent = [(occasionCfg?.label || selectedOccasion || '').toUpperCase(), `${num} / ${tot}`].filter(Boolean).join(' · ');
+  }
+  if (hookEl) hookEl.textContent = hookText || '';
+}
+
 // ── Chapter card builder ──────────────────────────────────────────────────────
 
 function buildChapterCard(chapter, chapterIdx, totalChapters) {
@@ -202,15 +229,14 @@ function buildChapterCard(chapter, chapterIdx, totalChapters) {
     renderPhotos();
     nextBtn.disabled = false;
     scrollBottom();
-    // Instant left preview update
-    const allFiles = Object.values(chapterFiles).flat();
-    window.setPreviewPhotos?.(allFiles);
+    // Left preview: only show THIS chapter's photos
+    window.setPreviewPhotos?.(chapterFiles[chapter.id] || []);
   });
 
   // Hook hint (read-only, no textarea)
   const hookHint = document.createElement('div');
   hookHint.className = 'ch-hook-hint';
-  hookHint.textContent = chapter.hooks[0];
+  hookHint.textContent = window._dbChapterHooks?.[chapter.id] || chapter.hooks?.[0] || '';
   card.appendChild(hookHint);
 
   wrap.appendChild(card);
@@ -230,7 +256,8 @@ function buildChapterCard(chapter, chapterIdx, totalChapters) {
 // ── Chapter runners ───────────────────────────────────────────────────────────
 
 async function runChapter(chapter, chapterIdx, totalChapters) {
-  await typingThen(null, chapter.hooks[0]);
+  showChapterPreview(chapter, chapterIdx, totalChapters);
+  await typingThen(null, window._dbChapterHooks?.[chapter.id] || chapter.hooks?.[0] || chapter.label);
   const { wrap, nextBtn } = buildChapterCard(chapter, chapterIdx, totalChapters);
   appendEl(wrap);
   await new Promise((resolve, reject) => {
@@ -250,6 +277,7 @@ async function runChapter(chapter, chapterIdx, totalChapters) {
 }
 
 async function runOptionalChapter(chapter, chapterIdx, totalChapters, occasion) {
+  showChapterPreview(chapter, chapterIdx, totalChapters);
   const question = OPTIONAL_QUESTIONS[chapter.id]?.[occasion]
     || `Có ${chapter.label.toLowerCase()} nào bạn muốn thêm không?`;
   await typingThen(question);
@@ -293,7 +321,8 @@ async function runOptionalChapter(chapter, chapterIdx, totalChapters, occasion) 
 }
 
 async function runLastChapter(chapter, chapterIdx, totalChapters) {
-  await typingThen(null, chapter.hooks[0]);
+  showChapterPreview(chapter, chapterIdx, totalChapters);
+  await typingThen(null, window._dbChapterHooks?.[chapter.id] || chapter.hooks?.[0] || chapter.label);
   const { wrap, nextBtn } = buildChapterCard(chapter, chapterIdx, totalChapters);
   nextBtn.textContent = 'Hoàn thành ✓';
   nextBtn.classList.add('done');
@@ -335,6 +364,26 @@ async function init() {
   document.getElementById('galaxy-name').textContent = gName;
   document.getElementById('back-link').href = `/portal/galaxy-setup.html?galaxyId=${galaxyId}`;
   window.updateSEPreview?.(null, null, gName);
+
+  // Store DB hookText per chapter (user customized in v1, null in v2)
+  window._dbChapterHooks = {};
+  (galaxy.chapters || []).forEach(ch => {
+    if (ch.hookText) window._dbChapterHooks[ch.id] = ch.hookText;
+  });
+
+  // Load gallery grouped by chapter (stage)
+  const galleryRes = await fetch(`/gallary/my-items?galaxyId=${galaxyId}`, {
+    headers: { Authorization: 'Bearer ' + token },
+  });
+  if (galleryRes.ok) {
+    const items = (await galleryRes.json()).meta || [];
+    const byChapter = {};
+    items.forEach(item => {
+      if (!byChapter[item.stage]) byChapter[item.stage] = [];
+      byChapter[item.stage].push(item.imageUrl);
+    });
+    window._galleryByChapter = byChapter;
+  }
 
   // ── Edit mode: galaxy đã có story → skip setup, vào edit chapters ──
   if (galaxy.storyType && galaxy.occasion) {
