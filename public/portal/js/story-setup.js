@@ -204,23 +204,11 @@ function buildChapterCard(chapter, chapterIdx, totalChapters) {
     scrollBottom();
   });
 
-  // Hook textarea
-  const hookSection = document.createElement('div');
-  hookSection.className = 'ch-hook-section';
-  const hookLabel = document.createElement('div');
-  hookLabel.className = 'ch-hook-label';
-  hookLabel.textContent = 'Lời dẫn (tuỳ chọn)';
-  const hookTA = document.createElement('textarea');
-  hookTA.className = 'ch-hook-textarea';
-  hookTA.placeholder = chapter.hooks[0];
-  hookTA.rows = 2;
-  hookTA.value = chapterHooks[chapter.id] || '';
-  hookTA.addEventListener('input', () => {
-    chapterHooks[chapter.id] = hookTA.value.trim() || null;
-  });
-  hookSection.appendChild(hookLabel);
-  hookSection.appendChild(hookTA);
-  card.appendChild(hookSection);
+  // Hook hint (read-only, no textarea)
+  const hookHint = document.createElement('div');
+  hookHint.className = 'ch-hook-hint';
+  hookHint.textContent = chapter.hooks[0];
+  card.appendChild(hookHint);
 
   wrap.appendChild(card);
 
@@ -340,10 +328,39 @@ async function init() {
   STORY_CONFIG = await cfgRes.json();
   const galaxy = (await galaxyRes.json()).meta;
 
-  document.getElementById('galaxy-name').textContent = galaxy.name || 'Galaxy';
-  document.getElementById('back-link').href = `/portal/galaxy.html?galaxyId=${galaxyId}`;
+  const gName = galaxy.name || 'Galaxy';
+  document.getElementById('galaxy-name').textContent = gName;
+  document.getElementById('back-link').href = `/portal/galaxy-setup.html?galaxyId=${galaxyId}`;
+  window.updateSEPreview?.(null, null, gName);
 
-  // Step 1 — Story type
+  // ── Edit mode: galaxy đã có story → skip setup, vào edit chapters ──
+  if (galaxy.storyType && galaxy.occasion) {
+    selectedStoryType = galaxy.storyType;
+    selectedOccasion  = galaxy.occasion;
+
+    const typeLabel = STORY_CONFIG[galaxy.storyType]?.labelVi || galaxy.storyType;
+    const occLabel  = STORY_CONFIG[galaxy.storyType]?.occasions?.[galaxy.occasion]?.label || galaxy.occasion;
+    window.updateSEPreview?.(galaxy.storyType, occLabel, gName);
+
+    await typingThen(`Câu chuyện "${occLabel}" đã được tạo ✓`, null, 400);
+    await typingThen('Bạn muốn chỉnh sửa chương nào?');
+
+    const chapters = STORY_CONFIG[galaxy.storyType].occasions[galaxy.occasion].chapters;
+    for (let i = 0; i < chapters.length; i++) {
+      const ch = chapters[i];
+      const isLast = i === chapters.length - 1;
+      if (isLast) {
+        await runLastChapter(ch, i, chapters.length);
+      } else if (ch.required) {
+        await runChapter(ch, i, chapters.length);
+      } else {
+        await runOptionalChapter(ch, i, chapters.length, selectedOccasion);
+      }
+    }
+    return;
+  }
+
+  // Step 1 — Story type (new setup)
   await typingThen('Câu chuyện này thuộc loại nào?', null, 500);
 
   const typeWrap = document.createElement('div');
@@ -365,6 +382,7 @@ async function init() {
         setTimeout(() => {
           appendUMsg(chip.textContent);
           typeWrap.querySelectorAll('.chip').forEach(c => { c.style.pointerEvents = 'none'; });
+          window.updateSEPreview?.(chip.dataset.id, null, null);
           resolve(chip.dataset.id);
         }, 200);
       });
@@ -394,6 +412,7 @@ async function init() {
         setTimeout(() => {
           appendUMsg(chip.textContent);
           chipsWrap.querySelectorAll('.chip').forEach(c => { c.style.pointerEvents = 'none'; });
+          window.updateSEPreview?.(selectedStoryType, chip.textContent, null);
           resolve(chip.dataset.id);
         }, 200);
       });
