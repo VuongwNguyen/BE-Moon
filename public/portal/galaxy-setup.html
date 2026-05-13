@@ -6,7 +6,6 @@
   <title>Setup Galaxy — Lumora</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -36,9 +35,18 @@
     #preview-pane {
       flex: 1; position: relative; overflow: hidden; background: #04040c;
     }
-    #galaxy-canvas {
+    #galaxy-frame {
       position: absolute; inset: 0;
-      width: 100%; height: 100%; display: block;
+      width: 100%; height: 100%; border: none; display: block;
+    }
+    #preview-caption {
+      position: absolute; top: 24px; left: 0; right: 0;
+      text-align: center; pointer-events: none; z-index: 10;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(22px, 3vw, 36px); font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      text-shadow: 0 2px 24px rgba(0,0,0,0.7);
+      letter-spacing: 0.04em;
     }
 
     /* ── Panel ── */
@@ -350,20 +358,62 @@
         border-left: none; border-top: 1px solid var(--border-accent);
       }
     }
+    .btn-delete-galaxy {
+      position: absolute; top: 16px; right: 16px;
+      padding: 5px 10px; border-radius: var(--r-sm);
+      background: transparent; border: 1px solid rgba(248,113,113,0.25);
+      color: rgba(248,113,113,0.5); font-size: 11px; cursor: pointer;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-delete-galaxy:hover { background: rgba(248,113,113,0.1); border-color: #f87171; color: #f87171; }
+    .caption-section { padding: 16px 0; }
+    .caption-hint { font-size: 12px; color: var(--text-sub); margin-bottom: 14px; line-height: 1.5; }
+    .caption-input-row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .caption-input-row input {
+      flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--border-accent);
+      border-radius: var(--r-sm); padding: 9px 12px; color: var(--text); font-size: 13px; outline: none;
+    }
+    .caption-input-row input:focus { border-color: var(--accent); }
+    .caption-input-row button {
+      padding: 9px 16px; border-radius: var(--r-sm); background: var(--accent);
+      color: #fff; font-size: 13px; font-weight: 500; white-space: nowrap;
+      border: none; cursor: pointer;
+    }
+    .caption-input-row button:hover { background: #7c3aed; }
+    .caption-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 12px; border-radius: var(--r-sm);
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      margin-bottom: 6px; font-size: 13px;
+    }
+    .caption-item span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .caption-item button {
+      background: none; border: none; color: rgba(255,255,255,0.3);
+      cursor: pointer; font-size: 16px; padding: 0 0 0 8px; line-height: 1;
+    }
+    .caption-item button:hover { color: #f87171; }
+    .caption-drag {
+      cursor: grab; color: rgba(255,255,255,0.25); font-size: 14px;
+      padding-right: 8px; flex-shrink: 0; user-select: none;
+    }
+    .caption-item.dragging { opacity: 0.4; }
+    .caption-item.drag-over { border-color: var(--accent); background: rgba(139,92,246,0.12); }
   </style>
 </head>
 <body>
 
   <div id="preview-pane">
-    <canvas id="galaxy-canvas"></canvas>
+    <iframe id="galaxy-frame" src="" title="Galaxy Preview"></iframe>
+    <div id="preview-caption"></div>
     <button id="panel-toggle" title="Ẩn/hiện panel">◀</button>
   </div>
 
   <div id="setup-panel">
     <!-- Header -->
-    <div class="panel-header">
+    <div class="panel-header" style="position:relative">
       <a href="/portal/" class="back-link" id="back-link">← Portal</a>
       <div class="panel-galaxy-name" id="galaxy-name">Đang tải...</div>
+      <button class="btn-delete-galaxy" id="delete-galaxy-btn">🗑 Xóa</button>
     </div>
 
     <!-- Body -->
@@ -402,6 +452,7 @@
         <button class="tab-btn ge-tab" data-tab="photos">Ảnh</button>
         <button class="tab-btn ge-tab" data-tab="theme">Theme</button>
         <button class="tab-btn ge-tab" data-tab="music">Nhạc</button>
+        <button class="tab-btn ge-tab" data-tab="caption">Caption</button>
       </div>
 
       <!-- Photos tab -->
@@ -438,6 +489,18 @@
         </div>
       </div>
 
+      <!-- Caption tab -->
+      <div class="tab-pane" id="tab-caption">
+        <div class="caption-section">
+          <p class="caption-hint">Caption hiển thị dạng vòng text 3D trong galaxy.</p>
+          <div class="caption-input-row">
+            <input id="caption-input" type="text" placeholder="Add caption..." maxlength="60" />
+            <button id="caption-add-btn">Add</button>
+          </div>
+          <div id="caption-list"></div>
+        </div>
+      </div>
+
       <!-- Story tab -->
       <div class="tab-pane active" id="tab-story">
         <div id="story-content">
@@ -462,7 +525,6 @@
 
   <div id="toast"></div>
 
-  <script src="js/galaxy-viewer.js"></script>
   <script src="js/galaxy-setup.js"></script>
 </body>
 </html>

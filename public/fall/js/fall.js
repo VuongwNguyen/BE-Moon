@@ -583,7 +583,8 @@ function makePolaroidFromTex(tex, col, colOffsets, zPos) {
 
 
 // ── Camera fall state ──────────────────────────────────────────────────────
-let started = false;
+const _autostart = new URLSearchParams(location.search).get('autostart') === 'true';
+let started = _autostart; // skip intro immediately in preview mode
 let fallSpeed = 0;
 const TARGET_SPEED = 0.06;
 const ACCEL = 0.0004;
@@ -620,6 +621,11 @@ intro.addEventListener('click', () => {
   const el = document.documentElement;
   (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen)?.call(el);
 });
+
+// Hide intro immediately in preview mode
+if (_autostart) {
+  intro.style.display = 'none';
+}
 
 // ── Main init ──────────────────────────────────────────────────────────────
 async function init() {

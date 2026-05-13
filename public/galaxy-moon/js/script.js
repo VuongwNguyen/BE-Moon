@@ -1478,6 +1478,25 @@ async function main() {
 
   renderer.domElement.addEventListener("click", onCanvasClick);
 
+  // Auto-start when embedded as preview — skip animation, jump to final position
+  if (new URLSearchParams(location.search).get('autostart') === 'true') {
+    setTimeout(() => {
+      if (!introStarted) {
+        introStarted = true;
+        fadeInProgress = true;
+        fadeOpacity = 1;
+        camera.position.set(-40, 100, 100);
+        camera.lookAt(0, 0, 0);
+        controls.target.set(0, 0, 0);
+        controls.update();
+        controls.enabled = true;
+        planet.visible = false;
+        if (starField && starField.geometry) starField.geometry.setDrawRange(0, originalStarCount);
+        document.body.classList.add('intro-started');
+      }
+    }, 800);
+  }
+
   animate();
 
   planet.name = "main-planet";

@@ -10,7 +10,42 @@ let galleryItems = [];
 let themes       = [];
 let musics       = [];
 let currentAudio = null;
-let viewer       = null;
+let userPlan     = 'free'; // 'free' | 'plus' | 'pro'
+
+const PLAN_RANK = { free: 0, plus: 1, pro: 2 };
+function canUse(minPlan) { return PLAN_RANK[userPlan] >= PLAN_RANK[minPlan]; }
+
+function applySubLocks() {
+  const locks = [
+    { tabId: 'tab-theme',   paneId: 'tab-theme',   min: 'plus', label: 'Plus',  desc: 'Chọn giao diện cho galaxy' },
+    { tabId: 'tab-music',   paneId: 'tab-music',   min: 'pro',  label: 'Pro',   desc: 'Thêm nhạc nền cho galaxy' },
+    { tabId: 'tab-caption', paneId: 'tab-caption', min: 'pro',  label: 'Pro',   desc: 'Thêm caption vòng 3D' },
+  ];
+  locks.forEach(({ tabId, paneId, min, label, desc }) => {
+    if (canUse(min)) return;
+    // Dim tab button
+    const btn = document.querySelector(`.tab-btn[data-tab="${tabId.replace('tab-','')}"]`);
+    if (btn) { btn.style.opacity = '0.45'; btn.title = `Yêu cầu ${label}`; }
+    // Overlay pane with upgrade CTA
+    const pane = document.getElementById(paneId);
+    if (!pane) return;
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'padding:32px 20px;text-align:center;';
+    overlay.innerHTML = `<div style="font-size:28px;margin-bottom:12px">🔒</div>
+      <div style="font-size:14px;color:rgba(237,233,248,0.7);margin-bottom:6px">${desc}</div>
+      <div style="font-size:12px;color:rgba(237,233,248,0.4);margin-bottom:20px">Yêu cầu gói <strong style="color:#c4b5fd">${label}</strong></div>
+      <a href="/portal/upgrade" style="display:inline-block;padding:9px 20px;background:#8b5cf6;color:#fff;border-radius:8px;font-size:13px;text-decoration:none">Nâng cấp →</a>`;
+    pane.replaceChildren(overlay);
+  });
+}
+
+const frame = document.getElementById('galaxy-frame');
+
+function refreshPreview() {
+  const template = galaxy?.template || 'galaxy';
+  const base = template === 'fall' ? '/fall/' : '/view/';
+  frame.src = `${base}?galaxyId=${galaxyId}&skip_se=true&autostart=true&_t=${Date.now()}`;
+}
 
 const toast = document.getElementById('toast');
 
@@ -32,12 +67,6 @@ function el(tag, cls, text) {
 }
 
 function clear(node) { node.replaceChildren(); }
-
-function initViewer() {
-  const canvas = document.getElementById('galaxy-canvas');
-  if (!canvas || !window.GalaxyLiveViewer) return;
-  viewer = new GalaxyLiveViewer(canvas);
-}
 
 // ── Checklist ──────────────────────────────────────────────
 
@@ -68,7 +97,6 @@ function updateChecklist() {
 // ── Gallery ────────────────────────────────────────────────
 
 function renderGallery() {
-  if (viewer) viewer.setPhotos(galleryItems); // instant live update
   const grid = document.getElementById('gallery-grid');
   clear(grid);
   galleryItems.forEach(item => {
@@ -179,7 +207,6 @@ async function applyTheme(themeId, name) {
   updateChecklist();
   // Instant live update
   const th = themes.find(t => t._id === themeId);
-  if (viewer) viewer.setTheme(th?.colors || {});
   try {
     await fetch(`/galaxies/${galaxyId}`, {
       method: 'PUT',
@@ -187,6 +214,7 @@ async function applyTheme(themeId, name) {
       body: JSON.stringify({ themeId }),
     });
     showToast(themeId ? `✓ Đã chọn: ${name}` : '✓ Đã bỏ giao diện');
+    refreshPreview();
   } catch { showToast('Lưu thất bại'); galaxy.themeId = null; renderThemes(); }
 }
 
@@ -247,7 +275,85 @@ async function applyMusic(musicId, name) {
       body: JSON.stringify({ backgroundMusicId: musicId }),
     });
     showToast(musicId ? `✓ Đã chọn: ${name}` : '✓ Đã bỏ nhạc nền');
+    refreshPreview();
   } catch { showToast('Lưu thất bại'); }
+}
+
+// ── Caption ────────────────────────────────────────────────
+
+function renderCaptions() {
+  const list = document.getElementById('caption-list');
+  if (!list) return;
+  list.replaceChildren();
+  (galaxy.caption || []).forEach((text, i) => {
+    const item = el('div', 'caption-item');
+    item.draggable = true;
+    item.dataset.idx = i;
+
+    const handle = el('span', 'caption-drag', '⠿');
+    handle.title = 'Kéo để sắp xếp';
+    item.appendChild(handle);
+    item.appendChild(el('span', null, text));
+    const del = el('button', null, '✕');
+    del.onclick = () => deleteCaption(i);
+    item.appendChild(del);
+    list.appendChild(item);
+  });
+
+  // Drag-to-reorder
+  let dragIdx = null;
+  list.querySelectorAll('.caption-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+      dragIdx = parseInt(item.dataset.idx);
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', () => item.classList.remove('dragging'));
+    item.addEventListener('dragover', e => {
+      e.preventDefault();
+      item.classList.add('drag-over');
+    });
+    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+    item.addEventListener('drop', async e => {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      const dropIdx = parseInt(item.dataset.idx);
+      if (dragIdx === null || dragIdx === dropIdx) return;
+      const arr = [...(galaxy.caption || [])];
+      const [moved] = arr.splice(dragIdx, 1);
+      arr.splice(dropIdx, 0, moved);
+      galaxy.caption = arr;
+      renderCaptions();
+      try { await saveCaption(galaxy.caption); } catch { showToast('Lưu thất bại'); }
+    });
+  });
+}
+
+async function saveCaption(captions) {
+  await fetch(`/galaxies/${galaxyId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    body: JSON.stringify({ caption: captions }),
+  });
+  refreshPreview();
+}
+
+async function addCaption() {
+  const input = document.getElementById('caption-input');
+  const text = input.value.trim();
+  if (!text) return;
+  galaxy.caption = [...(galaxy.caption || []), text];
+  input.value = '';
+  renderCaptions();
+  try { await saveCaption(galaxy.caption); showToast('✓ Đã thêm caption'); }
+  catch { showToast('Lưu thất bại'); }
+}
+
+async function deleteCaption(idx) {
+  galaxy.caption = (galaxy.caption || []).filter((_, i) => i !== idx);
+  renderCaptions();
+  try { await saveCaption(galaxy.caption); }
+  catch { showToast('Lưu thất bại'); }
 }
 
 // ── Story ──────────────────────────────────────────────────
@@ -314,11 +420,12 @@ function switchTab(tabId) {
 
 async function init() {
   try {
-    const [galaxyRes, galleryRes, themesRes, musicsRes] = await Promise.all([
+    const [galaxyRes, galleryRes, themesRes, musicsRes, subRes] = await Promise.all([
       fetch(`/galaxies/${galaxyId}`, { headers: { Authorization: 'Bearer ' + token } }),
       fetch(`/gallary/my-items?galaxyId=${galaxyId}`, { headers: { Authorization: 'Bearer ' + token } }),
       fetch('/media/themes'),
       fetch('/media/musics'),
+      fetch('/payment/status', { headers: { Authorization: 'Bearer ' + token } }),
     ]);
 
     if (!galaxyRes.ok) { window.location.href = '/portal/'; return; }
@@ -327,33 +434,28 @@ async function init() {
     const galleryData  = galleryRes.ok  ? await galleryRes.json()  : {};
     const themesData   = themesRes.ok   ? await themesRes.json()   : {};
     const musicsData   = musicsRes.ok   ? await musicsRes.json()   : {};
+    const subData      = subRes.ok      ? await subRes.json()      : {};
 
     galaxy       = galaxyData.meta;
     galleryItems = galleryData.meta  || [];
     themes       = themesData.meta   || [];
     musics       = musicsData.meta   || [];
+    userPlan     = subData.meta?.plan || 'free';
 
     document.getElementById('galaxy-name').textContent = galaxy.name || 'Galaxy';
+    document.getElementById('preview-caption').textContent = galaxy.name || 'Galaxy';
     document.title = `${galaxy.name || 'Galaxy'} — Lumora`;
     document.getElementById('back-link').href = `/portal/galaxy.html?galaxyId=${galaxyId}`;
 
-    frame.src = `/view/?galaxyId=${galaxyId}&skip_se=true`;
-    frame.onload = () => frame.classList.remove('loading');
-
-    initViewer();
-
-    // Apply initial theme & photos to viewer
-    const initTheme = themes.find(t => t._id === galaxy.themeId);
-    if (viewer) {
-      viewer.setTheme(initTheme?.colors || {});
-      viewer.setPhotos(galleryItems);
-    }
+    refreshPreview();
 
     renderGallery();
     renderThemes();
     renderMusics();
     renderStory();
+    renderCaptions();
     updateChecklist();
+    applySubLocks();
 
     // Always start on Story tab — SE comes first
     switchTab('story');
@@ -402,5 +504,26 @@ toggleBtn.onclick = () => {
   const collapsed = panel.classList.toggle('collapsed');
   toggleBtn.textContent = collapsed ? '▶' : '◀';
 };
+
+document.getElementById('delete-galaxy-btn').onclick = async () => {
+  if (!confirm('Xóa galaxy này? Hành động không thể hoàn tác.')) return;
+  try {
+    const res = await fetch(`/galaxies/${galaxyId}`, {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer ' + token },
+    });
+    if (res.ok) {
+      showToast('Đã xóa galaxy');
+      setTimeout(() => { window.location.href = '/portal/'; }, 1000);
+    } else {
+      showToast('Xóa thất bại');
+    }
+  } catch { showToast('Lỗi kết nối'); }
+};
+
+document.getElementById('caption-add-btn').onclick = addCaption;
+document.getElementById('caption-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addCaption();
+});
 
 init();

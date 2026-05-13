@@ -23,10 +23,33 @@ let selectedOccasion = null;
 const chapterFiles = {};
 const chapterHooks = {};
 
+// ── Chip prompt helper ────────────────────────────────────────────────────────
+
+function askChips(options) {
+  return new Promise(resolve => {
+    const wrap = document.createElement('div');
+    wrap.className = 'chips-wrap';
+    options.forEach(opt => {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = opt.label;
+      chip.addEventListener('click', () => {
+        wrap.querySelectorAll('.chip').forEach(c => { c.classList.remove('on'); c.style.pointerEvents = 'none'; });
+        chip.classList.add('on');
+        if (opt.id !== '__cancel__') appendUMsg(opt.label);
+        setTimeout(() => resolve(opt.id), 200);
+      });
+      wrap.appendChild(chip);
+    });
+    chat.appendChild(wrap);
+    scrollBottom();
+  });
+}
+
 // ── DOM helpers ───────────────────────────────────────────────────────────────
 
 function scrollBottom() {
-  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' });
 }
 
 function makeLRow() {
@@ -111,7 +134,17 @@ async function typingThen(text, italicText, delayMs = 700) {
 
 async function saveChapter(chapterId) {
   const files = chapterFiles[chapterId] || [];
-  if (!files.length) return;
+  if (!files.length) return; // no new files — keep existing
+
+  // Delete old photos for this chapter before uploading new ones (replace semantics)
+  const oldIds = window._galleryIdsByChapter?.[chapterId] || [];
+  await Promise.all(oldIds.map(id =>
+    fetch(`/gallary/items/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer ' + token },
+    })
+  ));
+
   const form = new FormData();
   form.append('galaxyId', galaxyId);
   form.append('title', 'Uploaded image');
@@ -124,6 +157,22 @@ async function saveChapter(chapterId) {
     body: form,
   });
   if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+}
+
+let _hookSaveTimer;
+async function saveHookText() {
+  clearTimeout(_hookSaveTimer);
+  _hookSaveTimer = setTimeout(async () => {
+    const chapters = STORY_CONFIG[selectedStoryType].occasions[selectedOccasion].chapters.map(ch => ({
+      id: ch.id,
+      hookText: chapterHooks[ch.id] || null,
+    }));
+    await fetch(`/galaxies/${galaxyId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ chapters }),
+    });
+  }, 800);
 }
 
 async function saveStoryMeta(occasion) {
@@ -144,16 +193,18 @@ async function saveStoryMeta(occasion) {
 function showChapterPreview(chapter, chapterIdx, totalChapters) {
   const localFiles = chapterFiles[chapter.id];
   if (localFiles && localFiles.length) {
-    // Local selection takes priority (instant preview of new upload)
+    // Local selection takes priority — clear immediately, then load async
+    window.setPreviewPhotoUrls?.([]); // clears slideshow + increments gen counter
     window.setPreviewPhotos?.(localFiles);
   } else {
-    // Fall back to server photo as baseline when switching chapters
+    // Show server photos for THIS chapter only (keyed by stage = chapter.id)
     const serverUrls = window._galleryByChapter?.[chapter.id] || [];
     window.setPreviewPhotoUrls?.(serverUrls);
   }
   // Set bottom text directly — skip window bridge to avoid timing issues
   const occasionCfg = STORY_CONFIG?.[selectedStoryType]?.occasions?.[selectedOccasion];
-  const hookText = window._dbChapterHooks?.[chapter.id]
+  const hookText = chapterHooks[chapter.id]
+    || window._dbChapterHooks?.[chapter.id]
     || chapter.hooks?.[0]
     || chapter.label;
   const labelEl = document.getElementById('se-bottom-label');
@@ -168,7 +219,7 @@ function showChapterPreview(chapter, chapterIdx, totalChapters) {
 
 // ── Chapter card builder ──────────────────────────────────────────────────────
 
-function buildChapterCard(chapter, chapterIdx, totalChapters) {
+function buildChapterCard(chapter, chapterIdx, totalChapters, editMode = false) {
   const wrap = document.createElement('div');
 
   const card = document.createElement('div');
@@ -184,6 +235,8 @@ function buildChapterCard(chapter, chapterIdx, totalChapters) {
   title.textContent = chapter.label;
   head.appendChild(num);
   head.appendChild(title);
+  head.style.cursor = 'pointer';
+  head.addEventListener('click', () => showChapterPreview(chapter, chapterIdx, totalChapters));
   card.appendChild(head);
 
   const photosEl = document.createElement('div');
@@ -197,19 +250,26 @@ function buildChapterCard(chapter, chapterIdx, totalChapters) {
   fileInput.style.display = 'none';
   card.appendChild(fileInput);
 
-  function renderPhotos() {
-    photosEl.querySelectorAll('img').forEach(img => URL.revokeObjectURL(img.src));
+  function fileToDataUrl(file) {
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function renderPhotos() {
     photosEl.replaceChildren();
     const files = chapterFiles[chapter.id] || [];
-    files.forEach(file => {
+    for (const file of files) {
       const ph = document.createElement('div');
       ph.className = 'ch-ph';
       const img = document.createElement('img');
-      img.src = URL.createObjectURL(file);
+      img.src = await fileToDataUrl(file);
       img.alt = '';
       ph.appendChild(img);
       photosEl.appendChild(ph);
-    });
+    }
     if (files.length < chapter.photoCount.max) {
       const addPh = document.createElement('div');
       addPh.className = 'ch-ph';
@@ -228,25 +288,53 @@ function buildChapterCard(chapter, chapterIdx, totalChapters) {
     chapterFiles[chapter.id] = merged;
     renderPhotos();
     nextBtn.disabled = false;
-    scrollBottom();
-    // Left preview: only show THIS chapter's photos
-    window.setPreviewPhotos?.(chapterFiles[chapter.id] || []);
+    if (!editMode) scrollBottom();
+    showChapterPreview(chapter, chapterIdx, totalChapters);
   });
 
-  // Hook hint (read-only, no textarea)
-  const hookHint = document.createElement('div');
-  hookHint.className = 'ch-hook-hint';
-  hookHint.textContent = window._dbChapterHooks?.[chapter.id] || chapter.hooks?.[0] || '';
-  card.appendChild(hookHint);
+  const hookInput = document.createElement('textarea');
+  hookInput.className = 'ch-hook-input';
+  hookInput.rows = 2;
+  hookInput.placeholder = chapter.hooks?.[0] || 'Câu hook cho chương này...';
+  hookInput.value = chapterHooks[chapter.id] || window._dbChapterHooks?.[chapter.id] || '';
+  hookInput.addEventListener('input', () => {
+    chapterHooks[chapter.id] = hookInput.value;
+    // Update left preview hook text live
+    const hookEl = document.getElementById('se-bottom-hook');
+    if (hookEl) hookEl.textContent = hookInput.value || hookInput.placeholder;
+    saveHookText();
+  });
+  card.appendChild(hookInput);
 
   wrap.appendChild(card);
 
   const actionRow = document.createElement('div');
   actionRow.className = 'action-row';
   const nextBtn = document.createElement('button');
-  nextBtn.className = 'btn-next';
-  nextBtn.disabled = chapter.required;
-  nextBtn.textContent = 'Tiếp →';
+
+  if (editMode) {
+    nextBtn.className = 'btn-next';
+    nextBtn.disabled = true;
+    nextBtn.textContent = '↑ Lưu ảnh';
+    nextBtn.addEventListener('click', async () => {
+      nextBtn.disabled = true;
+      nextBtn.textContent = 'Đang lưu…';
+      try {
+        await saveChapter(chapter.id);
+        nextBtn.textContent = '✓ Đã lưu';
+        chapterFiles[chapter.id] = [];
+        setTimeout(() => { nextBtn.textContent = '↑ Lưu ảnh'; nextBtn.disabled = true; }, 2000);
+      } catch {
+        nextBtn.disabled = false;
+        nextBtn.textContent = '↑ Lưu ảnh';
+      }
+    });
+  } else {
+    nextBtn.className = 'btn-next';
+    nextBtn.disabled = chapter.required;
+    nextBtn.textContent = 'Tiếp →';
+  }
+
   actionRow.appendChild(nextBtn);
   wrap.appendChild(actionRow);
 
@@ -378,11 +466,16 @@ async function init() {
   if (galleryRes.ok) {
     const items = (await galleryRes.json()).meta || [];
     const byChapter = {};
+    const idsByChapter = {};
     items.forEach(item => {
-      if (!byChapter[item.stage]) byChapter[item.stage] = [];
-      byChapter[item.stage].push(item.imageUrl);
+      const s = item.stage || '__none__';
+      if (!byChapter[s]) byChapter[s] = [];
+      if (!idsByChapter[s]) idsByChapter[s] = [];
+      byChapter[s].push(item.imageUrl);
+      idsByChapter[s].push(item._id);
     });
     window._galleryByChapter = byChapter;
+    window._galleryIdsByChapter = idsByChapter;
   }
 
   // ── Edit mode: galaxy đã có story → skip setup, vào edit chapters ──
@@ -395,21 +488,94 @@ async function init() {
     window.updateSEPreview?.(galaxy.storyType, occLabel, gName);
 
     await typingThen(`Câu chuyện "${occLabel}" đã được tạo ✓`, null, 400);
-    await typingThen('Bạn muốn chỉnh sửa chương nào?');
 
-    const chapters = STORY_CONFIG[galaxy.storyType].occasions[galaxy.occasion].chapters;
-    for (let i = 0; i < chapters.length; i++) {
-      const ch = chapters[i];
-      const isLast = i === chapters.length - 1;
-      if (isLast) {
-        await runLastChapter(ch, i, chapters.length);
-      } else if (ch.required) {
-        await runChapter(ch, i, chapters.length);
-      } else {
-        await runOptionalChapter(ch, i, chapters.length, selectedOccasion);
+    let chapters = STORY_CONFIG[galaxy.storyType].occasions[galaxy.occasion].chapters;
+    showChapterPreview(chapters[0], 0, chapters.length);
+
+    // ── Conversational edit loop ──
+    while (true) {
+      await typingThen('Bạn muốn chỉnh sửa gì?');
+
+      const action = await askChips([
+        { id: 'photos', label: '📸 Sửa ảnh' },
+        { id: 'hook',   label: '✍️ Sửa hook text' },
+        { id: 'story',  label: '📖 Sửa câu chuyện' },
+        { id: 'done',   label: 'Xong rồi ✓' },
+      ]);
+
+      if (action === 'done') {
+        await typingThen('Tuyệt! Galaxy đã sẵn sàng 🌙');
+        await wait(1200);
+        window.location.href = `/portal/galaxy-setup.html?galaxyId=${galaxyId}`;
+        return;
       }
+
+      // ── Story type / occasion change ──
+      if (action === 'story') {
+        await typingThen('Chọn loại câu chuyện:');
+        const typeOpts = Object.entries(STORY_CONFIG).map(([id, cfg]) => ({ id, label: cfg.labelVi || cfg.label }));
+        typeOpts.push({ id: '__cancel__', label: '← Hủy' });
+        const newType = await askChips(typeOpts);
+        if (newType === '__cancel__') continue;
+
+        await typingThen('Chọn dịp:');
+        const occOpts = Object.entries(STORY_CONFIG[newType].occasions).map(([id, cfg]) => ({ id, label: cfg.label }));
+        occOpts.push({ id: '__cancel__', label: '← Hủy' });
+        const newOcc = await askChips(occOpts);
+        if (newOcc === '__cancel__') continue;
+
+        const newOccLabel = STORY_CONFIG[newType].occasions[newOcc].label;
+        await fetch(`/galaxies/${galaxyId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+          body: JSON.stringify({ storyType: newType, occasion: newOcc, chapters: [] }),
+        });
+        selectedStoryType = newType;
+        selectedOccasion  = newOcc;
+        chapters = STORY_CONFIG[newType].occasions[newOcc].chapters;
+        window.updateSEPreview?.(newType, newOccLabel, null);
+        showChapterPreview(chapters[0], 0, chapters.length);
+        await typingThen(`✓ Đã đổi sang "${newOccLabel}"`);
+        continue;
+      }
+
+      // Pick chapter
+      await typingThen(action === 'photos' ? 'Chương nào bạn muốn sửa ảnh?' : 'Chương nào bạn muốn sửa hook?');
+
+      const chOpts = chapters.map((ch, i) => ({ id: String(i), label: ch.label }));
+      chOpts.push({ id: '__cancel__', label: '← Hủy' });
+
+      const chChoice = await askChips(chOpts);
+      if (chChoice === '__cancel__') continue;
+
+      const chIdx = parseInt(chChoice);
+      const ch = chapters[chIdx];
+      showChapterPreview(ch, chIdx, chapters.length);
+
+      // Show chapter card (photos + hook input)
+      const { wrap } = buildChapterCard(ch, chIdx, chapters.length, true);
+      appendEl(wrap);
+
+      if (action === 'hook') {
+        const ta = wrap.querySelector('.ch-hook-input');
+        if (ta) setTimeout(() => ta.focus(), 150);
+      }
+
+      // Ask what next
+      await typingThen('Đã chỉnh xong chưa?');
+      const next = await askChips([
+        { id: 'more', label: 'Sửa thêm' },
+        { id: 'done', label: 'Xong rồi ✓' },
+      ]);
+
+      if (next === 'done') {
+        await typingThen('Tuyệt! Galaxy đã sẵn sàng 🌙');
+        await wait(1200);
+        window.location.href = `/portal/galaxy-setup.html?galaxyId=${galaxyId}`;
+        return;
+      }
+      // else continue loop
     }
-    return;
   }
 
   // Step 1 — Story type (new setup)

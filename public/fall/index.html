@@ -92,6 +92,11 @@
     <div class="pulse-ring"></div>
     <div class="tap-hint">Chạm để bắt đầu</div>
   </div>
+  <script>
+    if (new URLSearchParams(location.search).get('autostart') === 'true') {
+      document.getElementById('intro').style.display = 'none';
+    }
+  </script>
 
   <button id="btn-audio" class="hidden">🔇</button>
 
