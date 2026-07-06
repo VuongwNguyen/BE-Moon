@@ -34,4 +34,11 @@ router.post('/musics', requireAuth, requireAdmin, asyncHandler(MediaController.c
 router.put('/musics/:id', requireAuth, requireAdmin, asyncHandler(MediaController.updateMusic));
 router.delete('/musics/:id', requireAuth, requireAdmin, asyncHandler(MediaController.deleteMusic));
 
+// SoundCloud
+router.get('/soundcloud/search', requireAuth, requireAdmin, asyncHandler(MediaController.searchSoundCloud));
+router.get('/soundcloud/preview/:trackId', requireAuth, requireAdmin, asyncHandler(MediaController.previewSoundCloud));
+
+// Stream nhạc nền (public) — redirect về nguồn thật
+router.get('/musics/:id/stream', asyncHandler(MediaController.streamMusic));
+
 module.exports = router;

@@ -34,6 +34,10 @@ class MediaService {
   async deleteMusic(id) {
     return BackgroundMusicModel.findByIdAndUpdate(id, { status: 'inactive' });
   }
+
+  async getMusicById(id) {
+    return BackgroundMusicModel.findById(id);
+  }
 }
 
 module.exports = new MediaService();

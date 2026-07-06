@@ -1,4 +1,5 @@
 const MediaService = require('../services/media.service');
+const SoundCloudService = require('../services/soundcloud.service');
 const { successfullyResponse, errorResponse } = require('../context/responseHandle');
 
 class MediaController {
@@ -47,6 +48,30 @@ class MediaController {
       return next(new errorResponse({ message: 'Upload failed', statusCode: 400 }));
     }
     return new successfullyResponse({ message: 'Music uploaded', meta: { url: req.musicUrl } }).json(res);
+  }
+
+  async searchSoundCloud(req, res, next) {
+    const q = (req.query.q || '').trim();
+    if (!q) return new successfullyResponse({ message: 'Empty query', meta: [] }).json(res);
+    const tracks = await SoundCloudService.searchTracks(q);
+    return new successfullyResponse({ message: 'SoundCloud search', meta: tracks }).json(res);
+  }
+
+  async previewSoundCloud(req, res, next) {
+    const url = await SoundCloudService.getStreamUrl(req.params.trackId);
+    return res.redirect(302, url);
+  }
+
+  async streamMusic(req, res, next) {
+    const music = await MediaService.getMusicById(req.params.id);
+    if (!music || music.status !== 'active') {
+      return next(new errorResponse({ message: 'Music not found', statusCode: 404 }));
+    }
+    if (music.source === 'soundcloud') {
+      const url = await SoundCloudService.getStreamUrl(music.trackId);
+      return res.redirect(302, url);
+    }
+    return res.redirect(302, music.url);
   }
 }
 
