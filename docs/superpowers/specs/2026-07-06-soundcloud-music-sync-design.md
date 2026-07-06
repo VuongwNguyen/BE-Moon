@@ -58,3 +58,23 @@
 - User tự thêm nhạc SoundCloud riêng (chỉ admin).
 - Tải file về ImageKit (vi phạm terms).
 - Playlist/nhiều bài cho một galaxy.
+
+---
+
+## Bản sửa đổi 2026-07-06 (chiều): chuyển sang Widget miễn phí
+
+**Lý do:** SoundCloud yêu cầu Artist Pro (trả phí) mới tạo được API app. Chuyển sang oEmbed + Widget API — miễn phí, không cần key.
+
+### Thay đổi kiến trúc
+
+1. **Admin flow đổi từ search → dán link**: admin dán URL track SoundCloud → `GET /media/soundcloud/resolve?url=` (admin) → server gọi `https://soundcloud.com/oembed?format=json&url=...` (không cần key) → trả `{permalink, trackId, title, artist, artworkUrl}` (trackId parse từ iframe src trong oembed html, có thể rỗng). Chống SSRF: chỉ chấp nhận hostname `soundcloud.com` / `on.soundcloud.com`.
+2. **Model**: thêm `permalink: String` (required khi source=soundcloud thay cho trackId; trackId thành optional).
+3. **Phát nhạc qua Widget**: file mới `public/shared/js/sc-widget-audio.js` export `window.createGalaxyAudio(url)`:
+   - url chứa `soundcloud.com` → trả object giả lập HTMLAudioElement (play/pause/paused/loop/volume/muted/preload + onplay/onpause/oncanplay...) bọc SC.Widget iframe ẩn (`https://w.soundcloud.com/player/?url=<permalink>`), tự load `w.soundcloud.com/player/api.js` một lần, loop qua event FINISH→seekTo(0)+play, volume 0-1 → setVolume 0-100.
+   - ngược lại → `new Audio(url)`.
+4. **4 viewer** (galaxy-moon/story/aurora/fall index.html): thêm `<script src="/shared/js/sc-widget-audio.js">` và đổi `new Audio(url)` → `window.createGalaxyAudio(url)` trong musicManager. Không đổi gì khác.
+5. **galaxy.service view map**: soundcloud → `url = permalink` (bỏ map sang /stream).
+6. **galaxy-setup tab Nhạc**: bài soundcloud preview bằng adapter (m.permalink), bài upload giữ `/media/musics/:id/stream`.
+7. **CSP** (index.js): thêm `frameSrc: ["'self'", "https://w.soundcloud.com"]`, scriptSrc thêm `https://w.soundcloud.com`.
+8. **Giữ nguyên**: endpoint search/preview/stream cũ (dùng lại được nếu sau này có key), stream endpoint vẫn 503 cho soundcloud khi không key — không còn chỗ nào gọi tới nhánh đó.
+9. **Admin preview**: nhúng thẳng iframe oembed html vào modal (widget hiển thị được là chứng minh track phát được).
