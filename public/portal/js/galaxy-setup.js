@@ -240,7 +240,7 @@ function renderMusics() {
     const item = el('div', 'music-item' + (galaxy.backgroundMusicId === m._id ? ' selected' : ''));
 
     const playBtn = el('div', 'music-play', '▶');
-    playBtn.onclick = (e) => { e.stopPropagation(); togglePreviewMusic(m.url, playBtn); };
+    playBtn.onclick = (e) => { e.stopPropagation(); togglePreviewMusic(`/media/musics/${m._id}/stream`, playBtn); };
 
     const info = el('div', 'music-info');
     info.appendChild(el('div', 'music-name', m.name));
