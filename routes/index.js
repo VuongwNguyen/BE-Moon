@@ -7,5 +7,6 @@ router.use("/galaxies", require("./galaxies.routes"));
 router.use("/media", require("./media.routes"));
 router.use("/payment", require("./payment.routes"));
 router.use("/admin", require("./admin.routes"));
+router.use("/llm", require("./llm.routes"));
 
 module.exports = router;

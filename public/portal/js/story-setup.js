@@ -112,6 +112,16 @@ function appendEl(el) {
   scrollBottom();
 }
 
+function appendErrMsg(text) {
+  const row = makeLRow();
+  const bubble = document.createElement('div');
+  bubble.className = 'lbubble err-bubble';
+  bubble.textContent = text;
+  row.appendChild(bubble);
+  chat.appendChild(row);
+  scrollBottom();
+}
+
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 async function typingThen(text, italicText, delayMs = 700) {
@@ -132,9 +142,14 @@ async function typingThen(text, italicText, delayMs = 700) {
 
 // ── API ───────────────────────────────────────────────────────────────────────
 
+const MAX_UPLOAD_SIZE = 20 * 1024 * 1024; // 20MB — must match server limit
+
 async function saveChapter(chapterId) {
   const files = chapterFiles[chapterId] || [];
   if (!files.length) return; // no new files — keep existing
+
+  const oversized = files.find(f => f.size > MAX_UPLOAD_SIZE);
+  if (oversized) throw new Error(`Ảnh "${oversized.name}" quá lớn. Tối đa 20MB mỗi ảnh.`);
 
   // Delete old photos for this chapter before uploading new ones (replace semantics)
   const oldIds = window._galleryIdsByChapter?.[chapterId] || [];
@@ -156,7 +171,14 @@ async function saveChapter(chapterId) {
     headers: { Authorization: 'Bearer ' + token },
     body: form,
   });
-  if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+  if (!res.ok) {
+    let msg = `Upload thất bại (${res.status})`;
+    try {
+      const body = await res.json();
+      if (body.message) msg = body.message;
+    } catch {}
+    throw new Error(msg);
+  }
 }
 
 let _hookSaveTimer;
@@ -348,19 +370,21 @@ async function runChapter(chapter, chapterIdx, totalChapters) {
   await typingThen(null, window._dbChapterHooks?.[chapter.id] || chapter.hooks?.[0] || chapter.label);
   const { wrap, nextBtn } = buildChapterCard(chapter, chapterIdx, totalChapters);
   appendEl(wrap);
-  await new Promise((resolve, reject) => {
-    nextBtn.addEventListener('click', async () => {
+  await new Promise(resolve => {
+    async function attempt() {
       nextBtn.disabled = true;
       nextBtn.textContent = 'Đang lưu…';
       try {
         await saveChapter(chapter.id);
         resolve();
       } catch (err) {
+        appendErrMsg(err.message);
         nextBtn.disabled = false;
         nextBtn.textContent = 'Tiếp →';
-        reject(err);
+        nextBtn.addEventListener('click', attempt, { once: true });
       }
-    }, { once: true });
+    }
+    nextBtn.addEventListener('click', attempt, { once: true });
   });
 }
 
@@ -391,19 +415,21 @@ async function runOptionalChapter(chapter, chapterIdx, totalChapters, occasion) 
     const { wrap, nextBtn } = buildChapterCard(chapter, chapterIdx, totalChapters);
     nextBtn.disabled = false;
     appendEl(wrap);
-    await new Promise((resolve, reject) => {
-      nextBtn.addEventListener('click', async () => {
+    await new Promise(resolve => {
+      async function attempt() {
         nextBtn.disabled = true;
         nextBtn.textContent = 'Đang lưu…';
         try {
           await saveChapter(chapter.id);
           resolve();
         } catch (err) {
+          appendErrMsg(err.message);
           nextBtn.disabled = false;
           nextBtn.textContent = 'Tiếp →';
-          reject(err);
+          nextBtn.addEventListener('click', attempt, { once: true });
         }
-      }, { once: true });
+      }
+      nextBtn.addEventListener('click', attempt, { once: true });
     });
   }
 }
@@ -415,8 +441,8 @@ async function runLastChapter(chapter, chapterIdx, totalChapters) {
   nextBtn.textContent = 'Hoàn thành ✓';
   nextBtn.classList.add('done');
   appendEl(wrap);
-  await new Promise((resolve, reject) => {
-    nextBtn.addEventListener('click', async () => {
+  await new Promise(resolve => {
+    async function attempt() {
       nextBtn.disabled = true;
       nextBtn.textContent = 'Đang lưu…';
       try {
@@ -427,11 +453,13 @@ async function runLastChapter(chapter, chapterIdx, totalChapters) {
         window.location.href = `/portal/galaxy.html?galaxyId=${galaxyId}`;
         resolve();
       } catch (err) {
+        appendErrMsg(err.message);
         nextBtn.disabled = false;
         nextBtn.textContent = 'Hoàn thành ✓';
-        reject(err);
+        nextBtn.addEventListener('click', attempt, { once: true });
       }
-    }, { once: true });
+    }
+    nextBtn.addEventListener('click', attempt, { once: true });
   });
 }
 
