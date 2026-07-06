@@ -77,7 +77,7 @@ class GalaxyService {
   async getGalaxyView(galaxyId) {
     const galaxy = await GalaxyModel.findById(galaxyId)
       .populate("themeId", "name colors")
-      .populate("backgroundMusicId", "name url");
+      .populate("backgroundMusicId", "name url source");
     if (!galaxy || galaxy.status !== "active") {
       throw new errorResponse({ message: "Galaxy not found", statusCode: 404 });
     }
@@ -86,7 +86,14 @@ class GalaxyService {
       name: galaxy.name,
       caption: galaxy.caption,
       theme: galaxy.themeId || null,
-      music: galaxy.backgroundMusicId || null,
+      music: galaxy.backgroundMusicId
+        ? {
+            name: galaxy.backgroundMusicId.name,
+            url: galaxy.backgroundMusicId.source === "soundcloud"
+              ? `/media/musics/${galaxy.backgroundMusicId._id}/stream`
+              : galaxy.backgroundMusicId.url,
+          }
+        : null,
       template: galaxy.template || 'galaxy',
       storyType: galaxy.storyType || null,
       occasion: galaxy.occasion || null,
