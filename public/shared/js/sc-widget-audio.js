@@ -83,14 +83,23 @@
 
     play() {
       this._wantPlay = true;
+      this.paused = false; // optimistic — event PLAY của widget có thể trễ
       if (this._ready && this._widget) this._widget.play();
       return Promise.resolve();
     }
 
     pause() {
       this._wantPlay = false;
+      this.paused = true;
       if (this._ready && this._widget) this._widget.pause();
-      else this.paused = true;
+    }
+
+    destroy() {
+      this._wantPlay = false;
+      this.paused = true;
+      try { if (this._widget) this._widget.pause(); } catch (e) {}
+      if (this._iframe) { this._iframe.remove(); this._iframe = null; }
+      this._widget = null;
     }
 
     get loop() { return this._loop; }

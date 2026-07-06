@@ -257,8 +257,9 @@ function togglePreviewMusic(url, btn) {
   if (currentAudio && !currentAudio.paused) {
     currentAudio.pause();
     document.querySelectorAll('.music-play').forEach(b => b.textContent = '▶');
-    if (currentAudio.src.includes(url)) { currentAudio = null; return; }
+    if (currentAudio.src.includes(url)) { currentAudio.destroy?.(); currentAudio = null; return; }
   }
+  currentAudio?.destroy?.(); // gỡ iframe/widget cũ trước khi tạo bài mới
   currentAudio = window.createGalaxyAudio(url);
   currentAudio.play();
   btn.textContent = '■';
