@@ -57,6 +57,13 @@ class MediaController {
     return new successfullyResponse({ message: 'SoundCloud search', meta: tracks }).json(res);
   }
 
+  async resolveSoundCloud(req, res, next) {
+    const url = (req.query.url || '').trim();
+    if (!url) return next(new errorResponse({ message: 'Thiếu url', statusCode: 400 }));
+    const track = await SoundCloudService.resolveByUrl(url);
+    return new successfullyResponse({ message: 'SoundCloud resolved', meta: track }).json(res);
+  }
+
   async previewSoundCloud(req, res, next) {
     const url = await SoundCloudService.getStreamUrl(req.params.trackId);
     return res.redirect(302, url);

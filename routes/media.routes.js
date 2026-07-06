@@ -36,6 +36,7 @@ router.delete('/musics/:id', requireAuth, requireAdmin, asyncHandler(MediaContro
 
 // SoundCloud
 router.get('/soundcloud/search', requireAuth, requireAdmin, asyncHandler(MediaController.searchSoundCloud));
+router.get('/soundcloud/resolve', requireAuth, requireAdmin, asyncHandler(MediaController.resolveSoundCloud));
 router.get('/soundcloud/preview/:trackId', requireAuth, requireAdmin, asyncHandler(MediaController.previewSoundCloud));
 
 // Stream nhạc nền (public) — redirect về nguồn thật

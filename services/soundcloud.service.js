@@ -90,6 +90,55 @@ class SoundCloudService {
     if (!url) throw new errorResponse({ message: "Track không cho phép stream", statusCode: 404 });
     return url;
   }
+
+  // oEmbed công khai — không cần API key
+  async resolveByUrl(trackUrl) {
+    let parsed;
+    try {
+      parsed = new URL(trackUrl);
+    } catch {
+      throw new errorResponse({ message: "Link không hợp lệ", statusCode: 400 });
+    }
+    const host = parsed.hostname.replace(/^www\./, "");
+    // Chống SSRF: chỉ chấp nhận link soundcloud
+    if (host !== "soundcloud.com" && host !== "on.soundcloud.com") {
+      throw new errorResponse({ message: "Chỉ chấp nhận link soundcloud.com", statusCode: 400 });
+    }
+    let res;
+    try {
+      res = await axios.get("https://soundcloud.com/oembed", {
+        params: { format: "json", url: trackUrl },
+        timeout: 15000,
+      });
+    } catch (err) {
+      if (err.response?.status === 404 || err.response?.status === 403) {
+        throw new errorResponse({ message: "Không tìm thấy track (link sai hoặc track private)", statusCode: 404 });
+      }
+      throw err;
+    }
+    const d = res.data || {};
+    // trackId nằm trong query string của iframe src: ...url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F123456...
+    // Chỉ decode giá trị src (không decode nguyên html vì các thuộc tính khác như width="100%" chứa "%" đứng riêng, làm decodeURIComponent throw)
+    let trackId = "";
+    const srcMatch = (d.html || "").match(/src="([^"]+)"/);
+    if (srcMatch) {
+      try {
+        const decodedSrc = decodeURIComponent(srcMatch[1]);
+        const m = decodedSrc.match(/api\.soundcloud\.com\/tracks\/(\d+)/);
+        if (m) trackId = m[1];
+      } catch {
+        // ignore malformed src, trackId sẽ để rỗng
+      }
+    }
+    return {
+      permalink: trackUrl,
+      trackId,
+      title: (d.title || "").replace(/ by .*$/, ""),
+      artist: d.author_name || "",
+      artworkUrl: d.thumbnail_url || "",
+      embedHtml: d.html || "",
+    };
+  }
 }
 
 module.exports = new SoundCloudService();

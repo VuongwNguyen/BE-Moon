@@ -44,13 +44,14 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdnjs.cloudflare.com", "https://w.soundcloud.com"],
       scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
       mediaSrc: ["'self'", "https://ik.imagekit.io"],
       connectSrc: ["'self'"],
+      frameSrc: ["'self'", "https://w.soundcloud.com"],
       // null = tắt directive này; khi có SSL thì set HTTPS=true trong .env để bật lại
       upgradeInsecureRequests: hasSSL ? [] : null,
     },

@@ -18,6 +18,9 @@ const backgroundMusicSchema = new Schema({
   },
   trackId: {
     type: String,
+  },
+  permalink: {
+    type: String,
     required: function () { return this.source === "soundcloud"; },
   },
   artist: { type: String, trim: true },
