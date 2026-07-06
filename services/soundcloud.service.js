@@ -10,6 +10,7 @@ class SoundCloudService {
   constructor() {
     this.token = null;
     this.tokenExpiresAt = 0;
+    this._tokenPromise = null;
   }
 
   isConfigured() {
@@ -25,7 +26,13 @@ class SoundCloudService {
   async getToken() {
     this.assertConfigured();
     if (this.token && Date.now() < this.tokenExpiresAt - 60000) return this.token;
+    if (!this._tokenPromise) {
+      this._tokenPromise = this._fetchToken().finally(() => { this._tokenPromise = null; });
+    }
+    return this._tokenPromise;
+  }
 
+  async _fetchToken() {
     const body = new URLSearchParams({ grant_type: "client_credentials" });
     const res = await axios.post(TOKEN_URL, body.toString(), {
       auth: { username: process.env.SOUNDCLOUD_CLIENT_ID, password: process.env.SOUNDCLOUD_CLIENT_SECRET },

@@ -28,7 +28,7 @@ class MediaService {
   }
 
   async updateMusic(id, data) {
-    return BackgroundMusicModel.findByIdAndUpdate(id, data, { new: true });
+    return BackgroundMusicModel.findByIdAndUpdate(id, data, { new: true, runValidators: true, context: 'query' });
   }
 
   async deleteMusic(id) {
