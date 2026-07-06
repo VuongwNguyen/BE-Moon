@@ -116,6 +116,7 @@
     <script type="module" src="./js/script.js"></script>
 
     <!-- Khởi tạo Music Manager -->
+    <script src="/shared/js/sc-widget-audio.js"></script>
     <script>
         const musicManager = {
             audio: null,
@@ -133,7 +134,7 @@
                     return;
                 }
 
-                this.audio = new Audio(url);
+                this.audio = window.createGalaxyAudio(url);
                 this.audio.loop = true;
                 this.audio.volume = 0.7;
                 this.audio.preload = "auto";

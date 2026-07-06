@@ -240,7 +240,8 @@ function renderMusics() {
     const item = el('div', 'music-item' + (galaxy.backgroundMusicId === m._id ? ' selected' : ''));
 
     const playBtn = el('div', 'music-play', '▶');
-    playBtn.onclick = (e) => { e.stopPropagation(); togglePreviewMusic(`/media/musics/${m._id}/stream`, playBtn); };
+    const previewSrc = m.source === 'soundcloud' ? m.permalink : `/media/musics/${m._id}/stream`;
+    playBtn.onclick = (e) => { e.stopPropagation(); togglePreviewMusic(previewSrc, playBtn); };
 
     const info = el('div', 'music-info');
     info.appendChild(el('div', 'music-name', m.name));
@@ -258,7 +259,7 @@ function togglePreviewMusic(url, btn) {
     document.querySelectorAll('.music-play').forEach(b => b.textContent = '▶');
     if (currentAudio.src.includes(url)) { currentAudio = null; return; }
   }
-  currentAudio = new Audio(url);
+  currentAudio = window.createGalaxyAudio(url);
   currentAudio.play();
   btn.textContent = '■';
   currentAudio.onended = () => { btn.textContent = '▶'; };
