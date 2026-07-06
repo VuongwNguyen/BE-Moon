@@ -8,8 +8,20 @@ const backgroundMusicSchema = new Schema({
   },
   url: {
     type: String,
-    required: true,
+    // Chỉ bắt buộc với nhạc upload; nhạc SoundCloud resolve stream URL lúc phát
+    required: function () { return this.source !== "soundcloud"; },
   },
+  source: {
+    type: String,
+    enum: ["upload", "soundcloud"],
+    default: "upload",
+  },
+  trackId: {
+    type: String,
+    required: function () { return this.source === "soundcloud"; },
+  },
+  artist: { type: String, trim: true },
+  artworkUrl: { type: String },
   status: {
     type: String,
     enum: ["active", "inactive"],
