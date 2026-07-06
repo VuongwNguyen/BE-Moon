@@ -391,12 +391,15 @@ async function loadMusics() {
     const data = await api('/media/musics');
     const musics = data.meta || [];
     if (!musics.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">No music yet</td></tr>'; return; }
-    tbody.innerHTML = musics.map(m => `<tr>
+    tbody.innerHTML = musics.map(m => {
+      const urlDisplay = m.url || (m.trackId ? `soundcloud: ${m.trackId}` : '—');
+      return `<tr>
       <td>${esc(m.name)}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.4);font-size:12px" title="${esc(m.url)}">${esc(m.url)}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.4);font-size:12px" title="${esc(urlDisplay)}">${esc(urlDisplay)}</td>
       <td><span class="badge ${m.status === 'active' ? 'badge-active' : 'badge-inactive'}">${esc(m.status)}</span></td>
       <td><button class="btn btn-danger btn-sm" onclick="deleteMusic('${esc(m._id)}')">Delete</button></td>
-    </tr>`).join('');
+    </tr>`;
+    }).join('');
   } catch (e) { toast(e.message, 'error'); }
 }
 
@@ -443,6 +446,73 @@ document.getElementById('btn-save-music').addEventListener('click', async () => 
   } catch (e) { toast(e.message, 'error'); }
   btn.disabled = false; btn.textContent = 'Save';
 });
+
+// ── SoundCloud sync ───────────────────────────────
+let scPreviewAudio = null;
+let scTracks = [];
+
+document.getElementById('btn-add-soundcloud').addEventListener('click', () => {
+  document.getElementById('sc-modal').classList.add('open');
+});
+document.getElementById('btn-sc-close').addEventListener('click', () => {
+  document.getElementById('sc-modal').classList.remove('open');
+  if (scPreviewAudio) { scPreviewAudio.pause(); scPreviewAudio = null; }
+});
+
+async function scSearch() {
+  const q = document.getElementById('sc-query').value.trim();
+  const box = document.getElementById('sc-results');
+  if (!q) return;
+  box.innerHTML = '<div class="loading">Đang tìm…</div>';
+  try {
+    const data = await api(`/media/soundcloud/search?q=${encodeURIComponent(q)}`);
+    scTracks = data.meta || [];
+    if (!scTracks.length) { box.innerHTML = '<div class="empty">Không tìm thấy bài nào.</div>'; return; }
+    box.innerHTML = scTracks.map((t, i) => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;border-bottom:1px solid rgba(255,255,255,0.06)">
+        <img src="${esc(t.artworkUrl || '')}" onerror="this.style.visibility='hidden'" style="width:40px;height:40px;border-radius:6px;object-fit:cover;background:rgba(255,255,255,0.06)" />
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.title)}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4)">${esc(t.artist)} · ${Math.round(t.duration / 60000)} phút</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="scPreview('${esc(t.trackId)}', this)">▶</button>
+        <button class="btn btn-primary btn-sm" onclick="scAdd(${i})">Thêm</button>
+      </div>`).join('');
+  } catch (e) { box.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+document.getElementById('btn-sc-search').addEventListener('click', scSearch);
+document.getElementById('sc-query').addEventListener('keydown', (e) => { if (e.key === 'Enter') scSearch(); });
+
+async function scPreview(trackId, btn) {
+  if (scPreviewAudio) {
+    scPreviewAudio.pause(); scPreviewAudio = null;
+    const wasPlaying = btn.dataset.playing === trackId;
+    document.querySelectorAll('#sc-results button.btn-ghost').forEach(b => { b.textContent = '▶'; delete b.dataset.playing; });
+    if (wasPlaying) return;
+  }
+  try {
+    // <audio> không gửi được header Authorization → fetch blob rồi phát
+    const res = await fetch(`/media/soundcloud/preview/${trackId}`, { headers: { Authorization: 'Bearer ' + token } });
+    if (!res.ok) throw new Error('Không phát được bản nghe thử');
+    const blob = await res.blob();
+    scPreviewAudio = new Audio(URL.createObjectURL(blob));
+    scPreviewAudio.play();
+    btn.textContent = '■';
+    btn.dataset.playing = trackId;
+    scPreviewAudio.onended = () => { btn.textContent = '▶'; delete btn.dataset.playing; };
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function scAdd(index) {
+  const t = scTracks[index];
+  try {
+    await api('/media/musics', { method: 'POST', body: JSON.stringify({
+      name: t.title, artist: t.artist, source: 'soundcloud', trackId: t.trackId, artworkUrl: t.artworkUrl,
+    }) });
+    toast('Đã thêm từ SoundCloud!');
+    loadMusics();
+  } catch (e) { toast(e.message, 'error'); }
+}
 
 // ── Analytics ─────────────────────────────────────
 let cancelChart = null;

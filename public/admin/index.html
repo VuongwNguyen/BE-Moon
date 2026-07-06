@@ -273,6 +273,7 @@
         <div class="table-header">
           <h3>Background Music</h3>
           <button class="btn btn-primary btn-sm" id="btn-add-music">+ Add Music</button>
+          <button class="btn btn-primary btn-sm" id="btn-add-soundcloud">☁ SoundCloud</button>
         </div>
         <table>
           <thead><tr><th>Name</th><th>URL</th><th>Status</th><th></th></tr></thead>
@@ -353,6 +354,21 @@
       <div class="modal-actions">
         <button class="btn btn-ghost" id="btn-cancel-music">Cancel</button>
         <button class="btn btn-primary" id="btn-save-music">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SoundCloud Search Modal -->
+  <div class="modal-overlay" id="sc-modal">
+    <div class="modal" style="max-width:520px">
+      <h3 style="margin-bottom:14px">Tìm nhạc trên SoundCloud</h3>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <input type="text" id="sc-query" placeholder="Tên bài hát / nghệ sĩ…" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 12px;color:#fff;font-size:13px;outline:none" />
+        <button class="btn btn-primary" id="btn-sc-search">Tìm</button>
+      </div>
+      <div id="sc-results" style="max-height:320px;overflow-y:auto"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:14px">
+        <button class="btn btn-ghost" id="btn-sc-close">Đóng</button>
       </div>
     </div>
   </div>
