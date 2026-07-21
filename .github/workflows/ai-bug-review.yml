@@ -1,0 +1,46 @@
+name: AI Bug Review
+
+on:
+  workflow_run:
+    workflows: ["Deploy to VPS"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-bug-review-vps
+  cancel-in-progress: false
+
+jobs:
+  trigger-worker:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger one review for the deployed commit
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          envs: DEPLOYED_SHA
+          script_stop: true
+          command_timeout: 50m
+          script: |
+            set -eu
+            if [ "${#DEPLOYED_SHA}" -ne 40 ]; then
+              echo "Invalid deployed commit SHA" >&2
+              exit 1
+            fi
+            case "$DEPLOYED_SHA" in
+              *[!0-9a-f]*)
+                echo "Invalid deployed commit SHA" >&2
+                exit 1
+                ;;
+            esac
+            sudo -n /usr/local/sbin/be-moon-trigger-review "$DEPLOYED_SHA"
