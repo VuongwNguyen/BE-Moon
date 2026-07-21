@@ -43,7 +43,4 @@ jobs:
                 exit 1
                 ;;
             esac
-            umask 027
-            printf '%s\n' "$DEPLOYED_SHA" > /home/saasbot/automation/be-moon-trigger.sha.tmp
-            mv /home/saasbot/automation/be-moon-trigger.sha.tmp /home/saasbot/automation/be-moon-trigger.sha
-            sudo -n /bin/systemctl start be-moon-worker.service
+            sudo -n /usr/local/sbin/be-moon-trigger-review "$DEPLOYED_SHA"

@@ -1,7 +1,24 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+export PATH="/home/saasbot/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
 [[ "${EUID:-$(id -u)}" -eq 0 ]] || { echo "Run this installer as root" >&2; exit 1; }
+[[ "$#" -eq 1 ]] || { echo "Usage: $0 <vps-ssh-linux-user>" >&2; exit 2; }
+
+readonly SSH_USER="$1"
+[[ "$SSH_USER" =~ ^[a-z_][a-z0-9_-]*[$]?$ ]] || {
+  echo "Invalid Linux username" >&2
+  exit 2
+}
+id "$SSH_USER" >/dev/null 2>&1 || { echo "Linux user does not exist: $SSH_USER" >&2; exit 2; }
+
+for command in git gh codex jq flock node yarn systemctl visudo install; do
+  command -v "$command" >/dev/null 2>&1 || {
+    echo "Missing required command: $command" >&2
+    exit 3
+  }
+done
 
 readonly REPO="/home/saasbot/work/BE-Moon"
 readonly AUTOMATION_DIR="/home/saasbot/automation"
@@ -9,6 +26,8 @@ readonly AUTOMATION_DIR="/home/saasbot/automation"
 install -d -o saasbot -g saasbot -m 0750 "$AUTOMATION_DIR"
 install -o saasbot -g saasbot -m 0750 \
   "$REPO/scripts/ai-bug-review-worker" "$AUTOMATION_DIR/be-moon-worker"
+install -o root -g root -m 0750 \
+  "$REPO/scripts/be-moon-trigger-review" /usr/local/sbin/be-moon-trigger-review
 
 install -o root -g root -m 0644 /dev/stdin /etc/systemd/system/be-moon-worker.service <<'UNIT'
 [Unit]
@@ -31,10 +50,15 @@ Nice=10
 WantedBy=multi-user.target
 UNIT
 
-install -o root -g root -m 0440 /dev/stdin /etc/sudoers.d/be-moon-worker <<'SUDOERS'
-saasbot ALL=(root) NOPASSWD: /bin/systemctl start be-moon-worker.service
-SUDOERS
-
-visudo -cf /etc/sudoers.d/be-moon-worker >/dev/null
+SUDOERS_TMP="$(mktemp /etc/sudoers.d/.be-moon-worker.XXXXXX)"
+cleanup() { rm -f -- "$SUDOERS_TMP"; }
+trap cleanup EXIT
+printf '%s ALL=(root) NOPASSWD: /usr/local/sbin/be-moon-trigger-review *\n' "$SSH_USER" > "$SUDOERS_TMP"
+chown root:root "$SUDOERS_TMP"
+chmod 0440 "$SUDOERS_TMP"
+visudo -cf "$SUDOERS_TMP" >/dev/null
+mv -f -- "$SUDOERS_TMP" /etc/sudoers.d/be-moon-worker
+trap - EXIT
 systemctl daemon-reload
-echo "Installed be-moon-worker (event-driven only; no timer was created or enabled)."
+echo "Installed be-moon-worker; sudo trigger permission granted only to $SSH_USER."
+echo "Event-driven only: no timer was created or enabled."
