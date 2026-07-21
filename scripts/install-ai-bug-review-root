@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+[[ "${EUID:-$(id -u)}" -eq 0 ]] || { echo "Run this installer as root" >&2; exit 1; }
+
+readonly REPO="/home/saasbot/work/BE-Moon"
+readonly AUTOMATION_DIR="/home/saasbot/automation"
+
+install -d -o saasbot -g saasbot -m 0750 "$AUTOMATION_DIR"
+install -o saasbot -g saasbot -m 0750 \
+  "$REPO/scripts/ai-bug-review-worker" "$AUTOMATION_DIR/be-moon-worker"
+
+install -o root -g root -m 0644 /dev/stdin /etc/systemd/system/be-moon-worker.service <<'UNIT'
+[Unit]
+Description=BE-Moon event-driven AI bug review worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=saasbot
+Group=saasbot
+WorkingDirectory=/home/saasbot/work/BE-Moon
+Environment=HOME=/home/saasbot
+Environment=PATH=/home/saasbot/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/saasbot/automation/be-moon-worker
+TimeoutStartSec=45min
+Nice=10
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+install -o root -g root -m 0440 /dev/stdin /etc/sudoers.d/be-moon-worker <<'SUDOERS'
+saasbot ALL=(root) NOPASSWD: /bin/systemctl start be-moon-worker.service
+SUDOERS
+
+visudo -cf /etc/sudoers.d/be-moon-worker >/dev/null
+systemctl daemon-reload
+echo "Installed be-moon-worker (event-driven only; no timer was created or enabled)."
