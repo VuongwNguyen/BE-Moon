@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+readonly AUTOMATION_DIR="/home/saasbot/automation"
+readonly TRIGGER_FILE="$AUTOMATION_DIR/be-moon-trigger.sha"
+
+[[ "${EUID:-$(id -u)}" -eq 0 ]] || { echo "This helper must run as root" >&2; exit 1; }
+[[ "$#" -eq 1 ]] || { echo "Expected exactly one Git SHA" >&2; exit 2; }
+readonly DEPLOYED_SHA="$1"
+[[ "$DEPLOYED_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Git SHA" >&2; exit 2; }
+
+TMP_FILE="$(mktemp "$AUTOMATION_DIR/.be-moon-trigger.XXXXXX")"
+cleanup() { rm -f -- "$TMP_FILE"; }
+trap cleanup EXIT
+
+printf '%s\n' "$DEPLOYED_SHA" > "$TMP_FILE"
+chown saasbot:saasbot "$TMP_FILE"
+chmod 0640 "$TMP_FILE"
+mv -f -- "$TMP_FILE" "$TRIGGER_FILE"
+trap - EXIT
+
+/bin/systemctl start be-moon-worker.service
