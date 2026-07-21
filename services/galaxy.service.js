@@ -108,6 +108,13 @@ class GalaxyService {
       throw new errorResponse({ message: "Galaxy not found", statusCode: 404 });
     }
 
+    if (data.name !== undefined) {
+      if (typeof data.name !== "string" || !data.name.trim()) {
+        throw new errorResponse({ message: "name is required", statusCode: 400 });
+      }
+      data.name = data.name.trim();
+    }
+
     if (user.role !== "admin") {
       delete data.template;
 
