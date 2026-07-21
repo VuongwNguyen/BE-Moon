@@ -210,6 +210,95 @@ async function saveStoryMeta(occasion) {
   if (!res.ok) throw new Error(`Save story failed: ${res.status}`);
 }
 
+function setupNameEditor(initialName) {
+  const button = document.getElementById('galaxy-name-button');
+  const nameEl = document.getElementById('galaxy-name');
+  const input = document.getElementById('galaxy-name-input');
+  const status = document.getElementById('galaxy-name-status');
+  let savedName = initialName;
+  let saving = false;
+  let cancelled = false;
+
+  function showEditor() {
+    if (saving) return;
+    cancelled = false;
+    status.textContent = '';
+    status.classList.remove('error');
+    input.value = savedName;
+    button.hidden = true;
+    input.hidden = false;
+    input.focus();
+    input.select();
+  }
+
+  async function finishEditing() {
+    if (saving) return;
+    if (cancelled) {
+      cancelled = false;
+      input.hidden = true;
+      button.hidden = false;
+      button.focus();
+      return;
+    }
+
+    const nextName = input.value.trim();
+    if (!nextName) {
+      status.textContent = 'Tên không được để trống.';
+      status.classList.add('error');
+      input.focus();
+      return;
+    }
+    if (nextName === savedName) {
+      input.hidden = true;
+      button.hidden = false;
+      return;
+    }
+
+    saving = true;
+    input.disabled = true;
+    status.textContent = 'Đang lưu…';
+    status.classList.remove('error');
+    try {
+      const res = await fetch(`/galaxies/${galaxyId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ name: nextName }),
+      });
+      if (!res.ok) throw new Error(`Rename failed: ${res.status}`);
+      const body = await res.json();
+      savedName = body.meta?.name || nextName;
+      nameEl.textContent = savedName;
+      window.updateSEPreview?.(null, null, savedName);
+      status.textContent = '';
+      input.hidden = true;
+      button.hidden = false;
+    } catch (err) {
+      input.value = savedName;
+      status.textContent = 'Không thể lưu tên. Vui lòng thử lại.';
+      status.classList.add('error');
+      input.hidden = true;
+      button.hidden = false;
+    } finally {
+      saving = false;
+      input.disabled = false;
+    }
+  }
+
+  button.addEventListener('click', showEditor);
+  input.addEventListener('blur', finishEditing);
+  input.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      finishEditing();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      cancelled = true;
+      input.value = savedName;
+      input.blur();
+    }
+  });
+}
+
 // ── Left preview helpers ──────────────────────────────────────────────────────
 
 function showChapterPreview(chapter, chapterIdx, totalChapters) {
@@ -478,6 +567,7 @@ async function init() {
 
   const gName = galaxy.name || 'Galaxy';
   document.getElementById('galaxy-name').textContent = gName;
+  setupNameEditor(gName);
   document.getElementById('back-link').href = `/portal/galaxy-setup.html?galaxyId=${galaxyId}`;
   window.updateSEPreview?.(null, null, gName);
 
