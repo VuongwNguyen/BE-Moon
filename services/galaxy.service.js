@@ -113,6 +113,14 @@ class GalaxyService {
         throw new errorResponse({ message: "name is required", statusCode: 400 });
       }
       data.name = data.name.trim();
+      const duplicate = await GalaxyModel.exists({
+        _id: { $ne: galaxyId },
+        userId,
+        name: data.name,
+      });
+      if (duplicate) {
+        throw new errorResponse({ message: "Galaxy name already exists", statusCode: 409 });
+      }
     }
 
     if (user.role !== "admin") {

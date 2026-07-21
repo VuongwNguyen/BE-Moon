@@ -68,6 +68,115 @@ function el(tag, cls, text) {
 
 function clear(node) { node.replaceChildren(); }
 
+// ── Inline galaxy name editor ─────────────────────────────
+
+function setupNameEditor(initialName) {
+  const button = document.getElementById('galaxy-name-button');
+  const nameEl = document.getElementById('galaxy-name');
+  const input = document.getElementById('galaxy-name-input');
+  const status = document.getElementById('galaxy-name-status');
+  let savedName = initialName;
+  let saving = false;
+  let cancelled = false;
+
+  function closeEditor({ restoreFocus = false } = {}) {
+    input.hidden = true;
+    button.hidden = false;
+    if (restoreFocus) button.focus();
+  }
+
+  function showEditor() {
+    if (saving) return;
+    cancelled = false;
+    status.textContent = '';
+    status.classList.remove('error');
+    input.value = savedName;
+    button.hidden = true;
+    input.hidden = false;
+    input.focus();
+    input.select();
+  }
+
+  async function finishEditing() {
+    if (saving) return;
+    if (cancelled) {
+      cancelled = false;
+      input.value = savedName;
+      status.textContent = '';
+      status.classList.remove('error');
+      closeEditor({ restoreFocus: true });
+      return;
+    }
+
+    const nextName = input.value.trim();
+    if (!nextName) {
+      status.textContent = 'Tên galaxy không được để trống.';
+      status.classList.add('error');
+      input.focus();
+      return;
+    }
+    if (nextName === savedName) {
+      status.textContent = '';
+      status.classList.remove('error');
+      closeEditor();
+      return;
+    }
+
+    saving = true;
+    input.disabled = true;
+    status.textContent = 'Đang lưu…';
+    status.classList.remove('error');
+
+    try {
+      const res = await fetch(`/galaxies/${galaxyId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ name: nextName }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const error = new Error(body.message || `Rename failed: ${res.status}`);
+        error.status = res.status;
+        throw error;
+      }
+
+      savedName = body.meta?.name || nextName;
+      galaxy.name = savedName;
+      nameEl.textContent = savedName;
+      document.getElementById('preview-caption').textContent = savedName;
+      document.title = `${savedName} — Lumora`;
+      status.textContent = '';
+      closeEditor();
+      showToast('✓ Đã đổi tên galaxy');
+    } catch (err) {
+      input.disabled = false;
+      const duplicate = err.status === 409 || /already exists|duplicate/i.test(err.message);
+      status.textContent = duplicate
+        ? 'Bạn đã có một galaxy với tên này.'
+        : 'Không thể lưu tên. Vui lòng thử lại.';
+      status.classList.add('error');
+      input.focus();
+      input.select();
+    } finally {
+      saving = false;
+      input.disabled = false;
+    }
+  }
+
+  button.addEventListener('click', showEditor);
+  input.addEventListener('blur', finishEditing);
+  input.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      finishEditing();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      cancelled = true;
+      input.blur();
+    }
+  });
+}
+
 // ── Checklist ──────────────────────────────────────────────
 
 function updateChecklist() {
@@ -448,6 +557,7 @@ async function init() {
     document.getElementById('preview-caption').textContent = galaxy.name || 'Galaxy';
     document.title = `${galaxy.name || 'Galaxy'} — Lumora`;
     document.getElementById('back-link').href = `/portal/galaxy.html?galaxyId=${galaxyId}`;
+    setupNameEditor(galaxy.name || 'Galaxy');
 
     refreshPreview();
 
