@@ -184,6 +184,27 @@
       font-size: 20px; font-weight: 600;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+    #galaxy-name-button {
+      width: 100%; min-width: 0; padding: 3px 6px; margin: -3px -6px;
+      display: flex; align-items: center; gap: 7px;
+      color: var(--text); background: transparent; border: 1px solid transparent;
+      border-radius: 5px; text-align: left; cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    #galaxy-name-button:hover, #galaxy-name-button:focus-visible {
+      background: rgba(139,92,246,0.12); border-color: var(--accent-border);
+      outline: none;
+    }
+    #galaxy-name-button .edit-icon { opacity: 0; flex-shrink: 0; font-size: 12px; color: var(--accent-light); }
+    #galaxy-name-button:hover .edit-icon, #galaxy-name-button:focus-visible .edit-icon { opacity: 0.8; }
+    #galaxy-name-input {
+      width: 100%; padding: 2px 6px; margin: -3px -6px;
+      font: 600 20px 'Cormorant Garamond', serif; color: var(--text);
+      background: rgba(139,92,246,0.12); border: 1px solid var(--accent-light);
+      border-radius: 5px; outline: none;
+    }
+    #galaxy-name-status { min-height: 14px; margin-top: 4px; font-size: 11px; color: var(--text-sub); }
+    #galaxy-name-status.error { color: #fca5a5; }
 
     /* Chat */
     .chat-wrap {
@@ -352,7 +373,11 @@
     <div class="panel-header">
       <a id="back-link" href="/portal/" class="back-btn">← Portal</a>
       <div class="header-eyebrow">✦ Story Experience</div>
-      <div id="galaxy-name">Đang tải…</div>
+      <button id="galaxy-name-button" type="button" aria-label="Đổi tên Story Experience">
+        <span id="galaxy-name">Đang tải…</span><span class="edit-icon" aria-hidden="true">✎</span>
+      </button>
+      <input id="galaxy-name-input" type="text" aria-label="Tên Story Experience" hidden />
+      <div id="galaxy-name-status" role="status" aria-live="polite"></div>
     </div>
     <div class="chat-wrap" id="chat"></div>
   </div>
