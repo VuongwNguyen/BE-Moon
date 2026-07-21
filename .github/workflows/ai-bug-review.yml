@@ -33,14 +33,4 @@ jobs:
           command_timeout: 50m
           script: |
             set -eu
-            if [ "${#DEPLOYED_SHA}" -ne 40 ]; then
-              echo "Invalid deployed commit SHA" >&2
-              exit 1
-            fi
-            case "$DEPLOYED_SHA" in
-              *[!0-9a-f]*)
-                echo "Invalid deployed commit SHA" >&2
-                exit 1
-                ;;
-            esac
             sudo -n /usr/local/sbin/be-moon-trigger-review "$DEPLOYED_SHA"
