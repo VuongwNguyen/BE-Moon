@@ -52,19 +52,33 @@ export function StoryExperience({ galaxyId }: StoryExperienceProps) {
   const effectCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const startedRef = useRef(false);
 
-  // `useState` lazy initializer (not `useMemo`) is the correct primitive here:
-  // React guarantees it runs exactly once per component instance, so the
-  // `Math.random()` calls satisfy the render-purity rule while still only
-  // generating the star field a single time (mirroring the original inline
-  // `<script>` in public/story/index.html that seeds `.se-star` divs once).
-  const [stars] = useState(() =>
-    Array.from({ length: 40 }, () => ({
-      size: Math.random() < 0.3 ? 2 : 1,
-      top: Math.random() * 100,
-      left: Math.random() * 100,
-      opacity: Math.random() * 0.5 + 0.2,
-    })),
-  );
+  // Star positions must NOT be generated during render: this component is
+  // SSR-ed (Next.js renders it once on the server to produce the initial
+  // HTML, then again on the client to hydrate), and a lazy `useState`
+  // initializer runs on both passes. `Math.random()` returns different
+  // values each time it's called, so seeding the star field inside the
+  // initializer produced a real, reproducible hydration mismatch (React
+  // warning "A tree hydrated but some attributes of the server rendered
+  // HTML didn't match the client properties", `40` mismatched `.seStar`
+  // elements) — found via live browser verification in Task 16. Starting
+  // from an empty array keeps both render passes identical, then a
+  // client-only effect (which never runs during SSR) fills in the random
+  // positions after hydration completes, mirroring the original inline
+  // `<script>` in public/story/index.html that only ever ran in the browser.
+  const [stars, setStars] = useState<
+    { size: number; top: number; left: number; opacity: number }[]
+  >([]);
+
+  useEffect(() => {
+    setStars(
+      Array.from({ length: 40 }, () => ({
+        size: Math.random() < 0.3 ? 2 : 1,
+        top: Math.random() * 100,
+        left: Math.random() * 100,
+        opacity: Math.random() * 0.5 + 0.2,
+      })),
+    );
+  }, []);
 
   const handleTap = () => tapResolveRef.current?.();
 
