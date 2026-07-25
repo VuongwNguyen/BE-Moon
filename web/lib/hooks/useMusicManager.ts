@@ -35,6 +35,13 @@ export interface UseMusicManagerResult {
 export function useMusicManager(url: string | null): UseMusicManagerResult {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<GalaxyAudioLike | null>(null);
+  // Guards against re-initialization for the lifetime of this mount, mirroring
+  // the `_initialized` guard in the original vanilla `musicManager` objects
+  // (e.g. public/galaxy-moon/index.html, public/story/index.html), where
+  // `init()` runs at most once. Each page has exactly one fixed `galaxyId`
+  // and its track URL never changes mid-session, so this hook is not
+  // designed to react to `url` changing from one non-null value to another
+  // non-null value after the first successful initialization.
   const initializedRef = useRef(false);
 
   useEffect(() => {
@@ -65,15 +72,21 @@ export function useMusicManager(url: string | null): UseMusicManagerResult {
 
     let attempts = 0;
     const maxAttempts = 10;
+    // Tracks whichever retry timer is currently pending (the initial one, or
+    // the latest one rescheduled from within `retryPlay`) so cleanup can
+    // cancel it and prevent `audio.play()` from firing after unmount.
+    let currentRetryTimer: ReturnType<typeof setTimeout> | undefined;
     const retryPlay = () => {
       if (attempts < maxAttempts && audio.paused) {
         attempts++;
         audio.play().catch(() => {
-          if (attempts < maxAttempts) setTimeout(retryPlay, 500);
+          if (attempts < maxAttempts) {
+            currentRetryTimer = setTimeout(retryPlay, 500);
+          }
         });
       }
     };
-    const initialRetryTimer = setTimeout(retryPlay, 100);
+    currentRetryTimer = setTimeout(retryPlay, 100);
 
     const onFocus = () => {
       if (audioRef.current?.paused) audioRef.current.play().catch(() => {});
@@ -87,7 +100,7 @@ export function useMusicManager(url: string | null): UseMusicManagerResult {
     document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
-      clearTimeout(initialRetryTimer);
+      clearTimeout(currentRetryTimer);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
     };
