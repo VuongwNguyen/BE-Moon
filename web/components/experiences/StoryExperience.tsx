@@ -70,6 +70,16 @@ export function StoryExperience({ galaxyId }: StoryExperienceProps) {
   >([]);
 
   useEffect(() => {
+    // react-hooks/set-state-in-effect normally wants setState-in-effect to
+    // happen inside a callback reacting to an external event (e.g. a fetch
+    // promise settling, as in useGalaxyView above) rather than synchronously
+    // in the effect body. That restructuring doesn't apply here: there is no
+    // async source to hang this off of — the whole point is a one-time,
+    // client-only random value that must be absent from the very first
+    // (server-rendered) paint to avoid the hydration mismatch described
+    // above. Calling setState once in a mount-only (`[]` deps) effect is the
+    // standard React-recommended pattern for exactly this case.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStars(
       Array.from({ length: 40 }, () => ({
         size: Math.random() < 0.3 ? 2 : 1,
