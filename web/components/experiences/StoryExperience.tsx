@@ -1,7 +1,7 @@
 // web/components/experiences/StoryExperience.tsx
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { useGalaxyView } from "@/lib/hooks/useGalaxyView";
 import { useMusicManager } from "@/lib/hooks/useMusicManager";
@@ -22,7 +22,19 @@ const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, 
 
 export function StoryExperience({ galaxyId }: StoryExperienceProps) {
   const { loading, view, items, music } = useGalaxyView(galaxyId);
-  const musicManager = useMusicManager(music);
+
+  // Mirrors the `occasionConf` lookup inside `main()` below: the original
+  // public/story/js/story.js only ever starts music after BOTH the
+  // `view.storyType` check and the `occasionConf` lookup succeed. Computing
+  // this synchronously during render (storyConfig is a plain imported
+  // object, not async) lets us gate `useMusicManager` the same way, so music
+  // never starts on either redirect-on-failure path.
+  const occasionConf = useMemo(
+    () => (view?.storyType ? storyConfig[view.storyType]?.occasions[view.occasion ?? ""] : undefined),
+    [view],
+  );
+  const canPlayStory = Boolean(occasionConf);
+  const musicManager = useMusicManager(canPlayStory ? music : null);
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [introStarted, setIntroStarted] = useState(false);
@@ -112,7 +124,6 @@ export function StoryExperience({ galaxyId }: StoryExperienceProps) {
         return;
       }
 
-      const occasionConf = storyConfig[view.storyType]?.occasions[view.occasion ?? ""];
       if (!occasionConf) {
         window.location.replace(`/view/?galaxyId=${galaxyId}&skip_se=true`);
         return;
