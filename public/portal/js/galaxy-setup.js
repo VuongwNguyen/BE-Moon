@@ -556,7 +556,6 @@ async function init() {
     document.getElementById('galaxy-name').textContent = galaxy.name || 'Galaxy';
     document.getElementById('preview-caption').textContent = galaxy.name || 'Galaxy';
     document.title = `${galaxy.name || 'Galaxy'} — Lumora`;
-    document.getElementById('back-link').href = `/portal/galaxy.html?galaxyId=${galaxyId}`;
     setupNameEditor(galaxy.name || 'Galaxy');
 
     refreshPreview();
