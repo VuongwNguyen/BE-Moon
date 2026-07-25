@@ -1,15 +1,14 @@
-// web/components/experiences/GalaxyMoonExperience.tsx
-// STUB — replaced wholesale by the GalaxyMoonExperience implementation plan.
-"use client";
-
 interface GalaxyMoonExperienceProps {
   galaxyId: string;
 }
 
 export function GalaxyMoonExperience({ galaxyId }: GalaxyMoonExperienceProps) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100dvh", background: "#000", color: "#fff" }}>
-      Galaxy experience for {galaxyId} — coming in a later plan.
-    </div>
+    <iframe
+      src={`/galaxy-moon/index.html?galaxyId=${encodeURIComponent(galaxyId)}`}
+      title="Galaxy experience"
+      allow="autoplay; fullscreen"
+      style={{ display: "block", width: "100%", height: "100dvh", border: 0 }}
+    />
   );
 }
