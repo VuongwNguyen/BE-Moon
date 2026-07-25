@@ -61,4 +61,24 @@ describe("useGalaxyView", () => {
     expect(result.current.view).toBeNull();
     expect(fetch).not.toHaveBeenCalled();
   });
+
+  it("stops loading and stays in safe default state when fetch rejects with a network error", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.reject(new Error("network down"))),
+    );
+
+    const { result } = renderHook(() => useGalaxyView("g1"));
+    expect(result.current.loading).toBe(true);
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.view).toBeNull();
+    expect(result.current.items).toEqual([]);
+    expect(result.current.images).toEqual([]);
+    expect(result.current.captions).toEqual([]);
+    expect(result.current.music).toBeNull();
+    expect(result.current.theme).toBeNull();
+    expect(result.current.name).toBe("");
+  });
 });

@@ -34,6 +34,11 @@ export function useGalaxyView(galaxyId: string | null): UseGalaxyViewResult {
         setView(viewResult);
         setItems(itemsResult);
       })
+      .catch(() => {
+        if (cancelled) return;
+        setView(null);
+        setItems([]);
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
