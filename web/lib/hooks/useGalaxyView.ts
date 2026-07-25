@@ -16,36 +16,50 @@ export interface UseGalaxyViewResult {
   name: string;
 }
 
+/**
+ * Data fetched for a given galaxyId. `id` records which galaxyId this result
+ * belongs to, so the render phase can derive `loading`/`view`/`items` by
+ * comparing it against the current prop instead of imperatively toggling a
+ * separate `loading` boolean from inside the effect (see
+ * react-hooks/set-state-in-effect: effects should only call setState from
+ * within an async callback in response to an external event, not
+ * synchronously in the effect body).
+ */
+interface FetchedData {
+  id: string | null;
+  view: GalaxyView | null;
+  items: GalleryItem[];
+}
+
+const EMPTY: FetchedData = { id: null, view: null, items: [] };
+
 export function useGalaxyView(galaxyId: string | null): UseGalaxyViewResult {
-  const [loading, setLoading] = useState(Boolean(galaxyId));
-  const [view, setView] = useState<GalaxyView | null>(null);
-  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [data, setData] = useState<FetchedData>(EMPTY);
 
   useEffect(() => {
     if (!galaxyId) {
-      setLoading(false);
       return;
     }
     let cancelled = false;
-    setLoading(true);
     Promise.all([fetchGalaxyView(galaxyId), fetchGalleryItems(galaxyId)])
       .then(([viewResult, itemsResult]) => {
         if (cancelled) return;
-        setView(viewResult);
-        setItems(itemsResult);
+        setData({ id: galaxyId, view: viewResult, items: itemsResult });
       })
       .catch(() => {
         if (cancelled) return;
-        setView(null);
-        setItems([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        setData({ id: galaxyId, view: null, items: [] });
       });
     return () => {
       cancelled = true;
     };
   }, [galaxyId]);
+
+  // Data is only "current" once it was fetched for this exact galaxyId.
+  const isCurrent = data.id === galaxyId;
+  const loading = Boolean(galaxyId) && !isCurrent;
+  const view = isCurrent ? data.view : null;
+  const items = isCurrent ? data.items : [];
 
   return {
     loading,
