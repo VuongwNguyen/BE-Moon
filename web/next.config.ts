@@ -19,6 +19,8 @@ const nextConfig: NextConfig = {
     return [
       { source: "/galaxies/:path*", destination: `${backendOrigin}/galaxies/:path*` },
       { source: "/gallary/:path*", destination: `${backendOrigin}/gallary/:path*` },
+      { source: "/galaxy-moon/:path*", destination: `${backendOrigin}/galaxy-moon/:path*` },
+      { source: "/fall/:path*", destination: `${backendOrigin}/fall/:path*` },
     ];
   },
 };
